@@ -1,110 +1,56 @@
 {
   "nodes": {
-    "@fe-swd-workspace/fe-react-app": {
-      "name": "@fe-swd-workspace/fe-react-app",
+    "fe-react-app": {
+      "name": "fe-react-app",
       "type": "app",
       "data": {
         "root": "apps/fe-react-app",
         "projectType": "application",
         "targets": {
           "typecheck": {
-            "cache": true,
-            "inputs": [
-              "production",
-              "^production",
-              {
-                "externalDependencies": [
-                  "typescript"
-                ]
-              }
-            ],
-            "options": {
-              "cwd": "apps/fe-react-app",
-              "command": "tsc --noEmit -p tsconfig.app.json"
-            },
-            "metadata": {
-              "technologies": [
-                "typescript",
-                "typescript"
-              ],
-              "description": "Runs type-checking for the project.",
-              "help": {
-                "command": "pnpm exec tsc -p tsconfig.app.json --help",
-                "example": {
-                  "options": {
-                    "noEmit": true
-                  }
-                }
-              }
-            },
-            "executor": "nx:run-commands",
+            "executor": "@nx/vite:typecheck",
+            "options": {},
             "configurations": {},
             "parallelism": true
           },
           "build": {
-            "options": {
-              "cwd": "apps/fe-react-app",
-              "command": "vite build"
-            },
-            "cache": true,
-            "dependsOn": [
-              "^build"
-            ],
-            "inputs": [
-              "production",
-              "^production",
-              {
-                "externalDependencies": [
-                  "vite"
-                ]
-              }
-            ],
+            "executor": "@nx/vite:build",
             "outputs": [
-              "{projectRoot}\\dist"
+              "{options.outputPath}"
             ],
-            "metadata": {
-              "technologies": [
-                "vite"
-              ],
-              "description": "Run Vite build",
-              "help": {
-                "command": "pnpm exec vite build --help",
-                "example": {
-                  "options": {
-                    "sourcemap": true,
-                    "manifest": "manifest.json"
-                  }
-                }
+            "defaultConfiguration": "production",
+            "options": {
+              "outputPath": "dist/apps/fe-react-app"
+            },
+            "configurations": {
+              "development": {
+                "mode": "development"
+              },
+              "production": {
+                "mode": "production"
               }
             },
-            "executor": "nx:run-commands",
-            "configurations": {},
-            "parallelism": true
+            "parallelism": true,
+            "cache": true
           },
           "serve": {
-            "continuous": true,
+            "executor": "@nx/vite:dev-server",
+            "defaultConfiguration": "development",
             "options": {
-              "cwd": "apps/fe-react-app",
-              "command": "vite"
+              "buildTarget": "fe-react-app:build"
             },
-            "metadata": {
-              "technologies": [
-                "vite"
-              ],
-              "description": "Starts Vite dev server",
-              "help": {
-                "command": "pnpm exec vite --help",
-                "example": {
-                  "options": {
-                    "port": 3000
-                  }
-                }
+            "configurations": {
+              "development": {
+                "buildTarget": "fe-react-app:build:development",
+                "hmr": true
               },
-              "deprecated": "Use devTargetName instead. This option will be removed in Nx 22."
+              "production": {
+                "buildTarget": "fe-react-app:build:production",
+                "hmr": false
+              }
             },
-            "executor": "nx:run-commands",
-            "configurations": {},
-            "parallelism": true
+            "parallelism": true,
+            "continuous": true
           },
           "dev": {
             "continuous": true,
@@ -131,28 +77,21 @@
             "parallelism": true
           },
           "preview": {
-            "executor": "nx:run-script",
+            "executor": "@nx/vite:preview-server",
+            "defaultConfiguration": "development",
             "options": {
-              "script": "preview"
+              "buildTarget": "fe-react-app:build"
             },
-            "metadata": {
-              "technologies": [
-                "vite"
-              ],
-              "description": "Locally preview Vite production build",
-              "help": {
-                "command": "pnpm exec vite preview --help",
-                "example": {
-                  "options": {
-                    "port": 3000
-                  }
-                }
+            "configurations": {
+              "development": {
+                "buildTarget": "fe-react-app:build:development"
               },
-              "scriptContent": "pnpm exec nx run @fe-swd-workspace/fe-react-app:build && vite preview",
-              "runCommand": "pnpm run preview"
+              "production": {
+                "buildTarget": "fe-react-app:build:production"
+              }
             },
-            "configurations": {},
-            "parallelism": true
+            "parallelism": true,
+            "continuous": true
           },
           "serve-static": {
             "continuous": true,
@@ -180,66 +119,42 @@
             ],
             "executor": "nx:run-commands",
             "options": {
-              "command": "pnpm exec nx watch --projects @fe-swd-workspace/fe-react-app --includeDependentProjects -- pnpm exec nx build-deps @fe-swd-workspace/fe-react-app"
+              "command": "pnpm exec nx watch --projects fe-react-app --includeDependentProjects -- pnpm exec nx build-deps fe-react-app"
             },
             "configurations": {},
             "parallelism": true
           },
           "lint": {
-            "cache": true,
-            "options": {
-              "cwd": "apps/fe-react-app",
-              "command": "eslint ."
-            },
-            "inputs": [
-              "default",
-              "^default",
-              "{workspaceRoot}/apps/fe-react-app/eslint.config.js",
-              "{workspaceRoot}/tools/eslint-rules/**/*",
-              {
-                "externalDependencies": [
-                  "eslint"
-                ]
-              }
-            ],
+            "executor": "@nx/eslint:lint",
             "outputs": [
               "{options.outputFile}"
             ],
-            "metadata": {
-              "technologies": [
-                "eslint"
-              ],
-              "description": "Runs ESLint on project",
-              "help": {
-                "command": "pnpm exec eslint --help",
-                "example": {
-                  "options": {
-                    "max-warnings": 0
-                  }
-                }
-              }
+            "options": {
+              "lintFilePatterns": [
+                "apps/fe-react-app/**/*.{ts,tsx,js,jsx}"
+              ]
             },
-            "executor": "nx:run-commands",
             "configurations": {},
-            "parallelism": true
+            "parallelism": true,
+            "cache": true
           }
         },
         "metadata": {
-          "targetGroups": {
-            "NPM Scripts": [
-              "preview"
-            ]
-          },
+          "targetGroups": {},
           "js": {
             "packageName": "@fe-swd-workspace/fe-react-app",
             "packageMain": "./vite.config.ts",
             "isInPackageManagerWorkspaces": true
           }
         },
-        "name": "@fe-swd-workspace/fe-react-app",
+        "name": "fe-react-app",
         "tags": [
-          "npm:private"
+          "npm:private",
+          "scope:fe-react-app",
+          "type:app"
         ],
+        "$schema": "../../node_modules/nx/schemas/project-schema.json",
+        "sourceRoot": "apps/fe-react-app/src",
         "implicitDependencies": []
       }
     }
@@ -11263,69 +11178,69 @@
     }
   },
   "dependencies": {
-    "@fe-swd-workspace/fe-react-app": [
+    "fe-react-app": [
       {
-        "source": "@fe-swd-workspace/fe-react-app",
+        "source": "fe-react-app",
         "target": "npm:@eslint/js",
         "type": "static"
       },
       {
-        "source": "@fe-swd-workspace/fe-react-app",
+        "source": "fe-react-app",
         "target": "npm:globals",
         "type": "static"
       },
       {
-        "source": "@fe-swd-workspace/fe-react-app",
+        "source": "fe-react-app",
         "target": "npm:eslint-plugin-react-hooks",
         "type": "static"
       },
       {
-        "source": "@fe-swd-workspace/fe-react-app",
+        "source": "fe-react-app",
         "target": "npm:eslint-plugin-react-refresh",
         "type": "static"
       },
       {
-        "source": "@fe-swd-workspace/fe-react-app",
+        "source": "fe-react-app",
         "target": "npm:typescript-eslint",
         "type": "static"
       },
       {
-        "source": "@fe-swd-workspace/fe-react-app",
+        "source": "fe-react-app",
         "target": "npm:eslint",
         "type": "static"
       },
       {
-        "source": "@fe-swd-workspace/fe-react-app",
+        "source": "fe-react-app",
         "target": "npm:@types/react",
         "type": "static"
       },
       {
-        "source": "@fe-swd-workspace/fe-react-app",
+        "source": "fe-react-app",
         "target": "npm:@types/react-dom",
         "type": "static"
       },
       {
-        "source": "@fe-swd-workspace/fe-react-app",
+        "source": "fe-react-app",
         "target": "npm:@vitejs/plugin-react@5.0.3",
         "type": "static"
       },
       {
-        "source": "@fe-swd-workspace/fe-react-app",
+        "source": "fe-react-app",
         "target": "npm:typescript",
         "type": "static"
       },
       {
-        "source": "@fe-swd-workspace/fe-react-app",
+        "source": "fe-react-app",
         "target": "npm:vite@7.1.7",
         "type": "static"
       },
       {
-        "source": "@fe-swd-workspace/fe-react-app",
+        "source": "fe-react-app",
         "target": "npm:react",
         "type": "static"
       },
       {
-        "source": "@fe-swd-workspace/fe-react-app",
+        "source": "fe-react-app",
         "target": "npm:react-dom",
         "type": "static"
       }
@@ -25696,5 +25611,5 @@
   },
   "version": "6.0",
   "errors": [],
-  "computedAt": 1758633151573
+  "computedAt": 1758633200156
 }

@@ -1,0 +1,68 @@
+{
+  "name": "fe-react-app",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/fe-react-app/src",
+  "targets": {
+    "build": {
+      "executor": "@nx/vite:build",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "outputPath": "dist/apps/fe-react-app"
+      },
+      "configurations": {
+        "development": {
+          "mode": "development"
+        },
+        "production": {
+          "mode": "production"
+        }
+      }
+    },
+    "serve": {
+      "executor": "@nx/vite:dev-server",
+      "defaultConfiguration": "development",
+      "options": {
+        "buildTarget": "fe-react-app:build"
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "fe-react-app:build:development",
+          "hmr": true
+        },
+        "production": {
+          "buildTarget": "fe-react-app:build:production",
+          "hmr": false
+        }
+      }
+    },
+    "preview": {
+      "executor": "@nx/vite:preview-server",
+      "defaultConfiguration": "development",
+      "options": {
+        "buildTarget": "fe-react-app:build"
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "fe-react-app:build:development"
+        },
+        "production": {
+          "buildTarget": "fe-react-app:build:production"
+        }
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["apps/fe-react-app/**/*.{ts,tsx,js,jsx}"]
+      }
+    },
+    "typecheck": {
+      "executor": "@nx/vite:typecheck",
+      "options": {}
+    }
+  },
+  "tags": ["scope:fe-react-app", "type:app"]
+}

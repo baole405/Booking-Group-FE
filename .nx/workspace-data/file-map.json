@@ -94,7 +94,7 @@
       }
     ],
     "projectFileMap": {
-      "@fe-swd-workspace/fe-react-app": [
+      "fe-react-app": [
         {
           "file": "apps/fe-react-app/.gitignore",
           "hash": "13046175384202504187"
@@ -131,6 +131,10 @@
             "npm:react",
             "npm:react-dom"
           ]
+        },
+        {
+          "file": "apps/fe-react-app/project.json",
+          "hash": "2905216697099947103"
         },
         {
           "file": "apps/fe-react-app/public/vite.svg",

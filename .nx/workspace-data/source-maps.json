@@ -1,136 +1,16 @@
 {
   "apps/fe-react-app": {
     "root": [
-      "apps/fe-react-app/package.json",
-      "nx/core/package-json"
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
     ],
     "projectType": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
     ],
     "targets": [
       "apps/fe-react-app/tsconfig.app.json",
       "@nx/js/typescript"
-    ],
-    "targets.build": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.build.options": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.build.cache": [
-      "nx.json",
-      "nx/target-defaults"
-    ],
-    "targets.build.dependsOn": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.build.inputs": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.build.outputs": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.build.metadata": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.build.executor": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.build.options.cwd": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.build.options.command": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.build.metadata.technologies": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.build.metadata.technologies.0": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.build.metadata.description": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.build.metadata.help": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.build.metadata.help.command": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.build.metadata.help.example": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.serve": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.serve.continuous": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.serve.options": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.serve.metadata": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.serve.executor": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.serve.options.cwd": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.serve.options.command": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.serve.metadata.technologies": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.serve.metadata.technologies.0": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.serve.metadata.description": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.serve.metadata.help": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.serve.metadata.help.command": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.serve.metadata.help.example": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.serve.metadata.deprecated": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
     ],
     "targets.dev": [
       "apps/fe-react-app/vite.config.ts",
@@ -184,82 +64,6 @@
       "apps/fe-react-app/vite.config.ts",
       "@nx/vite/plugin"
     ],
-    "targets.serve-static": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.serve-static.continuous": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.serve-static.executor": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.serve-static.options": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.serve-static.options.buildTarget": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.serve-static.options.spa": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.typecheck": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.typecheck.cache": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.typecheck.inputs": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.typecheck.options": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.typecheck.metadata": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.typecheck.executor": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.typecheck.options.cwd": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.typecheck.options.command": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.typecheck.metadata.description": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.typecheck.metadata.technologies.1": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.typecheck.metadata.help": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.build-deps": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
-    "targets.build-deps.dependsOn": [
-      "apps/fe-react-app/vite.config.ts",
-      "@nx/vite/plugin"
-    ],
     "targets.watch-deps": [
       "apps/fe-react-app/vite.config.ts",
       "@nx/vite/plugin"
@@ -284,69 +88,9 @@
       "apps/fe-react-app/vite.config.ts",
       "@nx/vite/plugin"
     ],
-    "targets.lint": [
-      "apps/fe-react-app/eslint.config.js",
-      "@nx/eslint/plugin"
-    ],
-    "targets.lint.cache": [
-      "nx.json",
-      "nx/target-defaults"
-    ],
-    "targets.lint.options": [
-      "apps/fe-react-app/eslint.config.js",
-      "@nx/eslint/plugin"
-    ],
-    "targets.lint.inputs": [
-      "apps/fe-react-app/eslint.config.js",
-      "@nx/eslint/plugin"
-    ],
-    "targets.lint.outputs": [
-      "apps/fe-react-app/eslint.config.js",
-      "@nx/eslint/plugin"
-    ],
-    "targets.lint.metadata": [
-      "apps/fe-react-app/eslint.config.js",
-      "@nx/eslint/plugin"
-    ],
-    "targets.lint.executor": [
-      "apps/fe-react-app/eslint.config.js",
-      "@nx/eslint/plugin"
-    ],
-    "targets.lint.options.cwd": [
-      "apps/fe-react-app/eslint.config.js",
-      "@nx/eslint/plugin"
-    ],
-    "targets.lint.options.command": [
-      "apps/fe-react-app/eslint.config.js",
-      "@nx/eslint/plugin"
-    ],
-    "targets.lint.metadata.technologies": [
-      "apps/fe-react-app/eslint.config.js",
-      "@nx/eslint/plugin"
-    ],
-    "targets.lint.metadata.technologies.0": [
-      "apps/fe-react-app/eslint.config.js",
-      "@nx/eslint/plugin"
-    ],
-    "targets.lint.metadata.description": [
-      "apps/fe-react-app/eslint.config.js",
-      "@nx/eslint/plugin"
-    ],
-    "targets.lint.metadata.help": [
-      "apps/fe-react-app/eslint.config.js",
-      "@nx/eslint/plugin"
-    ],
-    "targets.lint.metadata.help.command": [
-      "apps/fe-react-app/eslint.config.js",
-      "@nx/eslint/plugin"
-    ],
-    "targets.lint.metadata.help.example": [
-      "apps/fe-react-app/eslint.config.js",
-      "@nx/eslint/plugin"
-    ],
     "name": [
-      "apps/fe-react-app/package.json",
-      "nx/core/package-json"
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
     ],
     "tags": [
       "apps/fe-react-app/package.json",
@@ -357,14 +101,6 @@
       "nx/core/package-json"
     ],
     "metadata.targetGroups": [
-      "apps/fe-react-app/package.json",
-      "nx/core/package-json"
-    ],
-    "metadata.targetGroups.NPM Scripts": [
-      "apps/fe-react-app/package.json",
-      "nx/core/package-json"
-    ],
-    "metadata.targetGroups.NPM Scripts.0": [
       "apps/fe-react-app/package.json",
       "nx/core/package-json"
     ],
@@ -384,35 +120,195 @@
       "apps/fe-react-app/package.json",
       "nx/core/package-json"
     ],
+    "$schema": [
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
+    ],
+    "sourceRoot": [
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
+    ],
+    "tags.scope:fe-react-app": [
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
+    ],
+    "tags.type:app": [
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build": [
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build.executor": [
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build.outputs": [
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build.defaultConfiguration": [
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build.options": [
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build.configurations": [
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build.options.outputPath": [
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build.configurations.development": [
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build.configurations.development.mode": [
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build.configurations.production": [
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build.configurations.production.mode": [
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.serve": [
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.serve.executor": [
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.serve.defaultConfiguration": [
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.serve.options": [
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.serve.configurations": [
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.serve.options.buildTarget": [
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.serve.configurations.development": [
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.serve.configurations.development.buildTarget": [
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.serve.configurations.development.hmr": [
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.serve.configurations.production": [
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.serve.configurations.production.buildTarget": [
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.serve.configurations.production.hmr": [
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
+    ],
     "targets.preview": [
-      "apps/fe-react-app/package.json",
-      "nx/core/package-json"
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
     ],
     "targets.preview.executor": [
-      "apps/fe-react-app/package.json",
-      "nx/core/package-json"
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.preview.defaultConfiguration": [
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
     ],
     "targets.preview.options": [
-      "apps/fe-react-app/package.json",
-      "nx/core/package-json"
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
     ],
-    "targets.preview.metadata": [
-      "apps/fe-react-app/package.json",
-      "nx/core/package-json"
+    "targets.preview.configurations": [
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
     ],
-    "targets.preview.options.script": [
-      "apps/fe-react-app/package.json",
-      "nx/core/package-json"
+    "targets.preview.options.buildTarget": [
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
     ],
-    "targets.preview.metadata.scriptContent": [
-      "apps/fe-react-app/package.json",
-      "nx/core/package-json"
+    "targets.preview.configurations.development": [
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
     ],
-    "targets.preview.metadata.runCommand": [
-      "apps/fe-react-app/package.json",
-      "nx/core/package-json"
+    "targets.preview.configurations.development.buildTarget": [
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.preview.configurations.production": [
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.preview.configurations.production.buildTarget": [
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.lint": [
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.lint.executor": [
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.lint.outputs": [
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.lint.options": [
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.lint.options.lintFilePatterns": [
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.typecheck": [
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.typecheck.executor": [
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.typecheck.options": [
+      "apps/fe-react-app/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build.cache": [
+      "nx.json",
+      "nx/target-defaults"
     ],
     "targets.build.parallelism": [
+      "nx.json",
+      "nx/target-defaults"
+    ],
+    "targets.lint.cache": [
       "nx.json",
       "nx/target-defaults"
     ],
