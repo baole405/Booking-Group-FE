@@ -160,7 +160,7 @@ importers:
         specifier: ^3.2.4
         version: 3.2.4(@types/node@22.18.6)(@vitest/ui@3.2.4)(jiti@2.6.0)(jsdom@26.1.0)(lightningcss@1.30.1)(terser@5.44.0)(yaml@2.8.1)
 
-  apps/fe-react-app:
+  apps/fe-react-web:
     dependencies:
       react:
         specifier: ^19.1.1

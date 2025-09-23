@@ -128,7 +128,7 @@
       "apps/fe-react-app/project.json",
       "nx/core/project-json"
     ],
-    "tags.scope:fe-react-app": [
+    "tags.scope:fe-react-web": [
       "apps/fe-react-app/project.json",
       "nx/core/project-json"
     ],

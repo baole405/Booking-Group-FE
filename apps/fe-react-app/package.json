@@ -1,11 +1,11 @@
 {
-  "name": "@fe-swd-workspace/fe-react-app",
+  "name": "@fe-swd-workspace/fe-react-web",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "main": "./vite.config.ts",
   "scripts": {
-    "preview": "pnpm exec nx run @fe-swd-workspace/fe-react-app:build && vite preview"
+    "preview": "pnpm exec nx run @fe-swd-workspace/fe-react-web:build && vite preview"
   },
   "dependencies": {
     "react": "^19.1.1",

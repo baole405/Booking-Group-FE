@@ -1,15 +1,15 @@
 {
-  "name": "fe-react-app",
+  "name": "fe-react-web",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
-  "sourceRoot": "apps/fe-react-app/src",
+  "sourceRoot": "apps/fe-react-web/src",
   "targets": {
     "build": {
       "executor": "@nx/vite:build",
       "outputs": ["{options.outputPath}"],
       "defaultConfiguration": "production",
       "options": {
-        "outputPath": "dist/apps/fe-react-app"
+        "outputPath": "dist/apps/fe-react-web"
       },
       "configurations": {
         "development": {
@@ -24,15 +24,15 @@
       "executor": "@nx/vite:dev-server",
       "defaultConfiguration": "development",
       "options": {
-        "buildTarget": "fe-react-app:build"
+        "buildTarget": "fe-react-web:build"
       },
       "configurations": {
         "development": {
-          "buildTarget": "fe-react-app:build:development",
+          "buildTarget": "fe-react-web:build:development",
           "hmr": true
         },
         "production": {
-          "buildTarget": "fe-react-app:build:production",
+          "buildTarget": "fe-react-web:build:production",
           "hmr": false
         }
       }
@@ -41,14 +41,14 @@
       "executor": "@nx/vite:preview-server",
       "defaultConfiguration": "development",
       "options": {
-        "buildTarget": "fe-react-app:build"
+        "buildTarget": "fe-react-web:build"
       },
       "configurations": {
         "development": {
-          "buildTarget": "fe-react-app:build:development"
+          "buildTarget": "fe-react-web:build:development"
         },
         "production": {
-          "buildTarget": "fe-react-app:build:production"
+          "buildTarget": "fe-react-web:build:production"
         }
       }
     },
@@ -56,7 +56,7 @@
       "executor": "@nx/eslint:lint",
       "outputs": ["{options.outputFile}"],
       "options": {
-        "lintFilePatterns": ["apps/fe-react-app/**/*.{ts,tsx,js,jsx}"]
+        "lintFilePatterns": ["apps/fe-react-web/**/*.{ts,tsx,js,jsx}"]
       }
     },
     "typecheck": {
@@ -64,5 +64,5 @@
       "options": {}
     }
   },
-  "tags": ["scope:fe-react-app", "type:app"]
+  "tags": ["scope:fe-react-web", "type:app"]
 }

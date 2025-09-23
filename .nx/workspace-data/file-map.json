@@ -62,11 +62,31 @@
     "nonProjectFiles": [
       {
         "file": ".gitignore",
-        "hash": "13404745306227114823"
+        "hash": "7094445347243311755"
+      },
+      {
+        "file": ".husky/commit-msg",
+        "hash": "11093848089734327252"
+      },
+      {
+        "file": ".husky/pre-commit",
+        "hash": "11769173800128111832"
+      },
+      {
+        "file": ".prettierignore",
+        "hash": "8735943118078278369"
+      },
+      {
+        "file": ".prettierrc",
+        "hash": "3000077833327289733"
       },
       {
         "file": "README.md",
         "hash": "11670149940487030595"
+      },
+      {
+        "file": "commitlint.config.mjs",
+        "hash": "3037135261013862908"
       },
       {
         "file": "nx.json",
@@ -74,11 +94,11 @@
       },
       {
         "file": "package.json",
-        "hash": "7295388253084927771"
+        "hash": "8263076955008746278"
       },
       {
         "file": "pnpm-lock.yaml",
-        "hash": "584129989537233632"
+        "hash": "16628135659867478323"
       },
       {
         "file": "pnpm-workspace.yaml",
@@ -90,11 +110,11 @@
       },
       {
         "file": "tsconfig.json",
-        "hash": "12867879007852525713"
+        "hash": "8030488179340662247"
       }
     ],
     "projectFileMap": {
-      "fe-react-app": [
+      "fe-react-web": [
         {
           "file": "apps/fe-react-app/.gitignore",
           "hash": "13046175384202504187"
@@ -121,7 +141,7 @@
         },
         {
           "file": "apps/fe-react-app/package.json",
-          "hash": "1061500835506197220",
+          "hash": "4497517081906185059",
           "deps": [
             "npm:@types/react",
             "npm:@types/react-dom",
@@ -134,7 +154,7 @@
         },
         {
           "file": "apps/fe-react-app/project.json",
-          "hash": "2905216697099947103"
+          "hash": "2698483564479712741"
         },
         {
           "file": "apps/fe-react-app/public/vite.svg",
