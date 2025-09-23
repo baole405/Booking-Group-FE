@@ -1,5 +1,9 @@
 # See https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
 
+# Nx
+.nx/cache
+.nx/workspace-data
+
 .env
 .env.*
 *.env.*
@@ -49,10 +53,6 @@ testem.log
 # System Files
 .DS_Store
 Thumbs.db
-
-# Nx
-.nx/cache
-.nx/workspace-data
 
 # Vite
 vite.config.*.timestamp*
