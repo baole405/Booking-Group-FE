@@ -1,0 +1,193 @@
+{
+  "version": "6.0",
+  "nxVersion": "21.3.2",
+  "pathMappings": {},
+  "nxJsonPlugins": [
+    {
+      "name": "@nx/js/typescript",
+      "options": {
+        "typecheck": {
+          "targetName": "typecheck"
+        },
+        "build": {
+          "targetName": "build",
+          "configName": "tsconfig.lib.json",
+          "buildDepsName": "build-deps",
+          "watchDepsName": "watch-deps"
+        }
+      }
+    },
+    {
+      "name": "@nx/react/router-plugin",
+      "options": {
+        "buildTargetName": "build",
+        "devTargetName": "dev",
+        "startTargetName": "start",
+        "watchDepsTargetName": "watch-deps",
+        "buildDepsTargetName": "build-deps",
+        "typecheckTargetName": "typecheck"
+      }
+    },
+    {
+      "name": "@nx/vite/plugin",
+      "options": {
+        "buildTargetName": "build",
+        "testTargetName": "test",
+        "serveTargetName": "serve",
+        "devTargetName": "dev",
+        "previewTargetName": "preview",
+        "serveStaticTargetName": "serve-static",
+        "typecheckTargetName": "typecheck",
+        "buildDepsTargetName": "build-deps",
+        "watchDepsTargetName": "watch-deps"
+      }
+    },
+    {
+      "name": "@nx/eslint/plugin",
+      "options": {
+        "targetName": "lint"
+      }
+    },
+    {
+      "name": "@nx/cypress/plugin",
+      "options": {
+        "targetName": "e2e",
+        "openTargetName": "open-cypress",
+        "componentTestingTargetName": "component-test",
+        "ciTargetName": "e2e-ci"
+      }
+    }
+  ],
+  "fileMap": {
+    "nonProjectFiles": [
+      {
+        "file": ".gitignore",
+        "hash": "13404745306227114823"
+      },
+      {
+        "file": "README.md",
+        "hash": "11670149940487030595"
+      },
+      {
+        "file": "nx.json",
+        "hash": "4158916865182694910"
+      },
+      {
+        "file": "package.json",
+        "hash": "7295388253084927771"
+      },
+      {
+        "file": "pnpm-lock.yaml",
+        "hash": "584129989537233632"
+      },
+      {
+        "file": "pnpm-workspace.yaml",
+        "hash": "6357252474545501342"
+      },
+      {
+        "file": "tsconfig.base.json",
+        "hash": "12524199384237475714"
+      },
+      {
+        "file": "tsconfig.json",
+        "hash": "12867879007852525713"
+      }
+    ],
+    "projectFileMap": {
+      "@fe-swd-workspace/fe-react-app": [
+        {
+          "file": "apps/fe-react-app/.gitignore",
+          "hash": "13046175384202504187"
+        },
+        {
+          "file": "apps/fe-react-app/README.md",
+          "hash": "16035573702314606421"
+        },
+        {
+          "file": "apps/fe-react-app/eslint.config.js",
+          "hash": "14300329805392084141",
+          "deps": [
+            "npm:@eslint/js",
+            "npm:globals",
+            "npm:eslint-plugin-react-hooks",
+            "npm:eslint-plugin-react-refresh",
+            "npm:typescript-eslint",
+            "npm:eslint"
+          ]
+        },
+        {
+          "file": "apps/fe-react-app/index.html",
+          "hash": "4025202329384162906"
+        },
+        {
+          "file": "apps/fe-react-app/package.json",
+          "hash": "1061500835506197220",
+          "deps": [
+            "npm:@types/react",
+            "npm:@types/react-dom",
+            "npm:@vitejs/plugin-react@5.0.3",
+            "npm:typescript",
+            "npm:vite@7.1.7",
+            "npm:react",
+            "npm:react-dom"
+          ]
+        },
+        {
+          "file": "apps/fe-react-app/public/vite.svg",
+          "hash": "16046085400642193116"
+        },
+        {
+          "file": "apps/fe-react-app/src/App.css",
+          "hash": "3739391659270974612"
+        },
+        {
+          "file": "apps/fe-react-app/src/App.tsx",
+          "hash": "9561001225065465909",
+          "deps": [
+            "npm:react"
+          ]
+        },
+        {
+          "file": "apps/fe-react-app/src/assets/react.svg",
+          "hash": "16069471864800376455"
+        },
+        {
+          "file": "apps/fe-react-app/src/index.css",
+          "hash": "13504153635654440336"
+        },
+        {
+          "file": "apps/fe-react-app/src/main.tsx",
+          "hash": "11038211546439381838",
+          "deps": [
+            "npm:react",
+            "npm:react-dom"
+          ]
+        },
+        {
+          "file": "apps/fe-react-app/src/vite-env.d.ts",
+          "hash": "12946363841406869089"
+        },
+        {
+          "file": "apps/fe-react-app/tsconfig.app.json",
+          "hash": "17299097155235243784"
+        },
+        {
+          "file": "apps/fe-react-app/tsconfig.json",
+          "hash": "16533026222407989284"
+        },
+        {
+          "file": "apps/fe-react-app/tsconfig.node.json",
+          "hash": "12526670948656573966"
+        },
+        {
+          "file": "apps/fe-react-app/vite.config.ts",
+          "hash": "16225914092815047172",
+          "deps": [
+            "npm:vite@7.1.7",
+            "npm:@vitejs/plugin-react@5.0.3"
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,12 @@
+[2m> [22mvite build
+
+[36mvite v7.1.7 [32mbuilding for production...[36m[39m
+transforming...
+[32m✓[39m 32 modules transformed.
+rendering chunks...
+computing gzip size...
+[2mdist/[22m[32mindex.html                 [39m[1m[2m  0.46 kB[22m[1m[22m[2m │ gzip:  0.30 kB[22m
+[2mdist/[22m[32massets/react-CHdo91hT.svg  [39m[1m[2m  4.13 kB[22m[1m[22m[2m │ gzip:  2.05 kB[22m
+[2mdist/[22m[35massets/index-D8b4DHJx.css  [39m[1m[2m  1.39 kB[22m[1m[22m[2m │ gzip:  0.71 kB[22m
+[2mdist/[22m[36massets/index-CAl1KfkQ.js   [39m[1m[2m188.06 kB[22m[1m[22m[2m │ gzip: 59.21 kB[22m
+[32m✓ built in 700ms[39m
