@@ -1,20 +1,20 @@
 {
   "run": {
-    "command": "nx run-many -t lint",
-    "startTime": "2025-09-23T14:21:48.845Z",
-    "endTime": "2025-09-23T14:21:48.891Z",
+    "command": "nx build fe-react-web",
+    "startTime": "2025-09-23T14:30:37.652Z",
+    "endTime": "2025-09-23T14:30:39.965Z",
     "inner": false
   },
   "tasks": [
     {
-      "taskId": "fe-react-web:lint",
-      "target": "lint",
+      "taskId": "fe-react-web:build:production",
+      "target": "build",
       "projectName": "fe-react-web",
-      "hash": "17838633340578886197",
-      "startTime": "2025-09-23T14:21:48.885Z",
-      "endTime": "2025-09-23T14:21:48.887Z",
+      "hash": "15000887244403744781",
+      "startTime": "2025-09-23T14:30:37.664Z",
+      "endTime": "2025-09-23T14:30:39.933Z",
       "params": "",
-      "cacheStatus": "local-cache-hit",
+      "cacheStatus": "cache-miss",
       "status": 0
     }
   ]

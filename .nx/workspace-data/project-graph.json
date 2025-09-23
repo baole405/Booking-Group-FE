@@ -11587,6 +11587,11 @@
       },
       {
         "source": "fe-react-web",
+        "target": "npm:eslint-plugin-sonarjs",
+        "type": "static"
+      },
+      {
+        "source": "fe-react-web",
         "target": "npm:globals",
         "type": "static"
       },
@@ -26377,5 +26382,5 @@
   },
   "version": "6.0",
   "errors": [],
-  "computedAt": 1758637207313
+  "computedAt": 1758637723488
 }
