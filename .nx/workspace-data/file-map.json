@@ -61,24 +61,24 @@
   "fileMap": {
     "nonProjectFiles": [
       {
-        "file": ".gitignore",
-        "hash": "7094445347243311755"
-      },
-      {
-        "file": ".husky/commit-msg",
-        "hash": "11093848089734327252"
-      },
-      {
         "file": ".husky/pre-commit",
         "hash": "11769173800128111832"
       },
       {
-        "file": ".prettierignore",
-        "hash": "8735943118078278369"
+        "file": ".prettierrc",
+        "hash": "9732229819426483506"
       },
       {
-        "file": ".prettierrc",
-        "hash": "3000077833327289733"
+        "file": ".prettierignore",
+        "hash": "8065679767097891997"
+      },
+      {
+        "file": ".gitignore",
+        "hash": "15055395939797818635"
+      },
+      {
+        "file": ".husky/commit-msg",
+        "hash": "11093848089734327252"
       },
       {
         "file": "README.md",
@@ -86,62 +86,67 @@
       },
       {
         "file": "commitlint.config.mjs",
-        "hash": "3037135261013862908"
+        "hash": "16064995170022953365"
       },
       {
         "file": "nx.json",
-        "hash": "4158916865182694910"
-      },
-      {
-        "file": "package.json",
-        "hash": "8263076955008746278"
-      },
-      {
-        "file": "pnpm-lock.yaml",
-        "hash": "16628135659867478323"
-      },
-      {
-        "file": "pnpm-workspace.yaml",
-        "hash": "6357252474545501342"
+        "hash": "1189102744719959154"
       },
       {
         "file": "tsconfig.base.json",
-        "hash": "12524199384237475714"
+        "hash": "5791521514432329092"
+      },
+      {
+        "file": "package.json",
+        "hash": "13898897229354272238"
+      },
+      {
+        "file": "eslint.config.mjs",
+        "hash": "6396745164559080240"
+      },
+      {
+        "file": "pnpm-lock.yaml",
+        "hash": "10772101426391092046"
+      },
+      {
+        "file": "pnpm-workspace.yaml",
+        "hash": "12696511766497411973"
       },
       {
         "file": "tsconfig.json",
-        "hash": "8030488179340662247"
+        "hash": "12976532787857336758"
       }
     ],
     "projectFileMap": {
       "fe-react-web": [
         {
-          "file": "apps/fe-react-app/.gitignore",
-          "hash": "13046175384202504187"
+          "file": "apps/fe-react-web/.gitignore",
+          "hash": "987422939859577920"
         },
         {
-          "file": "apps/fe-react-app/README.md",
-          "hash": "16035573702314606421"
+          "file": "apps/fe-react-web/README.md",
+          "hash": "7094653568940750729"
         },
         {
-          "file": "apps/fe-react-app/eslint.config.js",
-          "hash": "14300329805392084141",
+          "file": "apps/fe-react-web/eslint.config.js",
+          "hash": "11049766207613915718",
           "deps": [
             "npm:@eslint/js",
-            "npm:globals",
+            "npm:@nx/eslint-plugin",
+            "npm:eslint-plugin-cypress",
             "npm:eslint-plugin-react-hooks",
             "npm:eslint-plugin-react-refresh",
-            "npm:typescript-eslint",
-            "npm:eslint"
+            "npm:globals",
+            "npm:typescript-eslint"
           ]
         },
         {
-          "file": "apps/fe-react-app/index.html",
-          "hash": "4025202329384162906"
+          "file": "apps/fe-react-web/index.html",
+          "hash": "3523350244501711271"
         },
         {
-          "file": "apps/fe-react-app/package.json",
-          "hash": "4497517081906185059",
+          "file": "apps/fe-react-web/package.json",
+          "hash": "9024150056080949939",
           "deps": [
             "npm:@types/react",
             "npm:@types/react-dom",
@@ -153,62 +158,66 @@
           ]
         },
         {
-          "file": "apps/fe-react-app/project.json",
-          "hash": "2698483564479712741"
+          "file": "apps/fe-react-web/project.json",
+          "hash": "10487120800527053537"
         },
         {
-          "file": "apps/fe-react-app/public/vite.svg",
+          "file": "apps/fe-react-web/public/vite.svg",
           "hash": "16046085400642193116"
         },
         {
-          "file": "apps/fe-react-app/src/App.css",
-          "hash": "3739391659270974612"
+          "file": "apps/fe-react-web/src/App.css",
+          "hash": "2229811984542628135"
         },
         {
-          "file": "apps/fe-react-app/src/App.tsx",
-          "hash": "9561001225065465909",
+          "file": "apps/fe-react-web/src/App.tsx",
+          "hash": "8433536905139089750",
           "deps": [
             "npm:react"
           ]
         },
         {
-          "file": "apps/fe-react-app/src/assets/react.svg",
+          "file": "apps/fe-react-web/src/assets/react.svg",
           "hash": "16069471864800376455"
         },
         {
-          "file": "apps/fe-react-app/src/index.css",
-          "hash": "13504153635654440336"
+          "file": "apps/fe-react-web/src/assets/vite.svg",
+          "hash": "16046085400642193116"
         },
         {
-          "file": "apps/fe-react-app/src/main.tsx",
-          "hash": "11038211546439381838",
+          "file": "apps/fe-react-web/src/index.css",
+          "hash": "1364477521051823897"
+        },
+        {
+          "file": "apps/fe-react-web/src/main.tsx",
+          "hash": "17434214342589670996",
           "deps": [
             "npm:react",
             "npm:react-dom"
           ]
         },
         {
-          "file": "apps/fe-react-app/src/vite-env.d.ts",
-          "hash": "12946363841406869089"
+          "file": "apps/fe-react-web/src/vite-env.d.ts",
+          "hash": "7856441258253745083"
         },
         {
-          "file": "apps/fe-react-app/tsconfig.app.json",
-          "hash": "17299097155235243784"
+          "file": "apps/fe-react-web/tsconfig.app.json",
+          "hash": "13505685882701431258"
         },
         {
-          "file": "apps/fe-react-app/tsconfig.json",
-          "hash": "16533026222407989284"
+          "file": "apps/fe-react-web/tsconfig.json",
+          "hash": "18099830535124760920"
         },
         {
-          "file": "apps/fe-react-app/tsconfig.node.json",
-          "hash": "12526670948656573966"
+          "file": "apps/fe-react-web/tsconfig.node.json",
+          "hash": "133773142228338237"
         },
         {
-          "file": "apps/fe-react-app/vite.config.ts",
-          "hash": "16225914092815047172",
+          "file": "apps/fe-react-web/vite.config.ts",
+          "hash": "2831346411220837692",
           "deps": [
-            "npm:vite@7.1.7",
-            "npm:@vitejs/plugin-react@5.0.3"
+            "npm:@vitejs/plugin-react@5.0.3",
+            "npm:vite@7.1.7"
           ]
         }
       ]

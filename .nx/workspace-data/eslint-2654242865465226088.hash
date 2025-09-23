@@ -1,17 +1,17 @@
 {
-  "13058085127330131286": {
-    "apps/fe-react-app": {
+  "14888949773318748517": {
+    "apps/fe-react-web": {
       "targets": {
         "lint": {
           "command": "eslint .",
           "cache": true,
           "options": {
-            "cwd": "apps/fe-react-app"
+            "cwd": "apps/fe-react-web"
           },
           "inputs": [
             "default",
             "^default",
-            "{workspaceRoot}/apps/fe-react-app/eslint.config.js",
+            "{workspaceRoot}/apps/fe-react-web/eslint.config.js",
             "{workspaceRoot}/tools/eslint-rules/**/*",
             {
               "externalDependencies": [
@@ -40,19 +40,19 @@
       }
     }
   },
-  "4325121026040564218": {
-    "apps/fe-react-app": {
+  "13008484545107252439": {
+    "apps/fe-react-web": {
       "targets": {
         "lint": {
           "command": "eslint .",
           "cache": true,
           "options": {
-            "cwd": "apps/fe-react-app"
+            "cwd": "apps/fe-react-web"
           },
           "inputs": [
             "default",
             "^default",
-            "{workspaceRoot}/apps/fe-react-app/eslint.config.js",
+            "{workspaceRoot}/apps/fe-react-web/eslint.config.js",
             "{workspaceRoot}/tools/eslint-rules/**/*",
             {
               "externalDependencies": [
@@ -81,19 +81,19 @@
       }
     }
   },
-  "2742674190510940660": {
-    "apps/fe-react-app": {
+  "12178830640258115293": {
+    "apps/fe-react-web": {
       "targets": {
         "lint": {
           "command": "eslint .",
           "cache": true,
           "options": {
-            "cwd": "apps/fe-react-app"
+            "cwd": "apps/fe-react-web"
           },
           "inputs": [
             "default",
             "^default",
-            "{workspaceRoot}/apps/fe-react-app/eslint.config.js",
+            "{workspaceRoot}/apps/fe-react-web/eslint.config.js",
             "{workspaceRoot}/tools/eslint-rules/**/*",
             {
               "externalDependencies": [
@@ -122,19 +122,19 @@
       }
     }
   },
-  "10813150239583866735": {
-    "apps/fe-react-app": {
+  "7917526875051008535": {
+    "apps/fe-react-web": {
       "targets": {
         "lint": {
           "command": "eslint .",
           "cache": true,
           "options": {
-            "cwd": "apps/fe-react-app"
+            "cwd": "apps/fe-react-web"
           },
           "inputs": [
             "default",
             "^default",
-            "{workspaceRoot}/apps/fe-react-app/eslint.config.js",
+            "{workspaceRoot}/apps/fe-react-web/eslint.config.js",
             "{workspaceRoot}/tools/eslint-rules/**/*",
             {
               "externalDependencies": [
@@ -163,19 +163,19 @@
       }
     }
   },
-  "16159477266446019545": {
-    "apps/fe-react-app": {
+  "12546940859641911135": {
+    "apps/fe-react-web": {
       "targets": {
         "lint": {
           "command": "eslint .",
           "cache": true,
           "options": {
-            "cwd": "apps/fe-react-app"
+            "cwd": "apps/fe-react-web"
           },
           "inputs": [
             "default",
             "^default",
-            "{workspaceRoot}/apps/fe-react-app/eslint.config.js",
+            "{workspaceRoot}/apps/fe-react-web/eslint.config.js",
             "{workspaceRoot}/tools/eslint-rules/**/*",
             {
               "externalDependencies": [
@@ -203,5 +203,343 @@
         }
       }
     }
-  }
+  },
+  "10010787841100670258": {
+    "apps/fe-react-web": {
+      "targets": {
+        "lint": {
+          "command": "eslint .",
+          "cache": true,
+          "options": {
+            "cwd": "apps/fe-react-web"
+          },
+          "inputs": [
+            "default",
+            "^default",
+            "{workspaceRoot}/apps/fe-react-web/eslint.config.js",
+            "{workspaceRoot}/tools/eslint-rules/**/*",
+            {
+              "externalDependencies": [
+                "eslint"
+              ]
+            }
+          ],
+          "outputs": [
+            "{options.outputFile}"
+          ],
+          "metadata": {
+            "technologies": [
+              "eslint"
+            ],
+            "description": "Runs ESLint on project",
+            "help": {
+              "command": "pnpm exec eslint --help",
+              "example": {
+                "options": {
+                  "max-warnings": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "3987730083021221479": {
+    "apps/fe-react-web": {
+      "targets": {
+        "lint": {
+          "command": "eslint .",
+          "cache": true,
+          "options": {
+            "cwd": "apps/fe-react-web"
+          },
+          "inputs": [
+            "default",
+            "^default",
+            "{workspaceRoot}/apps/fe-react-web/eslint.config.js",
+            "{workspaceRoot}/tools/eslint-rules/**/*",
+            {
+              "externalDependencies": [
+                "eslint"
+              ]
+            }
+          ],
+          "outputs": [
+            "{options.outputFile}"
+          ],
+          "metadata": {
+            "technologies": [
+              "eslint"
+            ],
+            "description": "Runs ESLint on project",
+            "help": {
+              "command": "pnpm exec eslint --help",
+              "example": {
+                "options": {
+                  "max-warnings": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "14697099581747110490": {
+    "apps/fe-react-web": {
+      "targets": {
+        "lint": {
+          "command": "eslint .",
+          "cache": true,
+          "options": {
+            "cwd": "apps/fe-react-web"
+          },
+          "inputs": [
+            "default",
+            "^default",
+            "{workspaceRoot}/apps/fe-react-web/eslint.config.js",
+            "{workspaceRoot}/tools/eslint-rules/**/*",
+            {
+              "externalDependencies": [
+                "eslint"
+              ]
+            }
+          ],
+          "outputs": [
+            "{options.outputFile}"
+          ],
+          "metadata": {
+            "technologies": [
+              "eslint"
+            ],
+            "description": "Runs ESLint on project",
+            "help": {
+              "command": "pnpm exec eslint --help",
+              "example": {
+                "options": {
+                  "max-warnings": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "13980546907992654968": {
+    "apps/fe-react-web": {
+      "targets": {
+        "lint": {
+          "command": "eslint .",
+          "cache": true,
+          "options": {
+            "cwd": "apps/fe-react-web"
+          },
+          "inputs": [
+            "default",
+            "^default",
+            "{workspaceRoot}/apps/fe-react-web/eslint.config.js",
+            "{workspaceRoot}/tools/eslint-rules/**/*",
+            {
+              "externalDependencies": [
+                "eslint"
+              ]
+            }
+          ],
+          "outputs": [
+            "{options.outputFile}"
+          ],
+          "metadata": {
+            "technologies": [
+              "eslint"
+            ],
+            "description": "Runs ESLint on project",
+            "help": {
+              "command": "pnpm exec eslint --help",
+              "example": {
+                "options": {
+                  "max-warnings": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "15972787242746997514": {},
+  "6319141563013185516": {
+    "apps/fe-react-web": {
+      "targets": {
+        "lint": {
+          "command": "eslint .",
+          "cache": true,
+          "options": {
+            "cwd": "apps/fe-react-web"
+          },
+          "inputs": [
+            "default",
+            "^default",
+            "{workspaceRoot}/eslint.config.mjs",
+            "{workspaceRoot}/apps/fe-react-web/eslint.config.js",
+            "{workspaceRoot}/tools/eslint-rules/**/*",
+            {
+              "externalDependencies": [
+                "eslint"
+              ]
+            }
+          ],
+          "outputs": [
+            "{options.outputFile}"
+          ],
+          "metadata": {
+            "technologies": [
+              "eslint"
+            ],
+            "description": "Runs ESLint on project",
+            "help": {
+              "command": "pnpm exec eslint --help",
+              "example": {
+                "options": {
+                  "max-warnings": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "5686344921937465766": {},
+  "1818988954797863689": {
+    "apps/fe-react-web": {
+      "targets": {
+        "lint": {
+          "command": "eslint .",
+          "cache": true,
+          "options": {
+            "cwd": "apps/fe-react-web"
+          },
+          "inputs": [
+            "default",
+            "^default",
+            "{workspaceRoot}/eslint.config.mjs",
+            "{workspaceRoot}/apps/fe-react-web/eslint.config.js",
+            "{workspaceRoot}/tools/eslint-rules/**/*",
+            {
+              "externalDependencies": [
+                "eslint"
+              ]
+            }
+          ],
+          "outputs": [
+            "{options.outputFile}"
+          ],
+          "metadata": {
+            "technologies": [
+              "eslint"
+            ],
+            "description": "Runs ESLint on project",
+            "help": {
+              "command": "pnpm exec eslint --help",
+              "example": {
+                "options": {
+                  "max-warnings": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "4615221024016030368": {},
+  "12553314964069065625": {},
+  "12543277948329672514": {
+    "apps/fe-react-web": {
+      "targets": {
+        "lint": {
+          "command": "eslint .",
+          "cache": true,
+          "options": {
+            "cwd": "apps/fe-react-web"
+          },
+          "inputs": [
+            "default",
+            "^default",
+            "{workspaceRoot}/eslint.config.mjs",
+            "{workspaceRoot}/apps/fe-react-web/eslint.config.js",
+            "{workspaceRoot}/tools/eslint-rules/**/*",
+            {
+              "externalDependencies": [
+                "eslint"
+              ]
+            }
+          ],
+          "outputs": [
+            "{options.outputFile}"
+          ],
+          "metadata": {
+            "technologies": [
+              "eslint"
+            ],
+            "description": "Runs ESLint on project",
+            "help": {
+              "command": "pnpm exec eslint --help",
+              "example": {
+                "options": {
+                  "max-warnings": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "3748336101350088161": {},
+  "9919851284114937948": {
+    "apps/fe-react-web": {
+      "targets": {
+        "lint": {
+          "command": "eslint .",
+          "cache": true,
+          "options": {
+            "cwd": "apps/fe-react-web"
+          },
+          "inputs": [
+            "default",
+            "^default",
+            "{workspaceRoot}/eslint.config.mjs",
+            "{workspaceRoot}/apps/fe-react-web/eslint.config.js",
+            "{workspaceRoot}/tools/eslint-rules/**/*",
+            {
+              "externalDependencies": [
+                "eslint"
+              ]
+            }
+          ],
+          "outputs": [
+            "{options.outputFile}"
+          ],
+          "metadata": {
+            "technologies": [
+              "eslint"
+            ],
+            "description": "Runs ESLint on project",
+            "help": {
+              "command": "pnpm exec eslint --help",
+              "example": {
+                "options": {
+                  "max-warnings": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "9782820148574957985": {}
 }

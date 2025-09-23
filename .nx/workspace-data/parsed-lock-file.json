@@ -4608,6 +4608,15 @@
         "hash": "sha512-EHcyIPBQ4BSGlvjB16k5KgAJ27CIsHY/2JBmCRReo48y9rQ3MaUzWX3KVlBa4U7MyX02HdVj0K7C3WaB3ju7FQ=="
       }
     },
+    "npm:builtin-modules": {
+      "type": "npm",
+      "name": "npm:builtin-modules",
+      "data": {
+        "version": "3.3.0",
+        "packageName": "builtin-modules",
+        "hash": "sha512-zhaCDicdLuWN5UbN5IMnFqNMhNfo919sH85y2/ea+5Yg9TsTkeZxpL+JLbp6cgYFS4sRLp3YV4S6yDuqVWHYOw=="
+      }
+    },
     "npm:bytes": {
       "type": "npm",
       "name": "npm:bytes",
@@ -5985,6 +5994,15 @@
         "hash": "sha512-Qteup0SqU15kdocexFNAJMvCJEfa2xUKNV4CC1xsVMrIIqEy3SQ/rqyxCWNzfrd3/ldy6HMlD2e0JDVpDg2qIA=="
       }
     },
+    "npm:eslint-plugin-sonarjs": {
+      "type": "npm",
+      "name": "npm:eslint-plugin-sonarjs",
+      "data": {
+        "version": "3.0.5",
+        "packageName": "eslint-plugin-sonarjs",
+        "hash": "sha512-dI62Ff3zMezUToi161hs2i1HX1ie8Ia2hO0jtNBfdgRBicAG4ydy2WPt0rMTrAe3ZrlqhpAO3w1jcQEdneYoFA=="
+      }
+    },
     "npm:eslint-scope@5.1.1": {
       "type": "npm",
       "name": "npm:eslint-scope@5.1.1",
@@ -6541,6 +6559,15 @@
         "version": "1.1.8",
         "packageName": "function.prototype.name",
         "hash": "sha512-e5iwyodOHhbMr/yNrc7fDYG4qlbIvI5gajyzPnb5TCwyhjApznQh1BMFou9b30SevY43gCJKXycoCBjMbsuW0Q=="
+      }
+    },
+    "npm:functional-red-black-tree": {
+      "type": "npm",
+      "name": "npm:functional-red-black-tree",
+      "data": {
+        "version": "1.0.1",
+        "packageName": "functional-red-black-tree",
+        "hash": "sha512-dsKNQNdj6xA3T+QlADDA7mOSlX0qiMINjn0cgr+eGHGsbSHzTabcIogz2+p/iqP1Xs6EP/sS2SbqH+brGTbq0g=="
       }
     },
     "npm:functions-have-names": {
@@ -7810,6 +7837,15 @@
         "version": "2.0.2",
         "packageName": "jsprim",
         "hash": "sha512-gqXddjPqQ6G40VdnI6T6yObEC+pDNvyP95wdQhkWkg7crHH3km5qP1FsOXEkzEQwnz6gz5qGTn1c2Y52wP3OyQ=="
+      }
+    },
+    "npm:jsx-ast-utils-x": {
+      "type": "npm",
+      "name": "npm:jsx-ast-utils-x",
+      "data": {
+        "version": "0.1.0",
+        "packageName": "jsx-ast-utils-x",
+        "hash": "sha512-eQQBjBnsVtGacsG9uJNB8qOr3yA8rga4wAaGG1qRcBzSIvfhERLrWxMAM1hp5fcS6Abo8M4+bUBTekYR0qTPQw=="
       }
     },
     "npm:jsx-ast-utils": {
@@ -9387,6 +9423,15 @@
         "hash": "sha512-9u/sniCrY3D5WdsERHzHE4G2YCXqoG5FTHUiCC4SIbr6XcLZBY05ya9EKjYek9O5xOAwjGq+1JdGBAS7Q9ScoA=="
       }
     },
+    "npm:refa": {
+      "type": "npm",
+      "name": "npm:refa",
+      "data": {
+        "version": "0.12.1",
+        "packageName": "refa",
+        "hash": "sha512-J8rn6v4DBb2nnFqkqwy6/NnTYMcgLA+sLr0iIO41qpv0n+ngb7ksag2tMRl0inb1bbO/esUwzW1vbJi7K0sI0g=="
+      }
+    },
     "npm:reflect.getprototypeof": {
       "type": "npm",
       "name": "npm:reflect.getprototypeof",
@@ -9412,6 +9457,15 @@
         "version": "1.4.2",
         "packageName": "regenerate",
         "hash": "sha512-zrceR/XhGYU/d/opr2EKO7aRHUeiBI8qjtfHqADTwZd6Szfy16la6kqD0MIUs5z5hx6AaKa+PixpPrR289+I0A=="
+      }
+    },
+    "npm:regexp-ast-analysis": {
+      "type": "npm",
+      "name": "npm:regexp-ast-analysis",
+      "data": {
+        "version": "0.7.1",
+        "packageName": "regexp-ast-analysis",
+        "hash": "sha512-sZuz1dYW/ZsfG17WSAG7eS85r5a0dDsvg+7BiiYR5o6lKCAtUrEwdmRmaGF6rwVj3LcmAeYkOWKEPlbPzN3Y3A=="
       }
     },
     "npm:regexp.prototype.flags": {
@@ -9709,6 +9763,15 @@
         "version": "4.3.2",
         "packageName": "schema-utils",
         "hash": "sha512-Gn/JaSk/Mt9gYubxTtSn/QCV4em9mpAPiR1rqy/Ocu19u/G9J5WWdNoUT4SiV6mFC3y6cxyFcFwdzPM3FgxGAQ=="
+      }
+    },
+    "npm:scslre": {
+      "type": "npm",
+      "name": "npm:scslre",
+      "data": {
+        "version": "0.3.0",
+        "packageName": "scslre",
+        "hash": "sha512-3A6sD0WYP7+QrjbfNA2FN3FsOaGGFoekCVgTyypy53gPxhbkCIjtO6YWgdrfM+n/8sI8JeXZOIxsHjMTNxQ4nQ=="
       }
     },
     "npm:secure-compare": {
@@ -19079,6 +19142,61 @@
       "type": "static"
     },
     {
+      "source": "npm:eslint-plugin-sonarjs",
+      "target": "npm:@eslint-community/regexpp",
+      "type": "static"
+    },
+    {
+      "source": "npm:eslint-plugin-sonarjs",
+      "target": "npm:builtin-modules",
+      "type": "static"
+    },
+    {
+      "source": "npm:eslint-plugin-sonarjs",
+      "target": "npm:bytes",
+      "type": "static"
+    },
+    {
+      "source": "npm:eslint-plugin-sonarjs",
+      "target": "npm:eslint",
+      "type": "static"
+    },
+    {
+      "source": "npm:eslint-plugin-sonarjs",
+      "target": "npm:functional-red-black-tree",
+      "type": "static"
+    },
+    {
+      "source": "npm:eslint-plugin-sonarjs",
+      "target": "npm:jsx-ast-utils-x",
+      "type": "static"
+    },
+    {
+      "source": "npm:eslint-plugin-sonarjs",
+      "target": "npm:lodash.merge",
+      "type": "static"
+    },
+    {
+      "source": "npm:eslint-plugin-sonarjs",
+      "target": "npm:minimatch@9.0.5",
+      "type": "static"
+    },
+    {
+      "source": "npm:eslint-plugin-sonarjs",
+      "target": "npm:scslre",
+      "type": "static"
+    },
+    {
+      "source": "npm:eslint-plugin-sonarjs",
+      "target": "npm:semver@7.7.2",
+      "type": "static"
+    },
+    {
+      "source": "npm:eslint-plugin-sonarjs",
+      "target": "npm:typescript",
+      "type": "static"
+    },
+    {
       "source": "npm:eslint-scope@5.1.1",
       "target": "npm:esrecurse",
       "type": "static"
@@ -22314,6 +22432,11 @@
       "type": "static"
     },
     {
+      "source": "npm:refa",
+      "target": "npm:@eslint-community/regexpp",
+      "type": "static"
+    },
+    {
       "source": "npm:reflect.getprototypeof",
       "target": "npm:call-bind",
       "type": "static"
@@ -22356,6 +22479,16 @@
     {
       "source": "npm:regenerate-unicode-properties",
       "target": "npm:regenerate",
+      "type": "static"
+    },
+    {
+      "source": "npm:regexp-ast-analysis",
+      "target": "npm:@eslint-community/regexpp",
+      "type": "static"
+    },
+    {
+      "source": "npm:regexp-ast-analysis",
+      "target": "npm:refa",
       "type": "static"
     },
     {
@@ -22721,6 +22854,21 @@
     {
       "source": "npm:schema-utils@4.3.2",
       "target": "npm:ajv-keywords@5.1.0",
+      "type": "static"
+    },
+    {
+      "source": "npm:scslre",
+      "target": "npm:@eslint-community/regexpp",
+      "type": "static"
+    },
+    {
+      "source": "npm:scslre",
+      "target": "npm:refa",
+      "type": "static"
+    },
+    {
+      "source": "npm:scslre",
+      "target": "npm:regexp-ast-analysis",
       "type": "static"
     },
     {

@@ -60,8 +60,11 @@
       }
     },
     "typecheck": {
-      "executor": "@nx/vite:typecheck",
-      "options": {}
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit",
+        "cwd": "apps/fe-react-web"
+      }
     }
   },
   "tags": ["scope:fe-react-web", "type:app"]
