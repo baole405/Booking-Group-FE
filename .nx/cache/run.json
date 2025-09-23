@@ -1,8 +1,8 @@
 {
   "run": {
-    "command": "nx build fe-react-web",
-    "startTime": "2025-09-23T14:30:37.652Z",
-    "endTime": "2025-09-23T14:30:39.965Z",
+    "command": "nx run fe-react-web:build",
+    "startTime": "2025-09-23T14:47:14.746Z",
+    "endTime": "2025-09-23T14:47:14.776Z",
     "inner": false
   },
   "tasks": [
@@ -10,11 +10,11 @@
       "taskId": "fe-react-web:build:production",
       "target": "build",
       "projectName": "fe-react-web",
-      "hash": "15000887244403744781",
-      "startTime": "2025-09-23T14:30:37.664Z",
-      "endTime": "2025-09-23T14:30:39.933Z",
+      "hash": "1468938297967344655",
+      "startTime": "2025-09-23T14:47:14.756Z",
+      "endTime": "2025-09-23T14:47:14.767Z",
       "params": "",
-      "cacheStatus": "cache-miss",
+      "cacheStatus": "local-cache-hit",
       "status": 0
     }
   ]

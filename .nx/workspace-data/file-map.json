@@ -61,60 +61,64 @@
   "fileMap": {
     "nonProjectFiles": [
       {
+        "file": "tsconfig.base.json",
+        "hash": "5791521514432329092"
+      },
+      {
+        "file": ".gitignore",
+        "hash": "1827463309502487308"
+      },
+      {
         "file": "package.json",
         "hash": "13898897229354272238"
-      },
-      {
-        "file": ".husky/pre-commit",
-        "hash": "11769173800128111832"
-      },
-      {
-        "file": "nx.json",
-        "hash": "1189102744719959154"
       },
       {
         "file": "tsconfig.json",
         "hash": "12976532787857336758"
       },
       {
-        "file": ".prettierrc",
-        "hash": "9732229819426483506"
-      },
-      {
-        "file": "README.md",
-        "hash": "11670149940487030595"
-      },
-      {
-        "file": "commitlint.config.mjs",
-        "hash": "16064995170022953365"
-      },
-      {
-        "file": "eslint.config.mjs",
-        "hash": "6396745164559080240"
-      },
-      {
-        "file": ".gitignore",
-        "hash": "15055395939797818635"
+        "file": "nx.json",
+        "hash": "1189102744719959154"
       },
       {
         "file": "pnpm-workspace.yaml",
         "hash": "12696511766497411973"
       },
       {
+        "file": ".editorconfig",
+        "hash": "8164991119032549550"
+      },
+      {
+        "file": ".prettierignore",
+        "hash": "8065679767097891997"
+      },
+      {
+        "file": "README.md",
+        "hash": "11670149940487030595"
+      },
+      {
+        "file": ".prettierrc",
+        "hash": "9732229819426483506"
+      },
+      {
+        "file": "eslint.config.mjs",
+        "hash": "6396745164559080240"
+      },
+      {
         "file": "pnpm-lock.yaml",
         "hash": "10772101426391092046"
       },
       {
-        "file": "tsconfig.base.json",
-        "hash": "5791521514432329092"
+        "file": ".husky/pre-commit",
+        "hash": "11769173800128111832"
       },
       {
         "file": ".husky/commit-msg",
         "hash": "11093848089734327252"
       },
       {
-        "file": ".prettierignore",
-        "hash": "8065679767097891997"
+        "file": "commitlint.config.mjs",
+        "hash": "16064995170022953365"
       }
     ],
     "projectFileMap": {
