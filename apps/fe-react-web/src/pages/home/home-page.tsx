@@ -21,7 +21,7 @@ type Feature = {
 
 const features: Feature[] = [
   {
-    title: "Real-time availability",
+    title: "hello",
     description: "Instantly view open slots, resource conflicts, and blackout periods across every campus location.",
     icon: CalendarClock,
     highlight: "Live synced with facilities & Google Workspace",
