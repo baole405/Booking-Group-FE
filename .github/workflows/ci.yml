@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  verify-branch-name:
+    name: Verify PR branch naming
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check branch name matches convention
+        env:
+          BRANCH_NAME: ${{ github.head_ref }}
+        run: |
+          echo "Checking branch name: ${BRANCH_NAME}"
+          PATTERN='^(feature|bugfix|hotfix|release|chore)/[a-z0-9._-]+$'
+          if [[ ! "${BRANCH_NAME}" =~ ${PATTERN} ]]; then
+            echo "::error::Branch name '${BRANCH_NAME}' does not follow the expected pattern '${PATTERN}'." >&2
+            echo "Expected the branch to start with one of feature/, bugfix/, hotfix/, release/, chore/." >&2
+            exit 1
+          fi
+
+  build-and-lint:
+    name: Lint and build
+    runs-on: ubuntu-latest
+    needs: verify-branch-name
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Run lint checks
+        run: pnpm exec nx run-many -t lint --skip-nx-cache --output-style=stream
+      - name: Build projects
+        run: pnpm exec nx run-many -t build --configuration=production --skip-nx-cache --output-style=stream
