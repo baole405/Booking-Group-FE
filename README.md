@@ -15,7 +15,7 @@ This repository uses a GitHub Actions workflow that runs automatically for every
 
 To keep a clean history and make the automation happy, follow this workflow when contributing changes:
 
-1. Create feature branches that start with one of `feature/`, `bugfix/`, `hotfix/`, `release/`, or `chore/`, followed by a descriptive slug (for example, `feature/add-login-form`).
+1. Create feature branches that start with one of `feature/`, `bugfix/`, `hotfix/`, `release/`, `chore/`, or `codex/`, followed by a descriptive slug (for example, `feature/add-login-form`).
 2. When you are ready to open a pull request, first make sure your branch is rebased on top of the latest `main`:
    ```bash
    git checkout main
