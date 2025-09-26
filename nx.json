@@ -1,5 +1,9 @@
 {
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
+  "neverConnectToCloud": false,
+  "affected": {
+    "defaultBase": "HEAD~1"
+  },
   "namedInputs": {
     "default": ["{projectRoot}/**/*", "sharedGlobals"],
     "production": [
@@ -15,7 +19,6 @@
     ],
     "sharedGlobals": []
   },
-  "neverConnectToCloud": true,
   "plugins": [
     {
       "plugin": "@nx/js/typescript",
