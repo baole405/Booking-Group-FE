@@ -1,5 +1,4 @@
 "use client";
-
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import { PanelLeftIcon } from "lucide-react";
@@ -494,10 +493,8 @@ function SidebarMenuSkeleton({
 }: React.ComponentProps<"div"> & {
   showIcon?: boolean;
 }) {
-  // Random width between 50 to 90%.
-  const width = React.useMemo(() => {
-    return `${Math.floor(Math.random() * 40) + 50}%`;
-  }, []);
+  // eslint-disable-next-line sonarjs/pseudo-random
+  const width = React.useMemo(() => `${Math.floor(Math.random() * 40) + 50}%`, []);
 
   return (
     <div
