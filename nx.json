@@ -15,7 +15,6 @@
     ],
     "sharedGlobals": []
   },
-  "neverConnectToCloud": true,
   "plugins": [
     {
       "plugin": "@nx/js/typescript",
@@ -81,6 +80,9 @@
       "dependsOn": ["^build"]
     },
     "build": {
+      "cache": true
+    },
+    "e2e": {
       "cache": true
     }
   }

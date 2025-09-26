@@ -1,0 +1,27 @@
+{
+  "name": "fe-react-web-e2e",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/fe-react-web-e2e/src",
+  "targets": {
+    "e2e": {
+      "executor": "@nx/cypress:cypress",
+      "options": {
+        "cypressConfig": "apps/fe-react-web-e2e/cypress.config.ts",
+        "testingType": "e2e",
+        "devServerTarget": "fe-react-web:serve:development"
+      },
+      "configurations": {
+        "ci": {
+          "devServerTarget": "fe-react-web:serve-static",
+          "headed": false,
+          "watch": false
+        },
+        "production": {
+          "devServerTarget": "fe-react-web:serve:production"
+        }
+      }
+    }
+  },
+  "tags": ["scope:fe-react-web", "type:e2e"]
+}

@@ -65,6 +65,15 @@
         "command": "tsc --noEmit",
         "cwd": "apps/fe-react-web"
       }
+    },
+    "test": {
+      "executor": "@nx/vite:test",
+      "outputs": ["{projectRoot}/coverage"],
+      "options": {
+        "configFile": "vitest.config.ts",
+        "reportsDirectory": "../../coverage/apps/fe-react-web",
+        "watch": false
+      }
     }
   },
   "tags": ["scope:fe-react-web", "type:app"]
