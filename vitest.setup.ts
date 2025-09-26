@@ -1,4 +1,7 @@
-import "@testing-library/jest-dom/vitest";
+import * as matchers from "@testing-library/jest-dom/matchers";
+import { expect } from "vitest";
+
+expect.extend(matchers);
 
 if (!window.matchMedia) {
   // Vitest runs in jsdom where matchMedia is not implemented by default.
