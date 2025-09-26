@@ -186,6 +186,9 @@ export default function HomePage() {
             <a className="hover:text-foreground transition-colors" href="#stories">
               Stories
             </a>
+            <a className="hover:text-foreground transition-colors" href="/dashboard">
+              Dashboard
+            </a>
           </nav>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm">
