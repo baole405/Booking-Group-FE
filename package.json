@@ -8,6 +8,7 @@
     "build-all-skip-cache": "nx run-many -t build --skip-nx-cache",
     "clean-node-modules": "pnpx npkill",
     "clean-nx-cache": "nx reset --only-workspace-data",
+    "e2e:ci": "pnpm exec nx run fe-react-web-e2e:e2e --configuration=ci",
     "format:write": "nx format:write",
     "prepare": "husky",
     "prettier:write": "prettier --write .",

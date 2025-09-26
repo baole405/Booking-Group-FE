@@ -1,9 +1,5 @@
 {
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
-  "neverConnectToCloud": false,
-  "affected": {
-    "defaultBase": "HEAD~1"
-  },
   "namedInputs": {
     "default": ["{projectRoot}/**/*", "sharedGlobals"],
     "production": [
@@ -84,6 +80,9 @@
       "dependsOn": ["^build"]
     },
     "build": {
+      "cache": true
+    },
+    "e2e": {
       "cache": true
     }
   }
