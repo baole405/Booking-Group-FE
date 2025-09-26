@@ -9,8 +9,8 @@ permissions:
   contents: read
 
 jobs:
-  stage-1-preflight:
-    name: "Stage 1 · Secret detection & commit lint"
+  preflight:
+    name: "Secret detection & commit lint"
     runs-on: ubuntu-latest
     steps:
       - name: Check branch name matches convention
@@ -38,15 +38,20 @@ jobs:
         with:
           args: detect --source . --redact
 
-  stage-2-ci:
-    name: "Stage 2 · CI checks"
+  ci:
+    name: "CI checks"
     runs-on: ubuntu-latest
-    needs: stage-1-preflight
+    needs: preflight
     steps:
       - uses: actions/checkout@v4
       - uses: nrwl/nx-set-shas@v4
         with:
           main-branch-name: ${{ github.event.repository.default_branch }}
+      - name: Prepare Corepack
+        run: |
+          npm install --global corepack@latest
+          corepack enable
+          corepack prepare pnpm@latest-10 --activate
       - uses: pnpm/action-setup@v4
         with:
           version: 10.15.1
@@ -65,15 +70,15 @@ jobs:
       - name: Run unit tests
         run: pnpm exec nx affected -t test --output-style=stream
 
-  stage-3-deploy:
-    name: "Stage 3 · Deploy"
+  build:
+    name: "Build"
     runs-on: ubuntu-latest
-    needs: stage-2-ci
+    needs: ci
     steps:
-      - name: Deployment placeholder
+      - name: Build placeholder
         run: |
           if [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
-            echo "Skipping deployment for pull request events."
+            echo "Skipping build artifact publication for pull request events."
             exit 0
           fi
-          echo "Add deployment automation here when ready."
+          echo "Add build artifact publication here when ready."
