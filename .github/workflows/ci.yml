@@ -25,10 +25,18 @@ jobs:
             exit 1
           fi
 
-  build-and-lint:
-    name: Lint and build
-    runs-on: ubuntu-latest
+  gitleaks:
+    name: Gitleaks secret scan
     needs: verify-branch-name
+    uses: ./.github/workflows/gitleaks.yml
+    secrets: inherit
+
+  lint-and-test:
+    name: Lint and test
+    runs-on: ubuntu-latest
+    needs:
+      - verify-branch-name
+      - gitleaks
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -42,5 +50,23 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Run lint checks
         run: pnpm exec nx run-many -t lint --skip-nx-cache --output-style=stream
+      - name: Run unit tests
+        run: pnpm test:ci
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
       - name: Build projects
         run: pnpm exec nx run-many -t build --configuration=production --skip-nx-cache --output-style=stream
