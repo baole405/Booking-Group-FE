@@ -19,15 +19,21 @@ jobs:
     steps:
       - name: Check branch name matches convention
         env:
-          BRANCH_NAME: ${{ github.head_ref }}
           BASE_REF: ${{ github.base_ref }}
         run: |
-          echo "Checking branch name: ${BRANCH_NAME}"
+          echo "Base ref: ${{ github.base_ref }}"
+          echo "Head ref: ${{ github.head_ref }}"
+          BRANCH="${{ github.head_ref }}"
+          if [ "${{ github.actor }}" = "dependabot[bot]" ]; then
+            echo "Skipping branch name check for Dependabot."
+            exit 0
+          fi
+          echo "Checking branch name: ${BRANCH}"
           PATTERN='^(feature|feat|bugfix|fix|hotfix|chore|refactor|release|docs|test|codex)/[a-z0-9._-]+$'
-          if [[ "${BRANCH_NAME}" =~ ${PATTERN} ]]; then
+          if [[ "${BRANCH}" =~ ${PATTERN} ]]; then
             echo "Branch name OK"
           else
-            echo "::error::Branch name '${BRANCH_NAME}' does not follow the expected pattern '${PATTERN}'." >&2
+            echo "::error::Branch name '${BRANCH}' does not follow the expected pattern '${PATTERN}'." >&2
             echo "Expected the branch to start with one of feature/, feat/, bugfix/, fix/, hotfix/, chore/, refactor/, release/, docs/, test/, codex/." >&2
             exit 1
           fi
@@ -46,7 +52,6 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
         with:
@@ -67,7 +72,6 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
         with:
