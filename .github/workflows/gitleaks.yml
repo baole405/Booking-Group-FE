@@ -1,0 +1,19 @@
+name: Gitleaks Scan
+
+on:
+  workflow_call:
+
+jobs:
+  scan:
+    name: Detect secrets with Gitleaks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          args: detect --source=. --redact

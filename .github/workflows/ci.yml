@@ -18,17 +18,25 @@ jobs:
           BRANCH_NAME: ${{ github.head_ref }}
         run: |
           echo "Checking branch name: ${BRANCH_NAME}"
-          PATTERN='^(feature|bugfix|hotfix|release|chore|codex)/[a-z0-9._-]+$'
+          PATTERN='^(feature|bugfix|hotfix|release|chore|codex)/[a-z0-9._-]+(/[a-z0-9._-]+)*$'
           if [[ ! "${BRANCH_NAME}" =~ ${PATTERN} ]]; then
             echo "::error::Branch name '${BRANCH_NAME}' does not follow the expected pattern '${PATTERN}'." >&2
-            echo "Expected the branch to start with one of feature/, bugfix/, hotfix/, release/, chore/, codex/." >&2
+            echo "Expected the branch to start with one of feature/, bugfix/, hotfix/, release/, chore/, codex/ and use lowercase letters, numbers, dots, hyphens, or underscores in each segment." >&2
             exit 1
           fi
 
-  build-and-lint:
-    name: Lint and build
-    runs-on: ubuntu-latest
+  gitleaks:
+    name: Gitleaks secret scan
     needs: verify-branch-name
+    uses: ./.github/workflows/gitleaks.yml
+    secrets: inherit
+
+  lint-and-test:
+    name: Lint and test
+    runs-on: ubuntu-latest
+    needs:
+      - verify-branch-name
+      - gitleaks
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -42,6 +50,24 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Run lint checks
         run: pnpm exec nx run-many -t lint --skip-nx-cache --output-style=stream
+      - name: Run unit tests
+        run: pnpm test:ci
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
       - name: Build projects
         run: pnpm exec nx run-many -t build --configuration=production --skip-nx-cache --output-style=stream
 
