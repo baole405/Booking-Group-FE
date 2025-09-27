@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   branch-status:
-    name: Branch status
+    name: Verify PR branch naming
     runs-on: ubuntu-latest
     steps:
       - name: Check branch name matches convention
@@ -41,8 +41,8 @@ jobs:
             echo "::warning::PR base is '${BASE_REF}', expected 'main'."
           fi
 
-  linter-run:
-    name: Lint
+  lint-build:
+    name: Lint and build
     runs-on: ubuntu-latest
     needs: branch-status
     steps:
@@ -59,22 +59,5 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Run lint checks
         run: pnpm exec nx run-many -t lint --skip-nx-cache --output-style=stream
-
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-    needs: linter-run
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
       - name: Build projects
         run: pnpm exec nx run-many -t build --configuration=production --skip-nx-cache --output-style=stream
