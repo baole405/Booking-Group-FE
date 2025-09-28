@@ -4,6 +4,7 @@ import { ROUTES } from "@/constants/route.constant";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import Dashboard from "@/pages/Dashboard";
 import HomePage from "@/pages/home/home-page";
+import UserProfile from "@/pages/home/user-profile";
 
 export default function MainRoutes() {
   return (
@@ -11,6 +12,9 @@ export default function MainRoutes() {
       {/* Public Routes */}
       <Route element={<HomePage />} path="/" />
       <Route element={<Navigate replace to="/" />} path="/home" />
+
+      {/* User Profile Route */}
+      <Route element={<UserProfile />} path={ROUTES.PROFILE} />
 
       {/* Dashboard Routes */}
       <Route element={<Dashboard />} path={ROUTES.DASHBOARD} />
