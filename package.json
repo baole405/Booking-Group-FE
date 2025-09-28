@@ -23,7 +23,9 @@
     "tailwindcss": "^4.1.11"
   },
   "devDependencies": {
-    "@commitlint/config-conventional": "^19.8.1",
+    "@commitlint/cli": "^20.0.0",
+    "@commitlint/config-conventional": "^20.0.0",
+    "@commitlint/load": "^17.8.1",
     "@eslint/js": "^9.36.0",
     "@nx/cypress": "21.3.2",
     "@nx/eslint": "21.3.2",
