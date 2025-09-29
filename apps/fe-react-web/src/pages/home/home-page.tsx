@@ -67,7 +67,7 @@ export default function HomePage() {
       teamSize: 1,
       startDate: "27/09/2025",
       endDate: "31/12/2025",
-      leader: "Nguyễn Thanh",
+      leader: "Nguyễn hoàng minh dự án",
       mentor: "N/A",
       lecturer: "N/A",
       description: "Một dự án về logistics kết hợp công nghệ xanh.",
