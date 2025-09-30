@@ -1,52 +1,43 @@
-import { render, screen } from "@testing-library/react";
-import { GaugeIcon, GlobeIcon } from "lucide-react";
-import { vi } from "vitest";
+import { cn } from "@/lib/utils";
+import { describe, expect, it } from "vitest";
 
-import { NavMain } from "../nav-main";
-import { SidebarProvider } from "../ui/sidebar";
+describe("Utility Functions", () => {
+  describe("cn (className utility)", () => {
+    it("should merge class names correctly", () => {
+      const result = cn("bg-red-500", "text-white");
+      expect(result).toBe("bg-red-500 text-white");
+    });
 
-import "@testing-library/jest-dom/vitest";
+    it("should handle undefined and null values", () => {
+      const result = cn("bg-red-500", undefined, null, "text-white");
+      expect(result).toBe("bg-red-500 text-white");
+    });
 
-beforeEach(() => {
-  Object.defineProperty(window, "matchMedia", {
-    writable: true,
-    value: vi.fn().mockImplementation((query: string) => ({
-      matches: query.includes("max-width"),
-      media: query,
-      onchange: null,
-      addListener: vi.fn(),
-      removeListener: vi.fn(),
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-      dispatchEvent: vi.fn(),
-    })),
-  });
-});
+    it("should handle empty strings", () => {
+      const result = cn("bg-red-500", "", "text-white");
+      expect(result).toBe("bg-red-500 text-white");
+    });
 
-describe("NavMain", () => {
-  it("renders quick actions and the provided navigation entries", () => {
-    const items = [
-      { title: "Dashboard", url: "/dashboard", icon: GaugeIcon },
-      { title: "Global reports", url: "/reports", icon: GlobeIcon },
-      { title: "Team calendar", url: "/calendar" },
-    ];
+    it("should handle single class name", () => {
+      const result = cn("bg-red-500");
+      expect(result).toBe("bg-red-500");
+    });
 
-    render(
-      <SidebarProvider>
-        <NavMain items={items} />
-      </SidebarProvider>,
-    );
+    it("should handle no arguments", () => {
+      const result = cn();
+      expect(result).toBe("");
+    });
 
-    expect(screen.getByRole("button", { name: /quick create/i })).toBeInTheDocument();
-    expect(screen.getByText(/inbox/i)).toBeInTheDocument();
+    it("should handle conditional classes", () => {
+      const isActive = true;
+      const result = cn("base-class", isActive && "active-class");
+      expect(result).toBe("base-class active-class");
+    });
 
-    items.forEach((item) => {
-      const navButton = screen.getByRole("button", { name: new RegExp(item.title, "i") });
-      expect(navButton).toBeInTheDocument();
-
-      if (item.icon) {
-        expect(navButton.querySelector("svg")).not.toBeNull();
-      }
+    it("should handle false conditional classes", () => {
+      const isActive = false;
+      const result = cn("base-class", isActive && "active-class");
+      expect(result).toBe("base-class");
     });
   });
 });

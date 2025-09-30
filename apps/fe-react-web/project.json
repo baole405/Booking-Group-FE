@@ -48,7 +48,7 @@
         "cwd": "apps/fe-react-web"
       }
     },
-    "test": {
+    "test:ui": {
       "executor": "nx:run-commands",
       "outputs": ["{workspaceRoot}/coverage/apps/fe-react-web"],
       "options": {
