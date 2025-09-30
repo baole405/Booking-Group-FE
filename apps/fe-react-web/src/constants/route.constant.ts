@@ -6,6 +6,8 @@ export const ROUTES = {
   DASHBOARD: "/dashboard",
   PROFILE: "/profile",
 
+  GROUP: "/group",
+
   // Admin Routes
   ADMIN: {
     ROOT: "/admin",
