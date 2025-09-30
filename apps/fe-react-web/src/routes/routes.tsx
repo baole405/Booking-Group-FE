@@ -11,6 +11,8 @@ import GroupDetail from "@/pages/moderator/GroupDetail";
 import GroupList from "@/pages/moderator/GroupList";
 import ModeratorHomePage from "@/pages/moderator/home-page";
 
+import GroupPage from "@/pages/group/GroupPage";
+
 export default function MainRoutes() {
   return (
     <Routes>
@@ -34,6 +36,9 @@ export default function MainRoutes() {
 
       {/* Dashboard Routes */}
       <Route element={<Dashboard />} path={ROUTES.DASHBOARD} />
+
+      {/* Group Routes */}
+      <Route element={<GroupPage />} path={ROUTES.GROUP} />
 
       {/* Admin Routes */}
       <Route element={<AdminDashboard />} path={ROUTES.ADMIN.DASHBOARD} />
