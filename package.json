@@ -10,7 +10,8 @@
     "clean-nx-cache": "nx reset --only-workspace-data",
     "format:write": "nx format:write",
     "prepare": "husky",
-    "prettier:write": "prettier --write ."
+    "prettier:write": "prettier --write .",
+    "test:ui": "vitest --ui"
   },
   "lint-staged": {
     "*": "prettier --write --config .prettierrc --ignore-unknown --no-error-on-unmatched-pattern"
@@ -40,6 +41,7 @@
     "@swc/helpers": "~0.5.17",
     "@tailwindcss/vite": "^4.1.11",
     "@testing-library/dom": "10.4.0",
+    "@testing-library/jest-dom": "6.6.3",
     "@testing-library/react": "16.3.0",
     "@types/node": "^22.16.5",
     "@types/react": "^19.1.8",
@@ -59,9 +61,11 @@
     "eslint-plugin-sonarjs": "^3.0.5",
     "globals": "^16.3.0",
     "husky": "^9.1.7",
+    "jiti": "2.4.2",
     "jsdom": "~26.1.0",
     "lint-staged": "^16.1.2",
     "nx": "21.3.2",
+    "nx-mcp": "0.6.12",
     "prettier": "^3.6.2",
     "prettier-plugin-organize-attributes": "^1.0.0",
     "prettier-plugin-organize-imports": "^4.2.0",
