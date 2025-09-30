@@ -3,13 +3,13 @@
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
   "sourceRoot": "apps/fe-react-web/src",
+  "tags": ["scope:fe-react-web", "type:app"],
   "targets": {
     "build": {
-      "executor": "@nx/vite:build",
-      "outputs": ["{options.outputPath}"],
+      "outputs": ["{projectRoot}/{options.outDir}", "{projectRoot}/dist"],
       "defaultConfiguration": "production",
       "options": {
-        "outputPath": "dist/apps/fe-react-web"
+        "outDir": "../../dist/apps/fe-react-web"
       },
       "configurations": {
         "development": {
@@ -21,35 +21,17 @@
       }
     },
     "serve": {
-      "executor": "@nx/vite:dev-server",
       "defaultConfiguration": "development",
-      "options": {
-        "buildTarget": "fe-react-web:build"
-      },
       "configurations": {
-        "development": {
-          "buildTarget": "fe-react-web:build:development",
-          "hmr": true
-        },
-        "production": {
-          "buildTarget": "fe-react-web:build:production",
-          "hmr": false
-        }
+        "development": {},
+        "production": {}
       }
     },
     "preview": {
-      "executor": "@nx/vite:preview-server",
       "defaultConfiguration": "development",
-      "options": {
-        "buildTarget": "fe-react-web:build"
-      },
       "configurations": {
-        "development": {
-          "buildTarget": "fe-react-web:build:development"
-        },
-        "production": {
-          "buildTarget": "fe-react-web:build:production"
-        }
+        "development": {},
+        "production": {}
       }
     },
     "lint": {
@@ -65,7 +47,19 @@
         "command": "tsc --noEmit",
         "cwd": "apps/fe-react-web"
       }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "outputs": ["{workspaceRoot}/coverage/apps/fe-react-web"],
+      "options": {
+        "command": "vitest",
+        "cwd": "apps/fe-react-web"
+      },
+      "configurations": {
+        "ui": {
+          "command": "vitest --ui"
+        }
+      }
     }
-  },
-  "tags": ["scope:fe-react-web", "type:app"]
+  }
 }

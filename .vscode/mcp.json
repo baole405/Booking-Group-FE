@@ -3,6 +3,11 @@
     "shadcn-ui": {
       "command": "npx",
       "args": ["shadcn@latest", "mcp"]
+    },
+    "nx": {
+      "command": "pnpm",
+      "args": ["nx-mcp", "."],
+      "transport": "stdio"
     }
   }
 }
