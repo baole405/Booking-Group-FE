@@ -1,6 +1,5 @@
-import HeaderMain from "@/components/header-main";
 import { Input } from "@/components/ui/input";
-import ProjectCard from "./component/card-team";
+import ProjectCard from "./components/group-card";
 
 export default function HomePage() {
   // const currentYear = new Date().getFullYear()
@@ -34,7 +33,7 @@ export default function HomePage() {
       description: "Một dự án về logistics kết hợp công nghệ xanh.",
     },
     {
-      id: "EXE202",
+      id: "EXE203",
       name: "Trầm Hương TA",
       logo: "",
       tags: ["Logistics", "GreenTech"],
@@ -47,7 +46,7 @@ export default function HomePage() {
       description: "Một dự án về logistics kết hợp công nghệ xanh.",
     },
     {
-      id: "EXE202",
+      id: "EXE204",
       name: "Trầm Hương TA",
       logo: "",
       tags: ["Logistics", "GreenTech"],
@@ -60,7 +59,7 @@ export default function HomePage() {
       description: "Một dự án về logistics kết hợp công nghệ xanh.",
     },
     {
-      id: "EXE202",
+      id: "EXE205",
       name: "Trầm Hương TA",
       logo: "",
       tags: ["Logistics", "GreenTech"],
@@ -80,10 +79,9 @@ export default function HomePage() {
         className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_hsl(var(--primary)_/_12%)_0,_transparent_55%)]"
         aria-hidden="true"
       />
-      <HeaderMain />
 
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4">
-        <h1 className="text-xl font-semibold text-[#00fff1]">Các nhóm</h1>
+        <h1 className="text-xl font-semibold">Các nhóm</h1>
         <div className="w-64">
           <Input type="text" placeholder="Nhập tên nhóm..." />
         </div>

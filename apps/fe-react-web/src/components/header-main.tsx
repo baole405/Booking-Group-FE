@@ -1,7 +1,17 @@
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { logout } from "@/redux/User/user-slice";
+import { useDispatch } from "react-redux";
+import { Link, useNavigate } from "react-router-dom";
 
 const HeaderMain = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate("/auth/login", { replace: true });
+  };
+
   return (
     <header className="border-border/60 bg-background/80 border-b backdrop-blur">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-6">
@@ -18,17 +28,14 @@ const HeaderMain = () => {
 
         {/* Navigation */}
         <nav className="text-muted-foreground hidden items-center gap-6 text-sm md:flex">
-          <Link to="/features" className="hover:text-foreground transition-colors">
-            Các Nhóm
+          <Link to="/" className="hover:text-foreground transition-colors">
+            Ghép Nhóm
           </Link>
-          <Link to="/collections" className="hover:text-foreground transition-colors">
+          <Link to="/student/forum" className="hover:text-foreground transition-colors">
             Diễn Đàn
           </Link>
           <Link to="/stories" className="hover:text-foreground transition-colors">
             Ý tưởng
-          </Link>
-          <Link to="/dashboard" className="hover:text-foreground transition-colors">
-            Dashboard
           </Link>
         </nav>
 
@@ -37,8 +44,11 @@ const HeaderMain = () => {
           <Button size="sm" asChild>
             <Link to="/book-demo">Nhóm của bạn</Link>
           </Button>
-          <Button variant="ghost" size="sm" asChild>
-            <Link to="/login">Log out</Link>
+          <Button size="sm" asChild>
+            <Link to="/student/profile">Thông tin cá nhân</Link>
+          </Button>
+          <Button variant="ghost" size="sm" onClick={handleLogout}>
+            Log out
           </Button>
         </div>
       </div>

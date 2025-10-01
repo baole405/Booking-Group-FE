@@ -1,69 +1,85 @@
+import Loading from "@/assets/loading/loading";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/hooks/use-auth";
+import { handleApiError } from "@/lib/error";
+import { cn } from "@/lib/utils";
+import { setUser } from "@/redux/User/user-slice";
+import { LoginSchema, type TLoginRequest } from "@/schema/auth.schema";
+import { RoleSchema } from "@/schema/role.schema";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { jwtDecode } from "jwt-decode";
 import { useMemo } from "react";
 import { useForm } from "react-hook-form";
+import { useDispatch } from "react-redux";
 
-// Illustrations + Logo
-import LoginFormIllustration1 from "@/assets/illustration/login-form-illustration-1";
-import LoginFormIllustration2 from "@/assets/illustration/login-form-illustration-2";
-import LoginFormIllustration3 from "@/assets/illustration/login-form-illustration-3";
-import LoginFormIllustration4 from "@/assets/illustration/login-form-illustration-4";
-import Logo from "@/assets/Logo.svg";
+export function LoginForm({ className, ...props }: React.ComponentProps<"div">) {
+  const { loginMutation } = useAuth();
+  const dispatch = useDispatch();
 
-export function LoginForm() {
-  const form = useForm({
-    defaultValues: {
-      username: "",
-      password: "",
-    },
+  const form = useForm<TLoginRequest>({
+    resolver: zodResolver(LoginSchema),
+    defaultValues: { email: "", password: "" },
   });
 
-  const RandomIllustration = useMemo<React.ComponentType<{ className?: string }>>(() => {
-    const illustrations: React.ComponentType<{ className?: string }>[] = [
-      LoginFormIllustration1,
-      LoginFormIllustration2,
-      LoginFormIllustration3,
-      LoginFormIllustration4,
-    ];
+  const onSubmit = async (data: TLoginRequest) => {
+    if (loginMutation.isPending) return;
 
-    const array = new Uint32Array(1);
-    crypto.getRandomValues(array);
-    const randomIndex = array[0] % illustrations.length;
+    try {
+      const result = await loginMutation.mutateAsync(data);
+      console.log("Login successful:", result.data);
 
-    return illustrations[randomIndex];
-  }, []);
+      const accessToken = result.data.data.token;
+      const role = (jwtDecode(accessToken) as any).role;
+
+      if (RoleSchema.safeParse(role).error) {
+        throw {
+          response: {
+            status: 403,
+            data: {
+              status: 403,
+              message: "Tài khoản không có quyền truy cập.",
+              data: "Bạn không có quyền truy cập vào tài nguyên này.",
+            },
+          },
+        };
+      }
+
+      dispatch(setUser(result.data.data));
+    } catch (error) {
+      handleApiError(error);
+    }
+  };
+
+  const RandomIllustration = useMemo(() => <Loading className="h-auto w-full" />, []);
 
   return (
-    <div className="bg-muted/30 flex min-h-screen items-center justify-center">
-      <Card className="w-full max-w-4xl shadow-xl">
-        <CardContent className="p-0">
-          <div className="grid md:grid-cols-2">
-            {/* Form */}
-            <Form {...form}>
-              <form className="space-y-6 p-6 md:p-8">
-                <img src={Logo} alt="Logo" className="size-18" />
+    <div className={cn("flex flex-col gap-6", className)} {...props}>
+      <div className="overflow-hidden p-0">
+        <div className="grid gap-25 p-0 md:grid-cols-2">
+          <Form {...form}>
+            <form className="p-6 md:p-8" onSubmit={form.handleSubmit(onSubmit)} noValidate>
+              <div className="flex flex-col gap-6">
+                <Loading className="h-12 w-12" />
                 <div className="flex flex-col items-start text-left">
                   <p className="text-4xl font-bold">Đăng nhập</p>
                 </div>
 
-                {/* Username */}
                 <FormField
                   control={form.control}
-                  name="username"
+                  name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Tên đăng nhập</FormLabel>
+                      <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input type="email" placeholder="Nhập tên đăng nhập" {...field} />
+                        <Input type="email" placeholder="Nhập email" disabled={loginMutation.isPending} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                {/* Password */}
                 <FormField
                   control={form.control}
                   name="password"
@@ -71,26 +87,23 @@ export function LoginForm() {
                     <FormItem>
                       <FormLabel>Mật khẩu</FormLabel>
                       <FormControl>
-                        <Input type="password" placeholder="Nhập mật khẩu" {...field} />
+                        <Input type="password" placeholder="Nhập mật khẩu" disabled={loginMutation.isPending} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                <Button type="submit" className="w-full" size="lg">
-                  Đăng nhập
+                <Button type="submit" className="w-full" disabled={loginMutation.isPending} size="lg">
+                  {loginMutation.isPending ? "Đang đăng nhập..." : "Đăng nhập"}
                 </Button>
-              </form>
-            </Form>
+              </div>
+            </form>
+          </Form>
 
-            {/* Illustration */}
-            <div className="bg-muted/20 flex items-center justify-center p-6">
-              <RandomIllustration className="max-h-[400px] w-auto" />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          <div className="flex items-center justify-center p-6">{RandomIllustration}</div>
+        </div>
+      </div>
     </div>
   );
 }
