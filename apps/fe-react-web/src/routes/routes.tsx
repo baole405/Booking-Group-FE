@@ -1,51 +1,163 @@
-import { Navigate, Route, Routes } from "react-router-dom";
-
+import { ErrorFallback } from "@/components/error-fallback";
+import LoadingScreen from "@/components/loading-screen";
 import { ROUTES } from "@/constants/route.constant";
-import AdminDashboard from "@/pages/admin/AdminDashboard";
-import LoginPage from "@/pages/auth/login";
-import Dashboard from "@/pages/Dashboard";
-import HomePage from "@/pages/home/home-page";
-import UserProfile from "@/pages/home/user-profile";
-import Forum from "@/pages/moderator/Forum";
-import GroupDetail from "@/pages/moderator/GroupDetail";
-import GroupList from "@/pages/moderator/GroupList";
-import ModeratorHomePage from "@/pages/moderator/home-page";
+import GuestGuard from "@/guards/guest-guard";
+import RoleBasedGuard from "@/guards/role-based-guard";
+import AdminLayout from "@/layouts/AdminLayout";
+import LectureLayout from "@/layouts/LectureLayout";
+import ModeratorLayout from "@/layouts/ModeratorLayout";
+import StudentLayout from "@/layouts/StudentLayout";
+import Logout from "@/pages/auth/logout";
+import type { TRole } from "@/schema/role.schema";
+import { QueryErrorResetBoundary } from "@tanstack/react-query";
+import { lazy, Suspense } from "react";
+import { ErrorBoundary } from "react-error-boundary";
+import { Navigate, useRoutes } from "react-router-dom";
 
-import GroupPage from "@/pages/group/GroupPage";
+// -------- Lazy load helper --------
+const Loadable =
+  <P extends object>(Component: React.ComponentType<P>) =>
+  (props: P) => {
+    return (
+      <QueryErrorResetBoundary>
+        {({ reset }) => (
+          <ErrorBoundary onReset={reset} FallbackComponent={ErrorFallback}>
+            <Suspense fallback={<LoadingScreen />}>
+              <Component {...props} />
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </QueryErrorResetBoundary>
+    );
+  };
+
+// -------- Lazy pages --------
+const LoginPage = Loadable(lazy(() => import("@/pages/auth/login")));
+const ForumPage = Loadable(lazy(() => import("@/pages/home/forum/forum-page")));
+const AdminDashboard = Loadable(lazy(() => import("@/pages/admin/AdminDashboard")));
+const HomePage = Loadable(lazy(() => import("@/pages/home/group/list-group-page")));
+const UserProfile = Loadable(lazy(() => import("@/pages/home/user/user-profile")));
 
 export default function MainRoutes() {
-  return (
-    <Routes>
-      {/* Public Routes */}
-      <Route element={<HomePage />} path="/" />
-      <Route element={<Navigate replace to="/" />} path="/home" />
+  return useRoutes([
+    {
+      path: ROUTES.HOME,
+      element: <Navigate to={ROUTES.AUTH.LOGIN} replace />,
+    },
+    {
+      path: ROUTES.AUTH.ROOT,
+      children: [
+        {
+          element: <Navigate to={ROUTES.AUTH.LOGIN} replace />,
+          index: true,
+        },
+        {
+          path: ROUTES.AUTH.LOGIN.replace(`${ROUTES.AUTH.ROOT}/`, ""),
+          element: (
+            <GuestGuard>
+              <LoginPage />
+            </GuestGuard>
+          ),
+        },
+        {
+          path: ROUTES.AUTH.LOGOUT.replace(`${ROUTES.AUTH.ROOT}/`, ""),
+          element: <Logout />,
+        },
+      ],
+    },
 
-      {/* Moderator Home Page Route */}
-      {/* Moderator Layout & Nested Routes */}
-      <Route path="/moderator/home" element={<ModeratorHomePage />}>
-        <Route path="forum" element={<Forum />} />
-        <Route path="groups" element={<GroupList />} />
-        <Route path="groups/:id" element={<GroupDetail />} />
-        {/* Có thể thêm các chức năng khác ở đây */}
-      </Route>
+    // ---------- Admin ----------
+    {
+      path: ROUTES.ADMIN.ROOT,
+      element: (
+        <RoleBasedGuard allowedRoles={["Admin" as TRole]}>
+          <AdminLayout />
+        </RoleBasedGuard>
+      ),
+      children: [
+        {
+          element: <Navigate to={ROUTES.ADMIN.DASHBOARD} replace />,
+          index: true,
+        },
+        {
+          path: "dashboard",
+          element: <AdminDashboard />,
+        },
+      ],
+    },
 
-      {/* User Profile Route */}
-      <Route element={<UserProfile />} path={ROUTES.PROFILE} />
+    // ---------- Student ----------
+    {
+      path: ROUTES.STUDENT.ROOT,
+      element: (
+        <RoleBasedGuard allowedRoles={["Student" as TRole]}>
+          <StudentLayout />
+        </RoleBasedGuard>
+      ),
+      children: [
+        {
+          index: true,
+          element: <HomePage />,
+        },
+        {
+          path: "dashboard",
+          element: <HomePage />,
+        },
+        {
+          path: "forum",
+          element: <ForumPage />,
+        },
+        {
+          path: "profile",
+          element: <UserProfile />,
+        },
+      ],
+    },
 
-      <Route element={<LoginPage />} path="/login" />
+    // ---------- Lecture ----------
+    {
+      path: ROUTES.LECTURE.ROOT,
+      element: (
+        <RoleBasedGuard allowedRoles={["Lecture" as TRole]}>
+          <LectureLayout />
+        </RoleBasedGuard>
+      ),
+      children: [
+        {
+          element: <Navigate to={ROUTES.LECTURE.DASHBOARD} replace />,
+          index: true,
+        },
+        {
+          path: "dashboard",
+          element: <AdminDashboard />,
+        },
+      ],
+    },
 
-      {/* Dashboard Routes */}
-      <Route element={<Dashboard />} path={ROUTES.DASHBOARD} />
+    // ---------- Moderator ----------
+    {
+      path: ROUTES.MODERATOR.ROOT,
+      element: (
+        <RoleBasedGuard allowedRoles={["Moderator" as TRole]}>
+          <ModeratorLayout />
+        </RoleBasedGuard>
+      ),
+      children: [
+        {
+          element: <Navigate to={ROUTES.MODERATOR.DASHBOARD} replace />,
+          index: true,
+        },
+        {
+          path: "dashboard",
+          element: <AdminDashboard />,
+        },
+      ],
+    },
 
-      {/* Group Routes */}
-      <Route element={<GroupPage />} path={ROUTES.GROUP} />
-
-      {/* Admin Routes */}
-      <Route element={<AdminDashboard />} path={ROUTES.ADMIN.DASHBOARD} />
-      <Route element={<Navigate replace to={ROUTES.ADMIN.DASHBOARD} />} path={ROUTES.ADMIN.ROOT} />
-
-      {/* Fallback */}
-      <Route element={<Navigate replace to="/" />} path="*" />
-    </Routes>
-  );
+    // ---------- Fallback ----------
+    {
+      path: "*",
+      element: <Navigate to={ROUTES.HOME} replace />,
+    },
+  ]);
 }
