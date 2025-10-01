@@ -1,16 +1,16 @@
-import { useState } from "react";
-import { useParams } from "react-router-dom";
+// import { useState } from "react";
+// import { useParams } from "react-router-dom";
 
-interface Comment {
-  id: number;
-  author: {
-    name: string;
-    avatar: string;
-    group?: string;
-  };
-  content: string;
-  replies?: Comment[];
-}
+// interface Comment {
+//   id: number;
+//   author: {
+//     name: string;
+//     avatar: string;
+//     group?: string;
+//   };
+//   content: string;
+//   replies?: Comment[];
+// }
 
 const mockPost = {
   id: 1,
@@ -21,29 +21,29 @@ const mockPost = {
   image: "/post-img.png",
 };
 
-const mockComments: Comment[] = [
-  {
-    id: 1,
-    author: { name: "Trần Thị B", avatar: "/avatar2.png", group: "Nhóm Skincare" },
-    content: "Mình hay dùng toner kiềm dầu.",
-    replies: [
-      {
-        id: 11,
-        author: { name: "Nguyễn Văn C", avatar: "/avatar3.png" },
-        content: "Chuẩn luôn, toner cực hợp mùa hè.",
-      },
-    ],
-  },
-  {
-    id: 2,
-    author: { name: "Lê Văn D", avatar: "/avatar4.png" },
-    content: "Nên dùng kem chống nắng SPF50 nhé!",
-  },
-];
+// const mockComments: Comment[] = [
+//   {
+//     id: 1,
+//     author: { name: "Trần Thị B", avatar: "/avatar2.png", group: "Nhóm Skincare" },
+//     content: "Mình hay dùng toner kiềm dầu.",
+//     replies: [
+//       {
+//         id: 11,
+//         author: { name: "Nguyễn Văn C", avatar: "/avatar3.png" },
+//         content: "Chuẩn luôn, toner cực hợp mùa hè.",
+//       },
+//     ],
+//   },
+//   {
+//     id: 2,
+//     author: { name: "Lê Văn D", avatar: "/avatar4.png" },
+//     content: "Nên dùng kem chống nắng SPF50 nhé!",
+//   },
+// ];
 
 export default function ForumDetail() {
-  const { id } = useParams();
-  const [comments, setComments] = useState<Comment[]>(mockComments);
+  // const { id } = useParams();
+  // const [comments, setComments] = useState<Comment[]>(mockComments);
 
   return (
     <div className="grid grid-cols-3 gap-4 p-6">
@@ -63,7 +63,7 @@ export default function ForumDetail() {
       </div>
 
       {/* 1/3 comment */}
-      <div className="col-span-1 max-h-[80vh] overflow-y-auto rounded-xl bg-gray-50 p-4 shadow">
+      {/* <div className="col-span-1 max-h-[80vh] overflow-y-auto rounded-xl bg-gray-50 p-4 shadow">
         <h3 className="mb-3 font-bold">Bình luận</h3>
         {comments.map((cmt) => (
           <div key={cmt.id} className="mb-4">
@@ -76,7 +76,6 @@ export default function ForumDetail() {
             </div>
             <p className="ml-10 text-sm text-gray-700">{cmt.content}</p>
 
-            {/* reply */}
             {cmt.replies?.map((reply) => (
               <div key={reply.id} className="mt-2 ml-12">
                 <div className="flex items-center space-x-2">
@@ -90,18 +89,16 @@ export default function ForumDetail() {
               </div>
             ))}
 
-            {/* input trả lời */}
             <div className="mt-2 ml-10">
               <input type="text" placeholder="Trả lời..." className="w-full rounded-lg border px-2 py-1 text-sm" />
             </div>
           </div>
         ))}
 
-        {/* input thêm comment */}
         <div className="mt-4">
           <input type="text" placeholder="Viết bình luận..." className="w-full rounded-lg border px-3 py-2 text-sm" />
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }
