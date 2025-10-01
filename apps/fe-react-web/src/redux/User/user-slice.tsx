@@ -29,19 +29,19 @@ const isTokenExpired = (token?: string): boolean => {
   }
 };
 
-const setAuthorizationHeaders = (token: string) => {
-  // apiRequest.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-};
+// const setAuthorizationHeaders = (token: string) => {
+//   // apiRequest.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+// };
 
-const clearAuthorizationHeaders = () => {
-  // apiRequest.defaults.headers.common["Authorization"] = null;
-};
+// const clearAuthorizationHeaders = () => {
+//   // apiRequest.defaults.headers.common["Authorization"] = null;
+// };
 
 const clearStoredAuthData = () => {
   localStorage.removeItem("token");
   localStorage.removeItem("refresh_token");
   localStorage.removeItem("user");
-  clearAuthorizationHeaders();
+  // clearAuthorizationHeaders();
 };
 
 const userSlice = createSlice({
@@ -76,7 +76,7 @@ const userSlice = createSlice({
       localStorage.setItem("refresh_token", userData.refresh_token);
       localStorage.setItem("user", JSON.stringify(userData));
 
-      setAuthorizationHeaders(userData.token);
+      // setAuthorizationHeaders(userData.token);
     },
 
     loadUserFromStorage(state) {
@@ -106,7 +106,7 @@ const userSlice = createSlice({
       state.isAuthenticated = true;
       state.role = role;
 
-      setAuthorizationHeaders(accessToken);
+      // setAuthorizationHeaders(accessToken);
     },
 
     logout(state) {
