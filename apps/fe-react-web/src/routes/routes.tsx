@@ -1,7 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 
 import { ROUTES } from "@/constants/route.constant";
-import AdminDashboard from "@/pages/admin/AdminDashboard";
 import LoginPage from "@/pages/auth/login";
 import Dashboard from "@/pages/Dashboard";
 import HomePage from "@/pages/home/home-page";
@@ -39,10 +38,6 @@ export default function MainRoutes() {
 
       {/* Group Routes */}
       <Route element={<GroupPage />} path={ROUTES.GROUP} />
-
-      {/* Admin Routes */}
-      <Route element={<AdminDashboard />} path={ROUTES.ADMIN.DASHBOARD} />
-      <Route element={<Navigate replace to={ROUTES.ADMIN.DASHBOARD} />} path={ROUTES.ADMIN.ROOT} />
 
       {/* Fallback */}
       <Route element={<Navigate replace to="/" />} path="*" />
