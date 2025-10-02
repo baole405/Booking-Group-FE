@@ -8,6 +8,7 @@ import LectureLayout from "@/layouts/LectureLayout";
 import ModeratorLayout from "@/layouts/ModeratorLayout";
 import StudentLayout from "@/layouts/StudentLayout";
 import Logout from "@/pages/auth/logout";
+
 import type { TRole } from "@/schema/role.schema";
 import { QueryErrorResetBoundary } from "@tanstack/react-query";
 import { lazy, Suspense } from "react";
@@ -34,9 +35,9 @@ const Loadable =
 // -------- Lazy pages --------
 const LoginPage = Loadable(lazy(() => import("@/pages/auth/login")));
 const ForumPage = Loadable(lazy(() => import("@/pages/home/forum/forum-page")));
-const AdminDashboard = Loadable(lazy(() => import("@/pages/admin/AdminDashboard")));
 const HomePage = Loadable(lazy(() => import("@/pages/home/group/list-group-page")));
 const UserProfile = Loadable(lazy(() => import("@/pages/home/user/user-profile")));
+const Dashboard = Loadable(lazy(() => import("@/pages/Dashboard")));
 
 export default function MainRoutes() {
   return useRoutes([
@@ -81,7 +82,7 @@ export default function MainRoutes() {
         },
         {
           path: "dashboard",
-          element: <AdminDashboard />,
+          element: <Dashboard />,
         },
       ],
     },
@@ -129,7 +130,7 @@ export default function MainRoutes() {
         },
         {
           path: "dashboard",
-          element: <AdminDashboard />,
+          element: <Dashboard />,
         },
       ],
     },
@@ -149,7 +150,7 @@ export default function MainRoutes() {
         },
         {
           path: "dashboard",
-          element: <AdminDashboard />,
+          element: <Dashboard />,
         },
       ],
     },

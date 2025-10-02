@@ -1,13 +1,21 @@
-import { AppSidebar } from "@/components/app-sidebar";
-import { ChartAreaInteractive } from "@/components/chart-area-interactive";
-import { DataTable } from "@/components/data-table";
-import { SectionCards } from "@/components/section-cards";
-import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import ListAccountScreen from "@/pages/admin/ListAccountScreen";
+import ListGroupsScreen from "@/pages/admin/ListGroupsScreen";
+import ListLectureScreen from "@/pages/admin/ListLectureScreen";
+import ListProjectScreen from "@/pages/admin/ListProjectScreen";
+import ListStudentScreen from "@/pages/admin/ListStudentScreen";
+import { useState } from "react";
 
-import data from "@/app/dashboard/data.json";
+const MENU = [
+  { label: "Tài khoản", component: <ListAccountScreen /> },
+  { label: "Nhóm", component: <ListGroupsScreen /> },
+  { label: "Giảng viên", component: <ListLectureScreen /> },
+  { label: "Project", component: <ListProjectScreen /> },
+  { label: "Sinh viên", component: <ListStudentScreen /> },
+];
 
 export default function Dashboard() {
+  const [selected, setSelected] = useState(0);
   return (
     <SidebarProvider
       style={
@@ -17,21 +25,62 @@ export default function Dashboard() {
         } as React.CSSProperties
       }
     >
-      <AppSidebar variant="inset" />
-      <SidebarInset>
-        <SiteHeader />
-        <div className="flex flex-1 flex-col">
-          <div className="@container/main flex flex-1 flex-col gap-2">
-            <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-              <SectionCards />
-              <div className="px-4 lg:px-6">
-                <ChartAreaInteractive />
-              </div>
-              <DataTable data={data} />
-            </div>
+      <div className="from-background to-muted/30 flex min-h-screen bg-gradient-to-br">
+        {/* Sidebar quản lý */}
+        <aside className="bg-background/95 border-border/50 flex w-64 flex-col border-r shadow-lg backdrop-blur-sm">
+          <div className="border-border/50 from-primary/10 to-primary/5 flex h-16 items-center justify-center border-b bg-gradient-to-r">
+            <span className="from-primary to-primary/70 bg-gradient-to-r bg-clip-text text-xl font-bold tracking-tight text-transparent">
+              Admin Panel
+            </span>
           </div>
+          <nav className="flex-1 px-3 py-6">
+            <ul className="space-y-1.5">
+              {MENU.map((item, idx) => (
+                <li key={item.label}>
+                  <button
+                    onClick={() => setSelected(idx)}
+                    className={`group relative w-full overflow-hidden rounded-lg px-4 py-3 text-left font-medium transition-all duration-200 ${
+                      selected === idx
+                        ? "bg-primary text-primary-foreground scale-[1.02] shadow-md"
+                        : "hover:bg-muted/70 text-foreground/70 hover:text-foreground hover:translate-x-1"
+                    }`}
+                  >
+                    <span className="relative z-10">{item.label}</span>
+                    {selected === idx && <div className="from-primary/20 absolute inset-0 bg-gradient-to-r to-transparent" />}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </nav>
+          {/* Profile & Logout at bottom */}
+          <div className="border-border/50 bg-muted/20 flex flex-col gap-3 border-t p-4">
+            <div className="hover:bg-muted/50 flex items-center gap-3 rounded-lg p-2 transition-colors">
+              <div className="from-primary to-primary/60 text-primary-foreground flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br text-lg font-bold shadow-md">
+                A
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-semibold">Admin</div>
+                <div className="text-muted-foreground truncate text-xs">admin@email.com</div>
+              </div>
+            </div>
+            <button className="bg-destructive text-destructive-foreground hover:bg-destructive/90 w-full rounded-lg px-4 py-2.5 font-medium shadow-sm transition-all duration-200 hover:shadow-md active:scale-[0.98]">
+              Đăng xuất
+            </button>
+          </div>
+        </aside>
+        {/* Main Content */}
+        <div className="flex min-h-screen flex-1 flex-col">
+          <SidebarInset>
+            <div className="flex h-full w-full flex-1 justify-end p-3">
+              <div className="flex h-full w-full justify-end">
+                <div className="bg-background border-border/50 h-full w-full max-w-3xl overflow-hidden rounded-lg border shadow-sm">
+                  <div className="h-full w-full">{MENU[selected].component}</div>
+                </div>
+              </div>
+            </div>
+          </SidebarInset>
         </div>
-      </SidebarInset>
+      </div>
     </SidebarProvider>
   );
 }
