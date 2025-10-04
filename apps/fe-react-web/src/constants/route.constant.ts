@@ -1,15 +1,8 @@
 export const ROUTES = {
   // Root paths
   HOME: "/",
-  REGISTER: "/register",
-
-  // Auth Routes
-  AUTH: {
-    ROOT: "/auth",
-    LOGIN: "/auth/login",
-    REGISTER: "/auth/register",
-    LOGOUT: "/auth/logout",
-  },
+  LOGIN: "/login",
+  LOGOUT: "/logout",
 
   // Student Routes
   STUDENT: {
@@ -17,7 +10,7 @@ export const ROUTES = {
     GROUPS: "/student/groups",
     GROUP_DETAIL: "/student/groups/:id",
     PROFILE: "/student/profile",
-    DASHBOARD: "/student/dashboard",
+    DASHBOARD: "/student/groups",
     COURSES: "/student/courses",
     ASSIGNMENTS: "/student/assignments",
     RESULTS: "/student/results",
@@ -30,18 +23,26 @@ export const ROUTES = {
   // Admin Routes
   ADMIN: {
     ROOT: "/admin",
-    DASHBOARD: "/admin/dashboard",
-    USERS: "/admin/users",
-    ROLES: "/admin/roles",
-    SETTINGS: "/admin/settings",
+    // DASHBOARD: "/admin/dashboard",
+    // USERS: "/admin/users",
+    // ROLES: "/admin/roles",
+    // SETTINGS: "/admin/settings",
+    ACCOUNTS: "/admin/accounts",
+    GROUPS: "/admin/groups",
+    LECTURERS: "/admin/lecturers",
+    PROJECTS: "/admin/projects",
+    STUDENTS: "/admin/students",
   },
 
   // Moderator Routes
   MODERATOR: {
     ROOT: "/moderator",
-    DASHBOARD: "/moderator/dashboard",
+    // DASHBOARD: "/moderator/dashboard",
     FORUMS: "/moderator/forums",
-    REPORTS: "/moderator/reports",
+    // REPORTS: "/moderator/reports",
+    GROUPS: "/moderator/groups",
+    STUDENTS: "/moderator/students",
+    LECTURERS: "/moderator/lecturers",
   },
 
   // Lecturer Routes

@@ -14,17 +14,17 @@ const RoleBasedGuard = ({ children, allowedRoles }: RoleBasedGuardProps) => {
   const { isAuthenticated, role: userRole } = useSelector((state: RootState) => state.user);
 
   if (!isAuthenticated) {
-    return <Navigate to={ROUTES.AUTH.LOGIN} replace />;
+    return <Navigate to={ROUTES.LOGIN} replace />;
   }
 
   if (!userRole || !allowedRoles.includes(userRole)) {
     switch (userRole) {
       case "ADMIN":
-        return <Navigate to={ROUTES.ADMIN.DASHBOARD} replace />;
+        return <Navigate to={ROUTES.ADMIN.ACCOUNTS} replace />;
       case "STUDENT":
         return <Navigate to={ROUTES.STUDENT.DASHBOARD} replace />;
       case "MODERATOR":
-        return <Navigate to={ROUTES.MODERATOR.DASHBOARD} replace />;
+        return <Navigate to={ROUTES.MODERATOR.GROUPS} replace />;
       case "LECTURER":
         return <Navigate to={ROUTES.LECTURER.DASHBOARD} replace />;
       default:

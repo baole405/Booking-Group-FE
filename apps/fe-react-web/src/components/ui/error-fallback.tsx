@@ -2,7 +2,7 @@ import ImageNotFound from "@/assets/illustration/image-not-found";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
 import type { FallbackProps } from "react-error-boundary";
-import { handleApiError } from "../lib/error";
+import { handleApiError } from "../../lib/error";
 
 export const ErrorFallback = ({ error, resetErrorBoundary }: FallbackProps) => {
   handleApiError(error);
