@@ -1,4 +1,4 @@
-import HeaderMain from "@/components/header-main";
+import HeaderMain from "@/components/layout/header/header-main";
 import { Input } from "@/components/ui/input";
 import ProjectCard from "./components/group-card";
 

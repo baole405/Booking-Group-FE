@@ -4,7 +4,10 @@ import ListGroupsScreen from "@/pages/admin/ListGroupsScreen";
 import ListLectureScreen from "@/pages/admin/ListLectureScreen";
 import ListProjectScreen from "@/pages/admin/ListProjectScreen";
 import ListStudentScreen from "@/pages/admin/ListStudentScreen";
+import { logout } from "@/redux/User/user-slice";
 import { useState } from "react";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 const MENU = [
   { label: "Tài khoản", component: <ListAccountScreen /> },
@@ -15,7 +18,14 @@ const MENU = [
 ];
 
 export default function Dashboard() {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [selected, setSelected] = useState(0);
+
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate("/auth/login", { replace: true });
+  };
   return (
     <SidebarProvider
       style={
@@ -63,7 +73,10 @@ export default function Dashboard() {
                 <div className="text-muted-foreground truncate text-xs">admin@email.com</div>
               </div>
             </div>
-            <button className="bg-destructive text-destructive-foreground hover:bg-destructive/90 w-full rounded-lg px-4 py-2.5 font-medium shadow-sm transition-all duration-200 hover:shadow-md active:scale-[0.98]">
+            <button
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 w-full rounded-lg px-4 py-2.5 font-medium shadow-sm transition-all duration-200 hover:shadow-md active:scale-[0.98]"
+              onClick={handleLogout}
+            >
               Đăng xuất
             </button>
           </div>
