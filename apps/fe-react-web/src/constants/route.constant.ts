@@ -44,12 +44,12 @@ export const ROUTES = {
     REPORTS: "/moderator/reports",
   },
 
-  // Lecture Routes
-  LECTURE: {
-    ROOT: "/lecture",
-    DASHBOARD: "/lecture/dashboard",
-    COURSES: "/lecture/courses",
-    ASSIGNMENTS: "/lecture/assignments",
-    STUDENTS: "/lecture/students",
+  // Lecturer Routes
+  LECTURER: {
+    ROOT: "/lecturer",
+    DASHBOARD: "/lecturer/dashboard",
+    COURSES: "/lecturer/courses",
+    ASSIGNMENTS: "/lecturer/assignments",
+    STUDENTS: "/lecturer/students",
   },
 };

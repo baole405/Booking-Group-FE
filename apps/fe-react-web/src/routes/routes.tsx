@@ -71,7 +71,7 @@ export default function MainRoutes() {
     {
       path: ROUTES.ADMIN.ROOT,
       element: (
-        <RoleBasedGuard allowedRoles={["Admin" as TRole]}>
+        <RoleBasedGuard allowedRoles={["ADMIN" as TRole]}>
           <AdminLayout />
         </RoleBasedGuard>
       ),
@@ -91,7 +91,7 @@ export default function MainRoutes() {
     {
       path: ROUTES.STUDENT.ROOT,
       element: (
-        <RoleBasedGuard allowedRoles={["Student" as TRole]}>
+        <RoleBasedGuard allowedRoles={["STUDENT" as TRole]}>
           <StudentLayout />
         </RoleBasedGuard>
       ),
@@ -117,15 +117,15 @@ export default function MainRoutes() {
 
     // ---------- Lecture ----------
     {
-      path: ROUTES.LECTURE.ROOT,
+      path: ROUTES.LECTURER.ROOT,
       element: (
-        <RoleBasedGuard allowedRoles={["Lecture" as TRole]}>
+        <RoleBasedGuard allowedRoles={["LECTURER" as TRole]}>
           <LectureLayout />
         </RoleBasedGuard>
       ),
       children: [
         {
-          element: <Navigate to={ROUTES.LECTURE.DASHBOARD} replace />,
+          element: <Navigate to={ROUTES.LECTURER.DASHBOARD} replace />,
           index: true,
         },
         {
@@ -139,7 +139,7 @@ export default function MainRoutes() {
     {
       path: ROUTES.MODERATOR.ROOT,
       element: (
-        <RoleBasedGuard allowedRoles={["Moderator" as TRole]}>
+        <RoleBasedGuard allowedRoles={["MODERATOR" as TRole]}>
           <ModeratorLayout />
         </RoleBasedGuard>
       ),

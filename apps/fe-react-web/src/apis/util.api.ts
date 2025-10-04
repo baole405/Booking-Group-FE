@@ -14,4 +14,5 @@ export const normalizeParams = (filters: any) => {
 export const API_SUFFIX = {
   // Auth
   AUTH_API: "/auth/login",
+  GOOGLE_AUTH_API: "/auth/google-login",
 };
