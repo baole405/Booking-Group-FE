@@ -1,3 +1,4 @@
+import { apiRequest } from "@/lib/http";
 import type { TAuthResponse } from "@/schema/auth.schema";
 import type { TRole } from "@/schema/role.schema";
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
@@ -15,11 +16,16 @@ const initialState: UserState = {
   role: null,
 };
 
+interface DecodedToken {
+  exp?: number;
+  role?: TRole;
+}
+
 // Check token expired safely
 const isTokenExpired = (token?: string): boolean => {
   if (!token) return true;
   try {
-    const decoded = jwtDecode(token) as any;
+    const decoded = jwtDecode<DecodedToken>(token);
     if (!decoded.exp) return true;
     const currentTime = Date.now() / 1000;
     return decoded.exp < currentTime;
@@ -29,19 +35,19 @@ const isTokenExpired = (token?: string): boolean => {
   }
 };
 
-// const setAuthorizationHeaders = (token: string) => {
-//   // apiRequest.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-// };
+// Mở để dùng sau
+const setAuthorizationHeaders = (token: string) => {
+  apiRequest.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+};
 
-// const clearAuthorizationHeaders = () => {
-//   // apiRequest.defaults.headers.common["Authorization"] = null;
-// };
+const clearAuthorizationHeaders = () => {
+  apiRequest.defaults.headers.common["Authorization"] = null;
+};
 
 const clearStoredAuthData = () => {
   localStorage.removeItem("token");
-  localStorage.removeItem("refresh_token");
   localStorage.removeItem("user");
-  // clearAuthorizationHeaders();
+  clearAuthorizationHeaders();
 };
 
 const userSlice = createSlice({
@@ -62,7 +68,7 @@ const userSlice = createSlice({
       // Nếu token hợp lệ mới decode
       let role: TRole | null = null;
       try {
-        const decoded = jwtDecode(userData.token) as any;
+        const decoded = jwtDecode<DecodedToken>(userData.token);
         role = decoded.role ?? null;
       } catch {
         role = null;
@@ -73,18 +79,16 @@ const userSlice = createSlice({
       state.role = role;
 
       localStorage.setItem("token", userData.token);
-      localStorage.setItem("refresh_token", userData.refresh_token);
       localStorage.setItem("user", JSON.stringify(userData));
 
-      // setAuthorizationHeaders(userData.token);
+      setAuthorizationHeaders(userData.token);
     },
 
     loadUserFromStorage(state) {
       const accessToken = localStorage.getItem("token");
-      const refreshToken = localStorage.getItem("refresh_token");
       const storedUserData = localStorage.getItem("user");
 
-      if (!accessToken || !refreshToken || !storedUserData || isTokenExpired(accessToken)) {
+      if (!accessToken || !storedUserData || isTokenExpired(accessToken)) {
         clearStoredAuthData();
         state.user = null;
         state.isAuthenticated = false;
@@ -96,7 +100,7 @@ const userSlice = createSlice({
 
       let role: TRole | null = null;
       try {
-        const decoded = jwtDecode(accessToken) as any;
+        const decoded = jwtDecode<DecodedToken>(userData.token);
         role = decoded.role ?? null;
       } catch {
         role = null;
@@ -106,7 +110,7 @@ const userSlice = createSlice({
       state.isAuthenticated = true;
       state.role = role;
 
-      // setAuthorizationHeaders(accessToken);
+      setAuthorizationHeaders(accessToken);
     },
 
     logout(state) {

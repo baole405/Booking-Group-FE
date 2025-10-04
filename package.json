@@ -17,9 +17,11 @@
     "*": "prettier --write --config .prettierrc --ignore-unknown --no-error-on-unmatched-pattern"
   },
   "dependencies": {
+    "@react-oauth/google": "^0.12.2",
     "@reduxjs/toolkit": "^2.9.0",
     "@tanstack/react-query": "^5.90.2",
     "axios": "^1.12.2",
+    "firebase": "^12.3.0",
     "jsonwebtoken": "^9.0.2",
     "jwt-decode": "^4.0.0",
     "react": "^19.1.0",

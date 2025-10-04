@@ -1,12 +1,8 @@
 import jwt from "jsonwebtoken";
 
-interface UserLoginResponse {
-  tokenType: string;
-  id: number;
-  username: string;
-  role: string;
+interface GoogleLoginResponse {
+  email: string;
   token: string;
-  refresh_token: string;
 }
 
 interface BaseResponse<T> {
@@ -18,56 +14,60 @@ interface BaseResponse<T> {
 // Secret key mock (chỉ dùng cho dev/test)
 const SECRET_KEY = "mock-secret";
 
-// Hàm tạo JWT mock
-const createMockToken = (user: { id: number; username: string; role: string }) => {
+// Hàm tạo JWT mock (payload giống Google token)
+const createMockToken = (user: { email: string; role: string; uid: string }) => {
   return jwt.sign(
-    { id: user.id, username: user.username, role: user.role },
+    {
+      sub: user.email,
+      role: user.role,
+      uid: user.uid,
+      email: user.email,
+    },
     SECRET_KEY,
     { expiresIn: "1h" }, // token hết hạn sau 1h
   );
 };
 
 // Mock users
-export const usersMockData: Record<string, UserLoginResponse> = {
+export const usersMockData: Record<string, { email: string; role: string; uid: string }> = {
   "admin@fe-swd.com": {
-    tokenType: "Bearer",
-    id: 1,
-    username: "Admin User",
-    role: "Admin",
-    token: createMockToken({ id: 1, username: "Admin User", role: "Admin" }),
-    refresh_token: createMockToken({ id: 1, username: "Admin User", role: "Admin" }),
+    email: "admin@fe-swd.com",
+    role: "ADMIN",
+    uid: "UID_ADMIN_001",
   },
   "student@fe-swd.com": {
-    tokenType: "Bearer",
-    id: 2,
-    username: "Student User",
-    role: "Student",
-    token: createMockToken({ id: 2, username: "Student User", role: "Student" }),
-    refresh_token: createMockToken({ id: 2, username: "Student User", role: "Student" }),
+    email: "student@fe-swd.com",
+    role: "STUDENT",
+    uid: "UID_STUDENT_001",
   },
   "moderator@fe-swd.com": {
-    tokenType: "Bearer",
-    id: 3,
-    username: "Moderator User",
-    role: "Moderator",
-    token: createMockToken({ id: 3, username: "Moderator User", role: "Moderator" }),
-    refresh_token: createMockToken({ id: 3, username: "Moderator User", role: "Moderator" }),
+    email: "moderator@fe-swd.com",
+    role: "MODERATOR",
+    uid: "UID_MODERATOR_001",
   },
   "lecture@fe-swd.com": {
-    tokenType: "Bearer",
-    id: 4,
-    username: "Lecture User",
-    role: "Lecture",
-    token: createMockToken({ id: 4, username: "Lecture User", role: "Lecture" }),
-    refresh_token: createMockToken({ id: 4, username: "Lecture User", role: "Lecture" }),
+    email: "lecture@fe-swd.com",
+    role: "LECTURE",
+    uid: "UID_LECTURE_001",
   },
 };
 
 // Hàm login mock
-export const loginMock = (email: string, password: string): BaseResponse<UserLoginResponse> => {
+export const loginMock = (email: string, password: string): BaseResponse<GoogleLoginResponse | null> => {
   const user = usersMockData[email];
   if (user) {
-    return { status: 200, message: "Login successful", data: user };
+    return {
+      status: 200,
+      message: "Google login success",
+      data: {
+        email: user.email,
+        token: createMockToken(user),
+      },
+    };
   }
-  return { status: 401, message: "Invalid credentials", data: null as any };
+  return {
+    status: 401,
+    message: "Invalid credentials",
+    data: null,
+  };
 };

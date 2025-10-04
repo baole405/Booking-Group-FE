@@ -13,14 +13,14 @@ export default function GuestGuard({ children }: GuestGuardProps) {
 
   if (isAuthenticated) {
     switch (role) {
-      case "Admin":
+      case "ADMIN":
         return <Navigate to={ROUTES.ADMIN.DASHBOARD} replace />;
-      case "Student":
+      case "STUDENT":
         return <Navigate to={ROUTES.STUDENT.DASHBOARD} replace />;
-      case "Moderator":
+      case "MODERATOR":
         return <Navigate to={ROUTES.MODERATOR.DASHBOARD} replace />;
-      case "Lecture":
-        return <Navigate to={ROUTES.LECTURE.DASHBOARD} replace />;
+      case "LECTURER":
+        return <Navigate to={ROUTES.LECTURER.DASHBOARD} replace />;
       default:
         return <Navigate to="/404" replace />;
     }
