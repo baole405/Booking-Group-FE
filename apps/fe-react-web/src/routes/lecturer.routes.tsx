@@ -1,9 +1,33 @@
+import { ErrorFallback } from "@/components/ui/error-fallback";
+import LoadingScreen from "@/components/ui/loading-screen";
 import { ROUTES } from "@/constants/route.constant";
 import RoleBasedGuard from "@/guards/role-based-guard";
 import RoleBasedLayout from "@/layouts/RoleBasedLayout";
-import Dashboard from "@/pages/Dashboard";
-import type { TRole } from "@/schema/role.schema";
-import { Navigate } from "react-router-dom";
+import type { TRole } from "@/schema/common/role.schema";
+import { QueryErrorResetBoundary } from "@tanstack/react-query";
+import { lazy, Suspense } from "react";
+import { ErrorBoundary } from "react-error-boundary";
+
+const Loadable =
+  <P extends object>(Component: React.ComponentType<P>) =>
+  (props: P) => {
+    return (
+      <QueryErrorResetBoundary>
+        {({ reset }) => (
+          <ErrorBoundary onReset={reset} FallbackComponent={ErrorFallback}>
+            <Suspense fallback={<LoadingScreen />}>
+              <Component {...props} />
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </QueryErrorResetBoundary>
+    );
+  };
+
+// -------- Lazy pages --------
+const GroupPage = Loadable(lazy(() => import("@/pages/home/group/list-group-page")));
+const ForumPage = Loadable(lazy(() => import("@/pages/home/forum/forum-page")));
+const UserProfile = Loadable(lazy(() => import("@/pages/home/user/user-profile")));
 
 const lecturerRoutes = {
   path: ROUTES.LECTURER.ROOT,
@@ -13,8 +37,11 @@ const lecturerRoutes = {
     </RoleBasedGuard>
   ),
   children: [
-    { index: true, element: <Navigate to={ROUTES.LECTURER.DASHBOARD} replace /> },
-    { path: ROUTES.LECTURER.DASHBOARD, element: <Dashboard /> },
+    { index: true, element: <GroupPage /> },
+    { path: ROUTES.LECTURER.GROUPS, element: <GroupPage /> },
+    { path: ROUTES.LECTURER.FORUMS, element: <ForumPage /> },
+    { path: ROUTES.LECTURER.PROFILE, element: <UserProfile /> },
+    { path: ROUTES.LECTURER.IDEAS, element: <GroupPage /> },
     // thêm các trang dành cho giảng viên ở đây
   ],
 };

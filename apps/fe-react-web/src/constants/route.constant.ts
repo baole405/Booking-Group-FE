@@ -11,9 +11,9 @@ export const ROUTES = {
     GROUP_DETAIL: "/student/groups/:id",
     PROFILE: "/student/profile",
     DASHBOARD: "/student/groups",
-    COURSES: "/student/courses",
-    ASSIGNMENTS: "/student/assignments",
-    RESULTS: "/student/results",
+    // COURSES: "/student/courses",
+    // ASSIGNMENTS: "/student/assignments",
+    // RESULTS: "/student/results",
     FORUM: "/student/forum",
     FORUM_DETAIL: "/student/forum/:id",
     IDEAS: "/student/ideas",
@@ -48,9 +48,9 @@ export const ROUTES = {
   // Lecturer Routes
   LECTURER: {
     ROOT: "/lecturer",
-    DASHBOARD: "/lecturer/dashboard",
-    COURSES: "/lecturer/courses",
-    ASSIGNMENTS: "/lecturer/assignments",
-    STUDENTS: "/lecturer/students",
+    GROUPS: "/lecturer/groups",
+    FORUMS: "/lecturer/forums",
+    PROFILE: "/lecturer/profile",
+    IDEAS: "/lecturer/ideas",
   },
 };

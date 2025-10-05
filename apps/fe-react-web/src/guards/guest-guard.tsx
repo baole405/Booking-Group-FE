@@ -20,7 +20,7 @@ export default function GuestGuard({ children }: GuestGuardProps) {
       case "MODERATOR":
         return <Navigate to={ROUTES.MODERATOR.GROUPS} replace />;
       case "LECTURER":
-        return <Navigate to={ROUTES.LECTURER.DASHBOARD} replace />;
+        return <Navigate to={ROUTES.LECTURER.GROUPS} replace />;
       default:
         return <Navigate to="/404" replace />;
     }

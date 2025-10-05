@@ -46,5 +46,6 @@ export default function MainRoutes() {
     lecturerRoutes,
     moderatorRoutes,
     { path: "*", element: <Navigate to={ROUTES.HOME} replace /> },
+    { path: "404", element: <LoginPage /> },
   ]);
 }

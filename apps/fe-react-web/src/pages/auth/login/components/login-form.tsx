@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { handleApiError } from "@/lib/error";
 import { cn } from "@/lib/utils";
 import { setUser } from "@/redux/User/user-slice";
+import type { TGoogleLoginRequest } from "@/schema/auth.schema";
 import { loginWithGoogle } from "@/utils/auth-service";
 import React, { useMemo, useState } from "react";
 import { useDispatch } from "react-redux";
@@ -20,7 +21,11 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
       setLoading(true);
 
       const { idToken } = await loginWithGoogle();
-      const res = await loginGoogleMutation.mutateAsync({ idToken });
+
+      const request: TGoogleLoginRequest = {
+        idToken,
+      };
+      const res = await loginGoogleMutation.mutateAsync(request);
       console.log("Login response:", res.data.data);
       dispatch(setUser(res.data.data));
     } catch (error: any) {

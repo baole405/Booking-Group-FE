@@ -1,7 +1,7 @@
 import { Input } from "@/components/ui/input";
 import ProjectCard from "./components/group-card";
 
-export default function HomePage() {
+export default function GroupPage() {
   // const currentYear = new Date().getFullYear()
 
   const projects = [
