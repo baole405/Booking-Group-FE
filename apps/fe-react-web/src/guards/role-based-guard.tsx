@@ -1,6 +1,6 @@
 import { ROUTES } from "@/constants/route.constant";
 import type { RootState } from "@/redux/store";
-import type { TRole } from "@/schema/role.schema";
+import type { TRole } from "@/schema/common/role.schema";
 import type { ReactNode } from "react";
 import { useSelector } from "react-redux";
 import { Navigate } from "react-router-dom";
@@ -26,7 +26,7 @@ const RoleBasedGuard = ({ children, allowedRoles }: RoleBasedGuardProps) => {
       case "MODERATOR":
         return <Navigate to={ROUTES.MODERATOR.GROUPS} replace />;
       case "LECTURER":
-        return <Navigate to={ROUTES.LECTURER.DASHBOARD} replace />;
+        return <Navigate to={ROUTES.LECTURER.GROUPS} replace />;
       default:
         return <Navigate to="/404" replace />;
     }

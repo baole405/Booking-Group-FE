@@ -1,6 +1,6 @@
 import { apiRequest } from "@/lib/http";
 import type { TAuthResponse } from "@/schema/auth.schema";
-import type { TRole } from "@/schema/role.schema";
+import type { TRole } from "@/schema/common/role.schema";
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import { jwtDecode } from "jwt-decode";
 
@@ -35,7 +35,6 @@ const isTokenExpired = (token?: string): boolean => {
   }
 };
 
-// Mở để dùng sau
 const setAuthorizationHeaders = (token: string) => {
   apiRequest.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 };

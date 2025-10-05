@@ -1,8 +1,7 @@
 import { ROUTES } from "@/constants/route.constant";
 import RoleBasedGuard from "@/guards/role-based-guard";
 import RoleBasedLayout from "@/layouts/RoleBasedLayout";
-import type { TRole } from "@/schema/role.schema";
-import { Navigate } from "react-router-dom";
+import type { TRole } from "@/schema/common/role.schema";
 
 // -------- Lazy load helper --------
 import { ErrorFallback } from "@/components/ui/error-fallback";
@@ -42,7 +41,7 @@ const adminRoutes = {
     </RoleBasedGuard>
   ),
   children: [
-    { index: true, element: <Navigate to={ROUTES.ADMIN.ACCOUNTS} replace /> },
+    { index: true, element: <ListAccountScreen /> },
     { path: ROUTES.ADMIN.ACCOUNTS, element: <ListAccountScreen /> },
     { path: ROUTES.ADMIN.GROUPS, element: <ListGroupsScreen /> },
     { path: ROUTES.ADMIN.LECTURERS, element: <ListLectureScreen /> },

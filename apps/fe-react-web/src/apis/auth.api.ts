@@ -5,9 +5,12 @@ import { API_SUFFIX } from "./util.api";
 
 export const authApi = {
   login: async (request: TLoginRequest) => {
-    return apiRequest.post<BaseResponse<TAuthResponse>>(API_SUFFIX.AUTH_API, request);
+    const response = await apiRequest.post<BaseResponse<TAuthResponse>>(API_SUFFIX.AUTH_API, request);
+    return response;
   },
+
   loginWithGoogle: async (request: TGoogleLoginRequest) => {
-    return apiRequest.post<BaseResponse<TAuthResponse>>(API_SUFFIX.GOOGLE_AUTH_API, request);
+    const response = await apiRequest.post<BaseResponse<TAuthResponse>>(API_SUFFIX.GOOGLE_AUTH_API, request);
+    return response;
   },
 };
