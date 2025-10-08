@@ -1,0 +1,30 @@
+import { z } from "zod";
+import { TypeIdeasSchema } from "./common/type-ideas.schema";
+
+export const AuthorSchema = z.object({
+  id: z.number(),
+  fullName: z.string(),
+  email: z.string().email(),
+  role: z.string(),
+});
+
+export const GroupInfoSchema = z.object({
+  id: z.number(),
+  title: z.string(),
+});
+
+export const IdeaSchema = z.object({
+  id: z.number(),
+  title: z.string(),
+  description: z.string(),
+  author: AuthorSchema,
+  group: GroupInfoSchema,
+  status: TypeIdeasSchema,
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+// Type inference (nếu bạn dùng TypeScript)
+export type TAuthor = z.infer<typeof AuthorSchema>;
+export type TGroupInfo = z.infer<typeof GroupInfoSchema>;
+export type TIdea = z.infer<typeof IdeaSchema>;

@@ -8,17 +8,20 @@ interface UserState {
   user: TAuthResponse | null;
   isAuthenticated: boolean;
   role: TRole | null;
+  userId: number;
 }
 
 const initialState: UserState = {
   user: null,
   isAuthenticated: false,
   role: null,
+  userId: 0,
 };
 
 interface DecodedToken {
   exp?: number;
   role?: TRole;
+  sub?: number;
 }
 
 // Check token expired safely
@@ -60,22 +63,27 @@ const userSlice = createSlice({
         state.user = null;
         state.isAuthenticated = false;
         state.role = null;
+        state.userId = 0;
         clearStoredAuthData();
         return;
       }
 
-      // Nếu token hợp lệ mới decode
+      // Decode role + userId
       let role: TRole | null = null;
+      let userId: string | number | null = null;
       try {
         const decoded = jwtDecode<DecodedToken>(userData.token);
         role = decoded.role ?? null;
+        userId = decoded.sub ?? 0;
       } catch {
         role = null;
+        userId = 0;
       }
 
       state.user = userData;
       state.isAuthenticated = true;
       state.role = role;
+      state.userId = userId;
 
       localStorage.setItem("token", userData.token);
       localStorage.setItem("user", JSON.stringify(userData));
@@ -92,22 +100,27 @@ const userSlice = createSlice({
         state.user = null;
         state.isAuthenticated = false;
         state.role = null;
+        state.userId = 0;
         return;
       }
 
       const userData: TAuthResponse = JSON.parse(storedUserData);
 
       let role: TRole | null = null;
+      let userId: number = 0;
       try {
         const decoded = jwtDecode<DecodedToken>(userData.token);
         role = decoded.role ?? null;
+        userId = decoded.sub ?? 0;
       } catch {
         role = null;
+        userId = 0;
       }
 
       state.user = userData;
       state.isAuthenticated = true;
       state.role = role;
+      state.userId = userId;
 
       setAuthorizationHeaders(accessToken);
     },
@@ -116,6 +129,7 @@ const userSlice = createSlice({
       state.user = null;
       state.isAuthenticated = false;
       state.role = null;
+      state.userId = 0;
       clearStoredAuthData();
     },
   },

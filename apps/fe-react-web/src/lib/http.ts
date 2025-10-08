@@ -3,6 +3,7 @@ import axios from "axios";
 
 const parseParams = (params: Record<string, any>) =>
   Object.entries(params)
+    .filter(([_, value]) => value !== null && value !== undefined && value !== "") // 🧹 bỏ rác
     .map(([key, value]) => {
       if (Array.isArray(value)) return value.map((v) => `${key}=${encodeURIComponent(v)}`).join("&");
       if (typeof value === "object" && value !== null) return "";
