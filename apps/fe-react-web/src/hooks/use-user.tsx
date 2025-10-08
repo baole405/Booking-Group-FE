@@ -13,6 +13,11 @@ export const useUserHook = () => {
       queryKey: ["myProfile"],
       queryFn: () => userApi.getMyProfile(),
     });
+  const useMyGroupId = (id: number) =>
+    useQuery({
+      queryKey: ["myGroupId"],
+      queryFn: () => userApi.getUserGroupId(id),
+    });
   const useUserList = () =>
     useQuery({
       queryKey: ["userList"],
@@ -33,6 +38,7 @@ export const useUserHook = () => {
   return {
     useUser,
     useMyProfile,
+    useMyGroupId,
     useUserList,
     useUpdateStatus,
     useUpdateUser,

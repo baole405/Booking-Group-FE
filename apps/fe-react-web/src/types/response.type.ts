@@ -5,11 +5,14 @@ export type BaseResponse<T> = {
 };
 
 export type PaginationResponse<T> = {
-  size: number;
   page: number;
-  total: number;
+  size: number;
+  totalElements: number;
   totalPages: number;
-  items: T[];
+  first: boolean;
+  last: boolean;
+  sort: string;
+  content: T[];
 };
 
 export type ErrorResponse<T> = BaseResponse<T>;

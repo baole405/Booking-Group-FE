@@ -25,7 +25,7 @@ const Loadable =
   };
 
 // -------- Lazy pages --------
-const GroupPage = Loadable(lazy(() => import("@/pages/home/group/list-group-page")));
+const GroupPage = Loadable(lazy(() => import("@/pages/home/group/list-group/list-group-page")));
 const ForumPage = Loadable(lazy(() => import("@/pages/home/forum/forum-page")));
 const UserProfile = Loadable(lazy(() => import("@/pages/home/user/user-profile")));
 

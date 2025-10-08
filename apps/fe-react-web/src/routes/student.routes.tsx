@@ -25,9 +25,11 @@ const Loadable =
   };
 
 // -------- Lazy pages --------
-const HomePage = Loadable(lazy(() => import("@/pages/home/group/list-group-page")));
+const GroupPage = Loadable(lazy(() => import("@/pages/home/group/list-group/list-group-page")));
 const ForumPage = Loadable(lazy(() => import("@/pages/home/forum/forum-page")));
 const UserProfile = Loadable(lazy(() => import("@/pages/home/user/user-profile")));
+const GroupDetailPage = Loadable(lazy(() => import("@/pages/home/group/group-detail/group-detail")));
+const MyGroupPage = Loadable(lazy(() => import("@/pages/home/group/my-group/my-group-page")));
 
 const studentRoutes = {
   path: ROUTES.STUDENT.ROOT,
@@ -37,10 +39,12 @@ const studentRoutes = {
     </RoleBasedGuard>
   ),
   children: [
-    { index: true, element: <HomePage /> },
-    { path: ROUTES.STUDENT.GROUPS, element: <HomePage /> },
+    { index: true, element: <GroupPage /> },
+    { path: ROUTES.STUDENT.GROUPS, element: <GroupPage /> },
     { path: ROUTES.STUDENT.FORUM, element: <ForumPage /> },
     { path: ROUTES.STUDENT.PROFILE, element: <UserProfile /> },
+    { path: ROUTES.STUDENT.MY_GROUP, element: <MyGroupPage /> },
+    { path: ROUTES.STUDENT.GROUP_DETAIL, element: <GroupDetailPage /> },
   ],
 };
 

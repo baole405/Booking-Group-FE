@@ -16,6 +16,10 @@ export const API_SUFFIX = {
   AUTH_API: "/auth/login",
   GOOGLE_AUTH_API: "/auth/google-login",
   USER_API: "/users",
+  GROUPID_BY_USERID_API: "/groups/user",
   MY_PROFILE_API: "/users/myInfo",
   MAJOR_API: "/majors",
+  GROUP_API: "/groups",
+  IDEA_API: "/ideas",
+  IDEA_GROUP_API: "/ideas/group",
 };

@@ -16,7 +16,7 @@ export default function GuestGuard({ children }: GuestGuardProps) {
       case "ADMIN":
         return <Navigate to={ROUTES.ADMIN.ACCOUNTS} replace />;
       case "STUDENT":
-        return <Navigate to={ROUTES.STUDENT.DASHBOARD} replace />;
+        return <Navigate to={ROUTES.STUDENT.GROUPS} replace />;
       case "MODERATOR":
         return <Navigate to={ROUTES.MODERATOR.GROUPS} replace />;
       case "LECTURER":

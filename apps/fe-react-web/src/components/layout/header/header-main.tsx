@@ -28,7 +28,7 @@ const HeaderMain = () => {
 
         {/* Navigation */}
         <nav className="text-muted-foreground hidden items-center gap-6 text-sm md:flex">
-          <Link to="/" className="hover:text-foreground transition-colors">
+          <Link to="/student/groups" className="hover:text-foreground transition-colors">
             Ghép Nhóm
           </Link>
           <Link to="/student/forum" className="hover:text-foreground transition-colors">
@@ -42,7 +42,7 @@ const HeaderMain = () => {
         {/* Actions */}
         <div className="flex items-center gap-2">
           <Button size="sm" asChild>
-            <Link to="/book-demo">Nhóm của bạn</Link>
+            <Link to="/student/mygroup">Nhóm của bạn</Link>
           </Button>
           <Button size="sm" asChild>
             <Link to="/student/profile">Thông tin cá nhân</Link>

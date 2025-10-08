@@ -18,6 +18,7 @@ export const ROUTES = {
     FORUM_DETAIL: "/student/forum/:id",
     IDEAS: "/student/ideas",
     IDEAS_DETAIL: "/student/ideas/:id",
+    MY_GROUP: "/student/mygroup",
   },
 
   // Admin Routes

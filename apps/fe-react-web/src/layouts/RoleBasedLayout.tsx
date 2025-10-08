@@ -31,10 +31,14 @@ const RoleBasedLayout = () => {
     case "STUDENT":
       return (
         <div className="flex min-h-screen flex-col">
-          <HeaderMain />
-          <div>
+          <header className="bg-background fixed top-0 right-0 left-0 z-50 border-b">
+            <HeaderMain />
+          </header>
+
+          <main className="flex-1 pt-[64px]">
+            {/* pt (padding-top) = chiều cao header để tránh nội dung bị che */}
             <Outlet />
-          </div>
+          </main>
         </div>
       );
 
