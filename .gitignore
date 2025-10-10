@@ -1,5 +1,6 @@
 # See https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
 
+scripts/
 # Nx
 .nx/cache
 .nx/workspace-data
@@ -78,3 +79,4 @@ pids
 # Temporary folders
 tmp/
 temp/
+doppler.env
