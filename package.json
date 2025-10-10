@@ -5,12 +5,19 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
+    "build": "nx build fe-react-web",
     "build-all-skip-cache": "nx run-many -t build --skip-nx-cache",
+    "build:doppler": "doppler run --project exe-courses-fe --config prd_frontend -- nx build fe-react-web --prod",
+    "build:production": "doppler run --project exe-courses-fe --config prd_frontend -- nx build fe-react-web --prod",
     "clean-node-modules": "pnpx npkill",
     "clean-nx-cache": "nx reset --only-workspace-data",
+    "dev": "nx dev fe-react-web",
+    "dev:doppler": "doppler run --project exe-courses-fe --config dev_frontend -- nx dev fe-react-web",
     "format:write": "nx format:write",
     "prepare": "husky",
     "prettier:write": "prettier --write .",
+    "preview": "nx preview fe-react-web",
+    "setup:doppler": "powershell -ExecutionPolicy Bypass -File ./scripts/setup-doppler.ps1",
     "test:ui": "vitest --ui"
   },
   "lint-staged": {
