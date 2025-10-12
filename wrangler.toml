@@ -1,0 +1,20 @@
+name = "exe-groups"
+compatibility_date = "2023-05-18"
+
+# Development environment
+[env.development]
+vars = {}
+
+# Production environment
+[env.production]
+# Note: Environment variables will be injected by GitHub Actions with Doppler
+vars = {}
+
+# Build configuration
+[build]
+command = "pnpm nx build fe-react-web --prod"
+cwd = "."
+watch_dir = "apps/fe-react-web"
+
+# Pages configuration
+pages_build_output_dir = "dist/apps/fe-react-web"
