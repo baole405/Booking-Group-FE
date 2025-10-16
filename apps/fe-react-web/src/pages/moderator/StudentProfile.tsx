@@ -4,27 +4,54 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BookOpenText, Mail, User, Users } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-const MOCK = {
-  SE171801: { id: "SE171801", name: "Nguyễn Văn A", email: "a@fpt.edu.vn", cohort: "K17 HCM", major: "Kỹ thuật phần mềm", groupId: "EXE201" },
-  SE171802: { id: "SE171802", name: "Trần Thị B", email: "b@fpt.edu.vn", cohort: "K17 HCM", major: "Kỹ thuật phần mềm" },
+type StudentDetail = {
+  id: number;
+  studentCode: string;
+  fullName: string;
+  email: string;
+  cvUrl: string;
+  avatarUrl: string;
+  major: { id: number; name: string };
+  role: string;
+  isActive: boolean;
 };
 
 export default function ModeratorStudentProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const student = (id && (MOCK as any)[id]) || null;
+  const [student, setStudent] = useState<StudentDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  if (!student) {
-    return <div className="text-muted-foreground flex min-h-[50vh] items-center justify-center">Không tìm thấy sinh viên.</div>;
+  useEffect(() => {
+    if (!id) return;
+    setLoading(true);
+    setError(null);
+    fetch(`/api/users/${id}`)
+      .then(async (res) => {
+        if (!res.ok) throw new Error("Không tìm thấy sinh viên");
+        const json = await res.json();
+        setStudent(json.data);
+      })
+      .catch((err) => setError(err.message || "Lỗi không xác định"))
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  if (loading) {
+    return <div className="flex min-h-[50vh] items-center justify-center text-gray-500">Đang tải thông tin sinh viên...</div>;
+  }
+  if (error || !student) {
+    return <div className="text-muted-foreground flex min-h-[50vh] items-center justify-center">{error || "Không tìm thấy sinh viên."}</div>;
   }
 
   return (
     <div className="flex w-full flex-col gap-6">
       <div className="space-y-1">
         <h1 className="text-2xl font-bold tracking-tight">Hồ sơ sinh viên</h1>
-        <p className="text-muted-foreground text-sm">MSSV {student.id}</p>
+        <p className="text-muted-foreground text-sm">MSSV {student.studentCode}</p>
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
@@ -33,10 +60,12 @@ export default function ModeratorStudentProfile() {
             <CardTitle className="text-base font-semibold">Thông tin cơ bản</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-4">
-            <Avatar className="h-28 w-28" />
+            <Avatar className="h-28 w-28">
+              {student.avatarUrl && <img src={student.avatarUrl} alt={student.fullName} className="h-28 w-28 rounded-full object-cover" />}
+            </Avatar>
             <div className="text-center">
-              <div className="font-semibold">{student.name}</div>
-              <div className="text-muted-foreground text-sm">{student.cohort}</div>
+              <div className="font-semibold">{student.fullName}</div>
+              <div className="text-muted-foreground text-sm">{student.major?.name}</div>
             </div>
             <Button variant="secondary" size="sm" onClick={() => navigate(-1)}>
               Quay lại
@@ -54,19 +83,19 @@ export default function ModeratorStudentProfile() {
                 <Label htmlFor="fullname" className="flex items-center gap-2">
                   <User className="h-4 w-4" /> Họ và tên
                 </Label>
-                <Input id="fullname" value={student.name} readOnly />
+                <Input id="fullname" value={student.fullName} readOnly />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="mssv" className="flex items-center gap-2">
                   <BookOpenText className="h-4 w-4" /> MSSV
                 </Label>
-                <Input id="mssv" value={student.id} readOnly />
+                <Input id="mssv" value={student.studentCode} readOnly />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="major" className="flex items-center gap-2">
                   <BookOpenText className="h-4 w-4" /> Chuyên ngành
                 </Label>
-                <Input id="major" value={student.major} readOnly />
+                <Input id="major" value={student.major?.name || "-"} readOnly />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email" className="flex items-center gap-2">
@@ -78,7 +107,8 @@ export default function ModeratorStudentProfile() {
                 <Label className="flex items-center gap-2">
                   <Users className="h-4 w-4" /> Nhóm
                 </Label>
-                <Input value={student.groupId ? student.groupId : "Chưa có nhóm"} readOnly />
+                {/* Không có groupId trong API mẫu, có thể bổ sung nếu backend trả về */}
+                <Input value={"Chưa có nhóm"} readOnly />
               </div>
             </div>
           </CardContent>

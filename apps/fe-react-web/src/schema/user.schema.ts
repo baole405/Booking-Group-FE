@@ -19,5 +19,18 @@ export const UpdateUserSchema = z.object({
   major: MajorSchema.refine((val) => val != null, { message: "Vui lòng chọn chuyên ngành" }),
 });
 
+// Pagination Response Schema for GET /api/users
+export const UserListResponseSchema = z.object({
+  content: z.array(UserSchema),
+  page: z.number(),
+  size: z.number(),
+  totalElements: z.number(),
+  totalPages: z.number(),
+  first: z.boolean(),
+  last: z.boolean(),
+  sort: z.string().nullable(),
+});
+
 export type TUser = z.TypeOf<typeof UserSchema>;
 export type TUpdateUserSchema = z.TypeOf<typeof UpdateUserSchema>;
+export type TUserListResponse = z.TypeOf<typeof UserListResponseSchema>;
