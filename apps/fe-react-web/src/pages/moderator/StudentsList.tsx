@@ -1,165 +1,74 @@
+import { useUserHook } from "@/hooks/use-user";
+import type { TUserListResponse } from "@/schema/user.schema";
 import React, { useMemo, useState } from "react";
-
-// Định nghĩa kiểu dữ liệu sinh viên
-interface Student {
-  id: number;
-  name: string;
-  studentCode: string;
-  email: string;
-  major: string;
-  year: string;
-}
-
-// Dữ liệu mẫu sinh viên
-const studentsData: Student[] = [
-  {
-    id: 1,
-    name: "Nguyễn Văn An",
-    studentCode: "SE170001",
-    email: "anngse170001@fpt.edu.vn",
-    major: "Software Engineering",
-    year: "K17",
-  },
-  {
-    id: 2,
-    name: "Trần Thị Bình",
-    studentCode: "SE170002",
-    email: "binhttse170002@fpt.edu.vn",
-    major: "Software Engineering",
-    year: "K17",
-  },
-  {
-    id: 3,
-    name: "Lê Văn Cường",
-    studentCode: "AI170003",
-    email: "cuonglvai170003@fpt.edu.vn",
-    major: "Artificial Intelligence",
-    year: "K17",
-  },
-  {
-    id: 4,
-    name: "Phạm Thị Dung",
-    studentCode: "IoT170004",
-    email: "dungptiot170004@fpt.edu.vn",
-    major: "Internet of Things",
-    year: "K17",
-  },
-  {
-    id: 5,
-    name: "Hoàng Văn Em",
-    studentCode: "SE180005",
-    email: "emhvse180005@fpt.edu.vn",
-    major: "Software Engineering",
-    year: "K18",
-  },
-  {
-    id: 6,
-    name: "Vũ Thị Phương",
-    studentCode: "AI180006",
-    email: "phuongvtai180006@fpt.edu.vn",
-    major: "Artificial Intelligence",
-    year: "K18",
-  },
-  {
-    id: 7,
-    name: "Đặng Văn Giang",
-    studentCode: "IoT180007",
-    email: "giangdviot180007@fpt.edu.vn",
-    major: "Internet of Things",
-    year: "K18",
-  },
-  {
-    id: 8,
-    name: "Bùi Thị Hoa",
-    studentCode: "SE180008",
-    email: "hoabtse180008@fpt.edu.vn",
-    major: "Software Engineering",
-    year: "K18",
-  },
-  {
-    id: 9,
-    name: "Dương Văn Inh",
-    studentCode: "AI190009",
-    email: "inhdvai190009@fpt.edu.vn",
-    major: "Artificial Intelligence",
-    year: "K19",
-  },
-  {
-    id: 10,
-    name: "Lý Thị Khánh",
-    studentCode: "SE190010",
-    email: "khanhltse190010@fpt.edu.vn",
-    major: "Software Engineering",
-    year: "K19",
-  },
-  {
-    id: 11,
-    name: "Phan Văn Long",
-    studentCode: "IoT190011",
-    email: "longpviot190011@fpt.edu.vn",
-    major: "Internet of Things",
-    year: "K19",
-  },
-  {
-    id: 12,
-    name: "Ngô Thị Mai",
-    studentCode: "SE190012",
-    email: "maintse190012@fpt.edu.vn",
-    major: "Software Engineering",
-    year: "K19",
-  },
-  {
-    id: 13,
-    name: "Trịnh Văn Nam",
-    studentCode: "AI200013",
-    email: "namtvai200013@fpt.edu.vn",
-    major: "Artificial Intelligence",
-    year: "K20",
-  },
-  {
-    id: 14,
-    name: "Cao Thị Oanh",
-    studentCode: "SE200014",
-    email: "oanhctse200014@fpt.edu.vn",
-    major: "Software Engineering",
-    year: "K20",
-  },
-  {
-    id: 15,
-    name: "Lương Văn Phúc",
-    studentCode: "IoT200015",
-    email: "phuclviot200015@fpt.edu.vn",
-    major: "Internet of Things",
-    year: "K20",
-  },
-];
+import { useNavigate } from "react-router-dom";
 
 const StudentsList: React.FC = () => {
-  const [currentPage, setCurrentPage] = useState<number>(1);
+  const { useUserList } = useUserHook();
+  const [currentPage, setCurrentPage] = useState<number>(0); // Backend bắt đầu từ 0
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [searchByCode, setSearchByCode] = useState<string>("");
 
   const itemsPerPage = 10;
 
-  // Lọc danh sách sinh viên theo từ khóa tìm kiếm
-  const filteredStudents = useMemo(() => {
-    return studentsData.filter((student) => {
-      const matchName = student.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchCode = student.studentCode.toLowerCase().includes(searchByCode.toLowerCase());
-      return matchName && matchCode;
-    });
+  // Tạo search query từ cả 2 fields
+  const searchQuery = useMemo(() => {
+    if (searchTerm || searchByCode) {
+      return `${searchTerm} ${searchByCode}`.trim();
+    }
+    return undefined;
   }, [searchTerm, searchByCode]);
 
-  // Tính toán phân trang
-  const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentStudents = filteredStudents.slice(startIndex, endIndex);
+  // Gọi API với pagination
+  const { data, isLoading, error } = useUserList({
+    page: currentPage,
+    size: itemsPerPage,
+    role: "STUDENT", // Chỉ lấy sinh viên
+    search: searchQuery,
+  });
 
   // Reset trang khi tìm kiếm
   React.useEffect(() => {
-    setCurrentPage(1);
+    setCurrentPage(0);
   }, [searchTerm, searchByCode]);
+
+  // Lấy dữ liệu từ API response - nested structure: data.data.data
+  const paginationData = data?.data?.data as unknown as TUserListResponse | undefined;
+  const students = useMemo(() => paginationData?.content || [], [paginationData]);
+  const totalPages = paginationData?.totalPages || 0;
+  const totalElements = paginationData?.totalElements || 0;
+
+  // Lọc local nếu cần (vì backend có thể không hỗ trợ search cả 2 field riêng biệt)
+  const navigate = useNavigate();
+  const filteredStudents = useMemo(() => {
+    return students.filter((student) => {
+      const matchName = !searchTerm || student.fullName.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchCode = !searchByCode || student.studentCode?.toLowerCase().includes(searchByCode.toLowerCase());
+      return matchName && matchCode;
+    });
+  }, [students, searchTerm, searchByCode]);
+
+  const currentStudents = filteredStudents;
+  const startIndex = currentPage * itemsPerPage;
+  const endIndex = (currentPage + 1) * itemsPerPage;
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <div className="text-lg text-gray-600">Đang tải danh sách sinh viên...</div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <div className="text-lg text-red-500">Lỗi: {error instanceof Error ? error.message : "Không thể tải danh sách"}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -209,26 +118,22 @@ const StudentsList: React.FC = () => {
                     <tr key={student.id} className="transition-colors duration-200 hover:bg-gray-50">
                       <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-900">{startIndex + index + 1}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{student.name}</div>
+                        <div className="text-sm font-medium text-gray-900">{student.fullName}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="font-mono text-sm text-gray-900">{student.studentCode}</div>
+                        <div className="font-mono text-sm text-gray-900">{student.studentCode || "N/A"}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-600">{student.email}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
-                          {student.major}
+                          {student.major?.name || "Chưa có"}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <button
-                          onClick={() =>
-                            alert(
-                              `Chi tiết sinh viên:\n\nTên: ${student.name}\nMã SV: ${student.studentCode}\nEmail: ${student.email}\nNgành: ${student.major}\nKhóa: ${student.year}`,
-                            )
-                          }
+                          onClick={() => navigate(`/moderator/students/${student.id}`)}
                           className="inline-flex items-center rounded-full p-2 text-gray-400 transition-colors duration-200 hover:bg-blue-50 hover:text-blue-600"
                           title="Xem chi tiết sinh viên"
                         >
@@ -265,15 +170,15 @@ const StudentsList: React.FC = () => {
           <div className="mt-6 flex items-center justify-between rounded-lg border-t border-gray-200 bg-white px-4 py-3 shadow-sm sm:px-6">
             <div className="flex flex-1 justify-between sm:hidden">
               <button
-                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
+                disabled={currentPage === 0}
                 className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Trước
               </button>
               <button
-                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(Math.min(totalPages - 1, currentPage + 1))}
+                disabled={currentPage === totalPages - 1}
                 className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Sau
@@ -283,37 +188,27 @@ const StudentsList: React.FC = () => {
               <div>
                 <p className="text-sm text-gray-700">
                   Hiển thị <span className="font-medium">{startIndex + 1}</span> đến{" "}
-                  <span className="font-medium">{Math.min(endIndex, filteredStudents.length)}</span> trong tổng số{" "}
-                  <span className="font-medium">{filteredStudents.length}</span> sinh viên
+                  <span className="font-medium">{Math.min(endIndex, totalElements)}</span> trong tổng số{" "}
+                  <span className="font-medium">{totalElements}</span> sinh viên
                 </p>
               </div>
               <div>
                 <nav className="relative z-0 inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
                   <button
-                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
+                    disabled={currentPage === 0}
                     className="relative inline-flex items-center rounded-l-md border border-gray-300 bg-white px-2 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <span>Trước</span>
                   </button>
 
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`relative inline-flex items-center border px-4 py-2 text-sm font-medium ${
-                        currentPage === page
-                          ? "z-10 border-blue-500 bg-blue-50 text-blue-600"
-                          : "border-gray-300 bg-white text-gray-500 hover:bg-gray-50"
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  ))}
+                  <span className="relative inline-flex items-center border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700">
+                    Trang {currentPage + 1} / {totalPages}
+                  </span>
 
                   <button
-                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(Math.min(totalPages - 1, currentPage + 1))}
+                    disabled={currentPage === totalPages - 1}
                     className="relative inline-flex items-center rounded-r-md border border-gray-300 bg-white px-2 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <span>Sau</span>
