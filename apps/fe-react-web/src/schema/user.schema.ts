@@ -2,6 +2,16 @@ import z from "zod";
 import { RoleSchema } from "./common/role.schema";
 import { MajorSchema } from "./major.schema";
 
+export interface GetUserListParams {
+  page?: number;
+  size?: number;
+  role?: "STUDENT" | "LECTURER" | "MODERATOR" | "ADMIN";
+  q?: string;
+  majorCode?: number;
+  isActive?: boolean;
+  sort?: string;
+  dir?: string;
+}
 export const UserSchema = z.object({
   id: z.number(),
   studentCode: z.string().nullable(),

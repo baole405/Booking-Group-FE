@@ -1,8 +1,8 @@
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import ListAccountScreen from "@/pages/admin/ListAccountScreen";
-import ListGroupsScreen from "@/pages/admin/ListGroupsScreen";
 import ListLectureScreen from "@/pages/admin/ListLectureScreen";
 import ListProjectScreen from "@/pages/admin/ListProjectScreen";
+import ListGroupsScreen from "@/pages/admin/ListSemesterScreen";
 import ListStudentScreen from "@/pages/admin/ListStudentScreen";
 import { logout } from "@/redux/User/user-slice";
 import { useState } from "react";

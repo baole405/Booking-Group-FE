@@ -33,6 +33,7 @@ export const ROUTES = {
     LECTURERS: "/admin/lecturers",
     PROJECTS: "/admin/projects",
     STUDENTS: "/admin/students",
+    SEMESTERS: "/admin/semesters",
   },
 
   // Moderator Routes

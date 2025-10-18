@@ -27,11 +27,11 @@ const Loadable =
   };
 
 // -------- Lazy pages --------
-const ListStudentScreen = Loadable(lazy(() => import("@/pages/admin/ListStudentScreen")));
+// const ListStudentScreen = Loadable(lazy(() => import("@/pages/admin/ListStudentScreen")));
 const ListAccountScreen = Loadable(lazy(() => import("@/pages/admin/ListAccountScreen")));
-const ListGroupsScreen = Loadable(lazy(() => import("@/pages/admin/ListGroupsScreen")));
-const ListLectureScreen = Loadable(lazy(() => import("@/pages/admin/ListLectureScreen")));
-const ListProjectScreen = Loadable(lazy(() => import("@/pages/admin/ListProjectScreen")));
+const ListSemesterScreen = Loadable(lazy(() => import("@/pages/admin/ListSemesterScreen")));
+// const ListLectureScreen = Loadable(lazy(() => import("@/pages/admin/ListLectureScreen")));
+// const ListProjectScreen = Loadable(lazy(() => import("@/pages/admin/ListSeScreen")));
 
 const adminRoutes = {
   path: ROUTES.ADMIN.ROOT,
@@ -43,10 +43,10 @@ const adminRoutes = {
   children: [
     { index: true, element: <ListAccountScreen /> },
     { path: ROUTES.ADMIN.ACCOUNTS, element: <ListAccountScreen /> },
-    { path: ROUTES.ADMIN.GROUPS, element: <ListGroupsScreen /> },
-    { path: ROUTES.ADMIN.LECTURERS, element: <ListLectureScreen /> },
-    { path: ROUTES.ADMIN.PROJECTS, element: <ListProjectScreen /> },
-    { path: ROUTES.ADMIN.STUDENTS, element: <ListStudentScreen /> },
+    { path: ROUTES.ADMIN.SEMESTERS, element: <ListSemesterScreen /> },
+    // { path: ROUTES.ADMIN.LECTURERS, element: <ListLectureScreen /> },
+    // { path: ROUTES.ADMIN.PROJECTS, element: <ListProjectScreen /> },
+    // { path: ROUTES.ADMIN.STUDENTS, element: <ListStudentScreen /> },
   ],
 };
 
