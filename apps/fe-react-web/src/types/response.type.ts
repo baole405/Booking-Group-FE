@@ -4,6 +4,10 @@ export type BaseResponse<T> = {
   data: T;
 };
 
+export type StatusResponse = {
+  status: number;
+  message: string;
+};
 export type PaginationResponse<T> = {
   page: number;
   size: number;
