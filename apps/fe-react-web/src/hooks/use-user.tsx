@@ -1,38 +1,53 @@
 import { userApi } from "@/apis/user.api";
-import type { TUpdateUserSchema } from "@/schema/user.schema";
-import { useMutation, useQuery } from "@tanstack/react-query";
-
-interface UseUserListParams {
-  page?: number;
-  size?: number;
-  role?: "STUDENT" | "LECTURER" | "MODERATOR" | "ADMIN";
-  search?: string;
-  majorId?: number;
-  isActive?: boolean;
-  sort?: string;
-}
+import type { GetUserListParams, TUpdateUserSchema, TUser } from "@/schema/user.schema";
+import type { BaseResponse } from "@/types/response.type";
+import { useMutation, useQuery, type UseQueryOptions } from "@tanstack/react-query";
 
 export const useUserHook = () => {
-  const useUser = (id: number) =>
+  const useUserById = (id: number, options?: Omit<UseQueryOptions<BaseResponse<TUser>>, "queryKey" | "queryFn">) =>
     useQuery({
-      queryKey: ["user", id],
-      queryFn: () => userApi.getUser(id),
+      queryKey: ["userdetail", id],
+      queryFn: async () => (await userApi.getUserById(id)).data,
+      ...options,
     });
   const useMyProfile = () =>
     useQuery({
       queryKey: ["myProfile"],
-      queryFn: () => userApi.getMyProfile(),
+      queryFn: async () => (await userApi.getMyProfile()).data,
     });
   const useMyGroupId = (id: number) =>
     useQuery({
       queryKey: ["myGroupId"],
-      queryFn: () => userApi.getUserGroupId(id),
+      queryFn: async () => (await userApi.getUserGroupId(id)).data,
     });
-  const useUserList = (params?: UseUserListParams) =>
-    useQuery({
-      queryKey: ["userList", params],
-      queryFn: () => userApi.getUserList(params),
+  const useUserList = (params: GetUserListParams) => {
+    const {
+      page = params.page || 1,
+      size = params.size || 10,
+      role = params.role || null,
+      q = params.q || "",
+      majorCode = params.majorCode || null,
+      isActive = params.isActive || null,
+      sort = params.sort || "id",
+      dir = params.dir || "asc",
+    } = params;
+    return useQuery({
+      queryKey: ["userList", { page, size, role, q, majorCode, isActive, sort, dir }],
+      queryFn: async () =>
+        (
+          await userApi.getUserList({
+            page: page,
+            size: size,
+            role: role,
+            q: q,
+            majorCode: majorCode,
+            isActive: isActive,
+            sort: sort,
+            dir: dir,
+          })
+        ).data,
     });
+  };
   const useUpdateStatus = (id: number) =>
     useMutation({
       mutationFn: () => userApi.updateStatus(id),
@@ -45,13 +60,23 @@ export const useUserHook = () => {
     useMutation({
       mutationFn: (data: TUpdateUserSchema) => userApi.updateMyProfile(data),
     });
+  const useUpdateRoleToLecturer = (id: number) =>
+    useMutation({
+      mutationFn: () => userApi.updateRoleToLecturer(id),
+    });
+  const useToggleLecturerModeratorRole = () =>
+    useMutation({
+      mutationFn: (id: number) => userApi.toggleLecturerModeratorRole(id),
+    });
   return {
-    useUser,
+    useUserById,
     useMyProfile,
     useMyGroupId,
     useUserList,
     useUpdateStatus,
     useUpdateUser,
     useUpdateMyProfile,
+    useUpdateRoleToLecturer,
+    useToggleLecturerModeratorRole,
   };
 };

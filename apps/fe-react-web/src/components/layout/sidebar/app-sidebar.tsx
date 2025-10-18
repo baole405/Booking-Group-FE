@@ -17,8 +17,8 @@ const menuData = {
       icon: LayoutDashboardIcon,
     },
     {
-      title: "Nhóm",
-      url: ROUTES.ADMIN.GROUPS,
+      title: "Kỳ học",
+      url: ROUTES.ADMIN.SEMESTERS,
       icon: ListIcon,
     },
     {

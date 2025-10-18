@@ -1,0 +1,235 @@
+import type { TUpdateUserSchema, TUser } from "../schema/user.schema";
+import { UserSchema } from "../schema/user.schema";
+import type { IApiResponse, IPagination } from "../types/pagination.type";
+
+const BASE_URL = `${import.meta.env.VITE_API_URL}/users`;
+
+// Helper function để validate URL
+const isValidUrl = (str: string | null | undefined): boolean => {
+  if (!str || typeof str !== "string" || str.trim() === "") return false;
+  try {
+    new URL(str);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+export const userService = {
+  async getUser(id: number): Promise<TUser> {
+    try {
+      const res = await fetch(`${BASE_URL}/${id}`, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+
+      const json = await res.json();
+      console.log("getUser response:", json);
+
+      if (!json.data) {
+        throw new Error("No data in response");
+      }
+
+      // Helper function để validate URL
+      const isValidUrl = (str: any): boolean => {
+        if (!str || typeof str !== "string" || str.trim() === "") return false;
+        try {
+          new URL(str);
+          return true;
+        } catch {
+          return false;
+        }
+      };
+
+      const u = json.data;
+      return UserSchema.parse({
+        id: u.id,
+        studentCode: u.studentCode ?? null,
+        fullName: u.fullName,
+        email: u.email,
+        cvUrl: isValidUrl(u.cvUrl) ? u.cvUrl : null,
+        avatarUrl: isValidUrl(u.avatarUrl) ? u.avatarUrl : null,
+        major: u.majorCode && u.majorName ? { code: u.majorCode, name: u.majorName } : null,
+        role: u.role,
+        isActive: u.isActive ?? true,
+      });
+    } catch (error) {
+      console.error("Error in getUser:", error);
+      throw error;
+    }
+  },
+
+  async getUsers(): Promise<TUser[]> {
+    try {
+      const res = await fetch(BASE_URL, {
+        headers: {
+          "Content-Type": "application/json",
+          // Thêm Authorization header nếu cần
+          // 'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+      });
+
+      // Kiểm tra response status
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+
+      const json = (await res.json()) as IApiResponse<IPagination<TUser>>;
+
+      // Log để debug
+      console.log("getUsers API Response:", json);
+
+      if (!json.data) {
+        throw new Error("No data field in response");
+      }
+
+      const users = json.data.content;
+
+      // Log first item để xem cấu trúc
+      if (users.length > 0) {
+        console.log("First user in array:", users[0]);
+      }
+
+      // Xử lý array response
+      console.log("Processing array of users, length:", users.length);
+      return users.map((u, index: number) => {
+          try {
+            console.log(`Mapping user ${index}:`, u);
+
+            // Helper function để validate URL
+            const isValidUrl = (str: any): boolean => {
+              if (!str || typeof str !== "string" || str.trim() === "") return false;
+              try {
+                new URL(str);
+                return true;
+              } catch {
+                return false;
+              }
+            };
+
+            const mappedUser = {
+              id: u.id,
+              studentCode: u.studentCode ?? null,
+              fullName: u.fullName,
+              email: u.email,
+              cvUrl: isValidUrl(u.cvUrl) ? u.cvUrl : null,
+              avatarUrl: isValidUrl(u.avatarUrl) ? u.avatarUrl : null,
+              major:
+                u.majorCode && u.majorName
+                  ? {
+                      code: u.majorCode,
+                      name: u.majorName,
+                    }
+                  : null,
+              role: u.role,
+              isActive: u.isActive ?? true,
+            };
+
+            console.log(`Mapped user ${index}:`, mappedUser);
+
+            return UserSchema.parse(mappedUser);
+          } catch (parseError: any) {
+            console.error(`Parse error for user ${index}:`, u);
+            console.error("Parse error details:", parseError.errors || parseError.message);
+            throw parseError;
+          }
+        });
+      }
+
+      // Xử lý single user response (wrap in array)
+      console.log("Processing single user object");
+
+      // Helper function để validate URL
+      const isValidUrl = (str: any): boolean => {
+        if (!str || typeof str !== "string" || str.trim() === "") return false;
+        try {
+          new URL(str);
+          return true;
+        } catch {
+          return false;
+        }
+      };
+
+      const mappedSingleUser = {
+        id: json.data.id,
+        studentCode: json.data.studentCode ?? null,
+        fullName: json.data.fullName,
+        email: json.data.email,
+        cvUrl: isValidUrl(json.data.cvUrl) ? json.data.cvUrl : null,
+        avatarUrl: isValidUrl(json.data.avatarUrl) ? json.data.avatarUrl : null,
+        major:
+          json.data.majorCode && json.data.majorName
+            ? {
+                code: json.data.majorCode,
+                name: json.data.majorName,
+              }
+            : null,
+        role: json.data.role,
+        isActive: json.data.isActive ?? true,
+      };
+
+      return [UserSchema.parse(mappedSingleUser)];
+    } catch (error) {
+      console.error("Error in getUsers:", error);
+      throw error;
+    }
+  },
+
+  async updateUser(id: number, data: TUpdateUserSchema): Promise<TUser> {
+    try {
+      const res = await fetch(`${BASE_URL}/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          // 'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+
+      const json = await res.json();
+      console.log("updateUser response:", json);
+
+      if (!json.data) {
+        throw new Error("No data in response");
+      }
+
+      // Helper function để validate URL
+      const isValidUrl = (str: any): boolean => {
+        if (!str || typeof str !== "string" || str.trim() === "") return false;
+        try {
+          new URL(str);
+          return true;
+        } catch {
+          return false;
+        }
+      };
+
+      const u = json.data;
+      return UserSchema.parse({
+        id: u.id,
+        studentCode: u.studentCode ?? null,
+        fullName: u.fullName,
+        email: u.email,
+        cvUrl: isValidUrl(u.cvUrl) ? u.cvUrl : null,
+        avatarUrl: isValidUrl(u.avatarUrl) ? u.avatarUrl : null,
+        major: u.majorCode && u.majorName ? { code: u.majorCode, name: u.majorName } : null,
+        role: u.role,
+        isActive: u.isActive ?? true,
+      });
+    } catch (error) {
+      console.error("Error in updateUser:", error);
+      throw error;
+    }
+  },
+};
+
+export type { TUpdateUserSchema, TUser };

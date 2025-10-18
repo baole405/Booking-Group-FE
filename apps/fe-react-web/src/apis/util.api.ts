@@ -22,4 +22,5 @@ export const API_SUFFIX = {
   GROUP_API: "/groups",
   IDEA_API: "/ideas",
   IDEA_GROUP_API: "/ideas/group",
+  SEMESTER_API: "/semesters",
 };
