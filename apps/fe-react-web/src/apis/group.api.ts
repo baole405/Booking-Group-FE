@@ -14,6 +14,11 @@ const leaveMyGroup = async () => await apiRequest.delete<StatusResponse>(API_SUF
 const updateGroupInfo = async (data: TUpdateInformationGroup) => await apiRequest.put<BaseResponse<TGroup>>(API_SUFFIX.UPDATE_GROUP_API, data);
 const joinGroup = async (groupId: number) => await apiRequest.post<StatusResponse>(API_SUFFIX.JOIN_GROUP_API + `/${groupId}`);
 const getUserGroupId = async (id: number) => await apiRequest.get<BaseResponse<TUser[]>>(API_SUFFIX.GROUP_API + `/${id}/members`);
+const removeUserFromGroup = async (userId: number) => await apiRequest.delete<StatusResponse>(API_SUFFIX.GROUP_MEMBER_API + `/${userId}`);
+const getGroupLeader = async (groupId: number) =>
+  await apiRequest.get<BaseResponse<TUser>>(API_SUFFIX.GROUP_API + `/${groupId}/leader`);
+const transferLeader = async (newLeaderId: number) =>
+  await apiRequest.patch<StatusResponse>(API_SUFFIX.TRANSFER_LEADER_API + `/${newLeaderId}`);
 
 
 
@@ -28,4 +33,7 @@ export const groupApi = {
   updateGroupInfo,
   joinGroup,
   getUserGroupId,
+  removeUserFromGroup,
+  getGroupLeader,
+  transferLeader,
 };

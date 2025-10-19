@@ -45,7 +45,7 @@ const HeaderMain = () => {
             <Link to="/student/mygroup">Nhóm của bạn</Link>
           </Button>
           <Button size="sm" asChild>
-            <Link to="/student/profile">Thông tin cá nhân</Link>
+            <Link to="/student/myprofile">Thông tin cá nhân</Link>
           </Button>
           <Button variant="ghost" size="sm" onClick={handleLogout}>
             Log out

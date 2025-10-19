@@ -18,6 +18,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import type { TUser } from "@/schema/user.schema";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 type GroupMinimal = {
   id: number;
@@ -28,37 +29,40 @@ type GroupMinimal = {
 export default function MyGroupPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const { useGroupMembers, useMyGroup, useLeaveMyGroup } = useGroupHook();
+
+  const {
+    useGroupMembers,
+    useMyGroup,
+    useLeaveMyGroup,
+    useRemoveUserFromGroup,
+    useGetGroupLeader,
+    useTransferLeader,
+  } = useGroupHook();
+
+  const { mutateAsync: removeUserAsync, isPending: isRemoving } = useRemoveUserFromGroup();
+  const { mutateAsync: transferLeaderAsync, isPending: isTransferring } = useTransferLeader();
+  const { mutateAsync: leaveAsync, isPending: isLeaving } = useLeaveMyGroup();
 
   // 🔹 Lấy thông tin nhóm hiện tại
-  const {
-    data: groupRes,
-    isPending: isGroupPending,
-    error: groupError,
-  } = useMyGroup();
-
+  const { data: groupRes, isPending: isGroupPending, error: groupError } = useMyGroup();
   const group = groupRes?.data?.data ?? null;
   const groupId = group?.id ?? 0;
 
-  // 🔹 Lấy danh sách thành viên trong nhóm hiện tại
-  const {
-    data: groupMembersRes,
-    isPending: isGroupMembersPending,
-    refetch,
-  } = useGroupMembers(groupId);
+  // 🔹 Lấy danh sách thành viên trong nhóm
+  const { data: groupMembersRes, isPending: isGroupMembersPending, refetch } = useGroupMembers(groupId);
 
-  // 🔁 Tự động refetch sau mỗi 20 giây để cập nhật danh sách
+  // 🔹 Lấy leader thật từ API
+  const { data: leaderRes } = useGetGroupLeader(groupId);
+  const leader = leaderRes?.data?.data ?? null;
+
+  // 🔁 Tự động refetch mỗi 20 giây
   useEffect(() => {
     if (!groupId) return;
-    const interval = setInterval(() => {
-      refetch();
-    }, 20000); // 20s
+    const interval = setInterval(() => refetch(), 20000);
     return () => clearInterval(interval);
   }, [groupId, refetch]);
 
-  const { mutateAsync: leaveAsync, isPending: isLeaving } = useLeaveMyGroup();
-
-  // 🔹 Header hiển thị trạng thái nhóm
+  // 🔹 Header hiển thị
   const header = useMemo(() => {
     if (isGroupPending) {
       return (
@@ -88,7 +92,7 @@ export default function MyGroupPage() {
     );
   }, [isGroupPending, groupError, groupId, group?.id, group?.title]);
 
-  // 🔹 Nếu chưa có nhóm hoặc đang loading
+  // ⏳ Loading hoặc chưa có nhóm
   if (isGroupPending || !groupId || !group) {
     return (
       <div className="bg-background text-foreground flex min-h-screen flex-col">
@@ -97,10 +101,10 @@ export default function MyGroupPage() {
     );
   }
 
+  // 🔹 Danh sách thành viên
   const rawList: TUser[] = Array.isArray(groupMembersRes?.data?.data)
     ? groupMembersRes.data.data
     : [];
-
 
   const members = rawList.map((u) => ({
     id: u.id,
@@ -110,52 +114,48 @@ export default function MyGroupPage() {
     avatarUrl: u.avatarUrl ?? null,
   }));
 
-  // 🔹 Xác định leader (dựa theo email đầu tiên)
+  // 🔹 Xác định user hiện tại
   let currentEmail: string | null = null;
   try {
     const stored = localStorage.getItem("user");
     if (stored) {
       const parsed = JSON.parse(stored);
-      if (typeof parsed === "object" && parsed) {
-        currentEmail = parsed?.email ?? parsed?.user?.email ?? null;
-      }
+      currentEmail = parsed?.email ?? parsed?.user?.email ?? null;
     }
   } catch (e) {
-    console.error("⚠️ Lỗi parse localStorage:", e);
+    // Log parsing errors to help debugging (avoid empty catch to satisfy ESLint)
+    // We don't throw here because missing user in localStorage is non-fatal
+    // and the app can continue without the stored user info.
+    console.error("Lỗi parse localStorage:", e);
   }
 
-  const leader = members[0];
   const isLeader = leader?.email === currentEmail;
 
-  // 🔹 Nhóm rút gọn
+  // 🔹 Thông tin nhóm rút gọn
   const minimalGroup: GroupMinimal = {
-    id: group.id as number,
+    // `group.id` can be number | null | undefined from backend — ensure it's a number
+    // Use a fallback of 0 for safety (component expects a numeric id)
+    id: (group.id as number) ?? 0,
     title: group.title,
     description: group.description ?? null,
   };
 
-  // 🔹 Danh sách thành viên + nút rời nhóm (nếu không phải leader)
+  // 🔹 Danh sách thành viên + nút rời nhóm
   const membersAside = (
     <Card className="p-4">
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Users className="h-5 w-5 text-emerald-600" />
-          <h3 className="text-lg font-semibold">
-            Thành viên ({members.length})
-          </h3>
+          <h3 className="text-lg font-semibold">Thành viên ({members.length})</h3>
         </div>
       </div>
 
-      {/* Member có nút rời nhóm */}
+      {/* Rời nhóm (chỉ member) */}
       {!isLeader && (
         <div className="mb-4">
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button
-                variant="destructive"
-                size="sm"
-                disabled={isLeaving || isGroupMembersPending}
-              >
+              <Button variant="destructive" size="sm" disabled={isLeaving || isGroupMembersPending}>
                 {isLeaving ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -177,12 +177,14 @@ export default function MyGroupPage() {
                 <AlertDialogCancel disabled={isLeaving}>Hủy</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={async () => {
-                    await leaveAsync();
-                    await qc.invalidateQueries({ queryKey: ["myGroup"] });
-                    setTimeout(
-                      () => navigate("/groups", { replace: true }),
-                      1000
-                    );
+                    try {
+                      await leaveAsync();
+                      toast.success("Đã rời nhóm thành công!");
+                      await qc.invalidateQueries({ queryKey: ["myGroup"] });
+                      setTimeout(() => navigate("/groups", { replace: true }), 1000);
+                    } catch {
+                      toast.error("Không thể rời nhóm, vui lòng thử lại!");
+                    }
                   }}
                   disabled={isLeaving}
                 >
@@ -204,15 +206,44 @@ export default function MyGroupPage() {
       {/* Danh sách thành viên */}
       {!isGroupMembersPending && members.length > 0 && (
         <div className="grid grid-cols-1 gap-3">
-          {members.map((m) => (
-            <MemberCard key={m.id} user={m} />
-          ))}
+          {members.map((m) => {
+            const isCurrentUser = m.email === currentEmail;
+            return (
+              <MemberCard
+                key={m.id}
+                user={m}
+                isLeader={isLeader}
+                isCurrentUser={isCurrentUser}
+                onViewProfile={(id) => navigate(`/student/profile/${id}`)}
+                onKick={async (id) => {
+                  if (isRemoving) return;
+                  try {
+                    await removeUserAsync(id);
+                    toast.success(`Đã xóa ${m.fullName} khỏi nhóm.`);
+                    await refetch();
+                  } catch {
+                    toast.error("Không thể xóa thành viên này!");
+                  }
+                }}
+                onTransferLeader={async (id) => {
+                  if (isTransferring) return;
+                  try {
+                    await transferLeaderAsync({ newLeaderId: id });
+                    toast.success(`Đã chuyển quyền trưởng nhóm cho ${m.fullName}.`);
+                    await qc.invalidateQueries({ queryKey: ["groupLeader"] });
+                    await refetch();
+                  } catch {
+                    toast.error("Không thể chuyển quyền, vui lòng thử lại!");
+                  }
+                }}
+              />
+            );
+          })}
         </div>
       )}
     </Card>
   );
 
-  // 🔹 Render chính
   return (
     <div className="bg-background text-foreground flex min-h-screen flex-col">
       <div
@@ -220,11 +251,7 @@ export default function MyGroupPage() {
         aria-hidden
       />
       {header}
-      <GroupContent
-        group={minimalGroup}
-        aside={membersAside}
-        isLeader={isLeader}
-      />
+      <GroupContent group={minimalGroup} aside={membersAside} isLeader={isLeader} />
     </div>
   );
 }

@@ -9,7 +9,7 @@ export const ROUTES = {
     ROOT: "/student",
     GROUPS: "/student/groups",
     GROUP_DETAIL: "/student/groups/:id",
-    PROFILE: "/student/profile",
+    PROFILE: "/student/profile/:id",
     DASHBOARD: "/student/groups",
     // COURSES: "/student/courses",
     // ASSIGNMENTS: "/student/assignments",
@@ -19,6 +19,7 @@ export const ROUTES = {
     IDEAS: "/student/ideas",
     IDEAS_DETAIL: "/student/ideas/:id",
     MY_GROUP: "/student/mygroup",
+    MY_PROFILE: "/student/myprofile",
   },
 
   // Admin Routes

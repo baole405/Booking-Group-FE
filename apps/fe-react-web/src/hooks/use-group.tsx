@@ -138,6 +138,47 @@ export const useGroupHook = () => {
     });
   };
 
+  const useRemoveUserFromGroup = () => {
+    const qc = useQueryClient();
+
+    return useMutation({
+      mutationFn: (userId: number) => groupApi.removeUserFromGroup(userId),
+      onSuccess: async () => {
+        await Promise.allSettled([
+          qc.invalidateQueries({ queryKey: ["myGroup"] }),
+          qc.invalidateQueries({ queryKey: ["groupList"] }),
+          qc.invalidateQueries({ queryKey: ["groupMembers"] }),
+        ]);
+      },
+    });
+  };
+
+  const useGetGroupLeader = (groupId: number) => {
+    return useQuery({
+      queryKey: ["groupLeader", groupId],
+      queryFn: () => groupApi.getGroupLeader(groupId),
+      enabled: !!groupId,
+      retry: false,
+    });
+  };
+  const useTransferLeader = () => {
+    const qc = useQueryClient();
+
+    return useMutation({
+      mutationFn: ({ newLeaderId }: { newLeaderId: number }) =>
+        groupApi.transferLeader(newLeaderId),
+
+      onSuccess: async () => {
+        await Promise.allSettled([
+          qc.invalidateQueries({ queryKey: ["groupLeader"] }),
+          qc.invalidateQueries({ queryKey: ["groupMembers"] }),
+          qc.invalidateQueries({ queryKey: ["myGroup"] }),
+        ]);
+      },
+    });
+  };
+
+
   return {
     useGroupList,
     useGroupById,
@@ -146,5 +187,8 @@ export const useGroupHook = () => {
     useJoinGroup,
     useLeaveMyGroup,
     useUpdateGroupInfo,
+    useRemoveUserFromGroup,
+    useGetGroupLeader,
+    useTransferLeader,
   };
 };
