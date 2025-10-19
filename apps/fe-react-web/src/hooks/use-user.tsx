@@ -15,11 +15,7 @@ export const useUserHook = () => {
       queryKey: ["myProfile"],
       queryFn: async () => (await userApi.getMyProfile()).data,
     });
-  const useMyGroupId = (id: number) =>
-    useQuery({
-      queryKey: ["myGroupId"],
-      queryFn: async () => (await userApi.getUserGroupId(id)).data,
-    });
+
   const useUserList = (params: GetUserListParams) => {
     const {
       page = params.page || 1,
@@ -71,7 +67,6 @@ export const useUserHook = () => {
   return {
     useUserById,
     useMyProfile,
-    useMyGroupId,
     useUserList,
     useUpdateStatus,
     useUpdateUser,

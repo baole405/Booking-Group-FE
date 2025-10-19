@@ -16,7 +16,7 @@ export default function UserProfile() {
   // -------------------- Form setup --------------------
   const form = useForm<TUser>({
     resolver: zodResolver(UserSchema),
-    values: data?.data.data || undefined,
+    values: data?.data || undefined,
   });
 
   const { register, handleSubmit } = form;
@@ -34,7 +34,7 @@ export default function UserProfile() {
     return <p className="text-center text-red-500">Lỗi khi tải dữ liệu người dùng!</p>;
   }
 
-  const user = data?.data.data;
+  const user = data?.data;
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex w-full flex-col gap-6">

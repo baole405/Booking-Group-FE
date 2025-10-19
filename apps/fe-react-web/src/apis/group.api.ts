@@ -2,6 +2,7 @@ import { apiRequest } from "@/lib/http";
 import type { TGroup, TUpdateInformationGroup } from "@/schema/group.schema";
 import type { BaseResponse, PaginationResponse, StatusResponse } from "@/types/response.type";
 import { API_SUFFIX } from "./util.api";
+import type { TUser } from "@/schema/user.schema";
 
 const getGroupList = async (params?: any) => await apiRequest.get<BaseResponse<PaginationResponse<TGroup[]>>>(API_SUFFIX.GROUP_API, { params });
 const getGroup = async (id: number) => await apiRequest.get<BaseResponse<TGroup>>(API_SUFFIX.GROUP_API + `/${id}`);
@@ -12,6 +13,7 @@ const getMyGroup = async () => await apiRequest.get<BaseResponse<TGroup>>(API_SU
 const leaveMyGroup = async () => await apiRequest.delete<StatusResponse>(API_SUFFIX.LEAVE_GROUP_API);
 const updateGroupInfo = async (data: TUpdateInformationGroup) => await apiRequest.put<BaseResponse<TGroup>>(API_SUFFIX.UPDATE_GROUP_API, data);
 const joinGroup = async (groupId: number) => await apiRequest.post<StatusResponse>(API_SUFFIX.JOIN_GROUP_API + `/${groupId}`);
+const getUserGroupId = async (id: number) => await apiRequest.get<BaseResponse<TUser[]>>(API_SUFFIX.GROUP_API + `/${id}/members`);
 
 
 
@@ -25,4 +27,5 @@ export const groupApi = {
   leaveMyGroup,
   updateGroupInfo,
   joinGroup,
+  getUserGroupId,
 };
