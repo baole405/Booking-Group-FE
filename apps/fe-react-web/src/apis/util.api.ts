@@ -27,4 +27,6 @@ export const API_SUFFIX = {
   LEAVE_GROUP_API: "/groups/leave",
   UPDATE_GROUP_API: "/groups/update",
   JOIN_GROUP_API: "/joins",
+  GROUP_MEMBER_API: "/groups/members",
+  TRANSFER_LEADER_API: "/groups/change-leader",
 };
