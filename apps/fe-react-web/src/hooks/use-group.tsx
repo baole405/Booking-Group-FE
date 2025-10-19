@@ -3,6 +3,7 @@ import { groupApi } from "@/apis/group.api";
 import type { TUpdateInformationGroup, UseGroupParams } from "@/schema/group.schema";
 
 export const useGroupHook = () => {
+  // 🔹 Lấy danh sách nhóm (phân trang, lọc, tìm kiếm)
   const useGroupList = (params: UseGroupParams) => {
     const {
       page = params.page || 1,
@@ -16,31 +17,59 @@ export const useGroupHook = () => {
 
     return useQuery({
       queryKey: ["groupList", { page, size, sort, dir, status, type, q }],
-      queryFn: () =>
-        groupApi.getGroupList({ page, size, sort, dir, status, type, q }),
+      queryFn: () => groupApi.getGroupList({ page, size, sort, dir, status, type, q }),
       staleTime: 1000 * 60 * 5,
       gcTime: 1000 * 60 * 10,
     });
   };
 
+  // 🔹 Lấy chi tiết nhóm theo ID (dùng cho xem detail)
   const useGroupById = (id: number) =>
     useQuery({
-      queryKey: ["groupdetail", id],
+      queryKey: ["groupDetail", id],
       queryFn: () => groupApi.getGroup(id),
       retry: false,
+      enabled: !!id, // chỉ chạy khi id tồn tại
     });
 
+  // 🔹 Lấy nhóm hiện tại mà user đang thuộc về
   const useMyGroup = () =>
     useQuery({
       queryKey: ["myGroup"],
       queryFn: () => groupApi.getMyGroup(),
       retry: false,
-      refetchOnMount: "always", // 🔹 luôn fetch lại khi vào trang
+      refetchOnMount: "always",
       refetchOnReconnect: true,
       refetchOnWindowFocus: true,
-      staleTime: 0, // 🔹 luôn coi là stale
+      staleTime: 0,
     });
 
+  // 🔹 Lấy danh sách thành viên trong một nhóm cụ thể
+  const useGroupMembers = (groupId: number) =>
+    useQuery({
+      queryKey: ["groupMembers", groupId],
+      queryFn: () => groupApi.getUserGroupId(groupId),
+      enabled: !!groupId,
+      retry: false,
+    });
+
+  // 🔹 Tham gia một nhóm
+  const useJoinGroup = () => {
+    const qc = useQueryClient();
+
+    return useMutation({
+      mutationFn: (groupId: number) => groupApi.joinGroup(groupId),
+      onSuccess: async () => {
+        await Promise.allSettled([
+          qc.invalidateQueries({ queryKey: ["myGroup"] }),
+          qc.invalidateQueries({ queryKey: ["groupList"] }),
+          qc.invalidateQueries({ queryKey: ["groupMembers"] }),
+        ]);
+      },
+    });
+  };
+
+  // 🔹 Rời khỏi nhóm hiện tại
   const useLeaveMyGroup = () => {
     const qc = useQueryClient();
 
@@ -51,19 +80,19 @@ export const useGroupHook = () => {
         qc.removeQueries({ queryKey: ["myGroup"] });
         qc.removeQueries({ queryKey: ["myGroupMembers"] });
 
-        // Đặt myGroup về null để UI phản ứng tức thì
+        // Cập nhật lại cache để UI phản ứng ngay
         qc.setQueryData(["myGroup"], () => ({ data: { data: null } }));
 
-        // Invalidate các vùng liên quan
         await Promise.allSettled([
           qc.invalidateQueries({ queryKey: ["myGroup"] }),
-          qc.invalidateQueries({ queryKey: ["myGroupMembers"] }),
           qc.invalidateQueries({ queryKey: ["groupList"] }),
+          qc.invalidateQueries({ queryKey: ["groupMembers"] }),
         ]);
       },
     });
   };
 
+  // 🔹 Cập nhật thông tin nhóm
   const useUpdateGroupInfo = () => {
     const qc = useQueryClient();
 
@@ -71,13 +100,9 @@ export const useGroupHook = () => {
       mutationFn: (data: TUpdateInformationGroup) => groupApi.updateGroupInfo(data),
 
       onMutate: async (newData) => {
-        // ⚡ Hủy refetch tạm thời để tránh ghi đè dữ liệu cũ
         await qc.cancelQueries({ queryKey: ["myGroup"] });
-
-        // ⚡ Lấy snapshot cache cũ để rollback nếu lỗi
         const previousData = qc.getQueryData(["myGroup"]);
 
-        // ⚡ Update cache local ngay để phản ứng nhanh trên UI
         qc.setQueryData(["myGroup"], (old: any) => {
           if (!old?.data?.data) return old;
           return {
@@ -93,12 +118,10 @@ export const useGroupHook = () => {
           };
         });
 
-        // Return snapshot để rollback nếu cần
         return { previousData };
       },
 
       onError: (err, _, context) => {
-        // ⚠️ Rollback cache nếu lỗi
         if (context?.previousData) {
           qc.setQueryData(["myGroup"], context.previousData);
         }
@@ -106,25 +129,10 @@ export const useGroupHook = () => {
       },
 
       onSuccess: async () => {
-        // ✅ Invalidate queries để refresh chính xác
         await Promise.allSettled([
           qc.invalidateQueries({ queryKey: ["myGroup"] }),
           qc.invalidateQueries({ queryKey: ["groupList"] }),
-          qc.invalidateQueries({ queryKey: ["myGroupMembers"] }),
-        ]);
-      },
-    });
-  };
-
-  const useJoinGroup = () => {
-    const qc = useQueryClient();
-
-    return useMutation({
-      mutationFn: (groupId: number) => groupApi.joinGroup(groupId),
-      onSuccess: async () => {
-        await Promise.allSettled([
-          qc.invalidateQueries({ queryKey: ["myGroup"] }),
-          qc.invalidateQueries({ queryKey: ["groupList"] }),
+          qc.invalidateQueries({ queryKey: ["groupMembers"] }),
         ]);
       },
     });
@@ -134,8 +142,9 @@ export const useGroupHook = () => {
     useGroupList,
     useGroupById,
     useMyGroup,
+    useGroupMembers,
+    useJoinGroup,
     useLeaveMyGroup,
     useUpdateGroupInfo,
-    useJoinGroup,
   };
 };

@@ -2,7 +2,6 @@ import { Loader2, Users, LogOut } from "lucide-react";
 import { useMemo, useEffect } from "react";
 import GroupContent from "./components/group-content";
 import { useGroupHook } from "@/hooks/use-group";
-import { useUserHook } from "@/hooks/use-user";
 import { MemberCard } from "./components/member-card";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,8 +28,7 @@ type GroupMinimal = {
 export default function MyGroupPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const { useMyGroup, useLeaveMyGroup } = useGroupHook();
-  const { useMyGroupId } = useUserHook();
+  const { useGroupMembers, useMyGroup, useLeaveMyGroup } = useGroupHook();
 
   // 🔹 Lấy thông tin nhóm hiện tại
   const {
@@ -42,19 +40,19 @@ export default function MyGroupPage() {
   const group = groupRes?.data?.data ?? null;
   const groupId = group?.id ?? 0;
 
-  // 🔹 Lấy danh sách thành viên
+  // 🔹 Lấy danh sách thành viên trong nhóm hiện tại
   const {
     data: groupMembersRes,
     isPending: isGroupMembersPending,
-    refetch, // ✅ lấy refetch để tự gọi lại
-  } = useMyGroupId(groupId);
+    refetch,
+  } = useGroupMembers(groupId);
 
-  // 🔁 Tự động refetch sau 20 giây (chỉ với group members)
+  // 🔁 Tự động refetch sau mỗi 20 giây để cập nhật danh sách
   useEffect(() => {
     if (!groupId) return;
     const interval = setInterval(() => {
       refetch();
-    }, 1000);
+    }, 20000); // 20s
     return () => clearInterval(interval);
   }, [groupId, refetch]);
 
@@ -98,9 +96,12 @@ export default function MyGroupPage() {
       </div>
     );
   }
-const rawList: TUser[] = Array.isArray(groupMembersRes?.data)
-  ? groupMembersRes?.data
-  : [];
+
+  const rawList: TUser[] = Array.isArray(groupMembersRes?.data?.data)
+    ? groupMembersRes.data.data
+    : [];
+
+
   const members = rawList.map((u) => ({
     id: u.id,
     fullName: u.fullName,
@@ -115,10 +116,12 @@ const rawList: TUser[] = Array.isArray(groupMembersRes?.data)
     const stored = localStorage.getItem("user");
     if (stored) {
       const parsed = JSON.parse(stored);
-      currentEmail = parsed?.email ?? parsed?.user?.email ?? null;
+      if (typeof parsed === "object" && parsed) {
+        currentEmail = parsed?.email ?? parsed?.user?.email ?? null;
+      }
     }
   } catch (e) {
-    console.error("Lỗi parse localStorage:", e);
+    console.error("⚠️ Lỗi parse localStorage:", e);
   }
 
   const leader = members[0];

@@ -94,8 +94,8 @@ export default function GroupPage() {
           >
             <option value="All">Tất cả trạng thái</option>
             <option value="ACTIVE">Đang hoạt động</option>
-            <option value="LOCKED">Khóa</option>
-            <option value="FORMING">Đang gửi đơn</option>
+            <option value="LOCKED">Đã khóa</option>
+            <option value="FORMING">Đang hình thành</option>
           </select>
 
           {/* Type */}

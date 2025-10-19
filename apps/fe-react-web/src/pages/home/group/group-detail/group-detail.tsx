@@ -3,7 +3,6 @@ import { useMemo, useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import GroupContent from "./components/group-content";
 import { useGroupHook } from "@/hooks/use-group";
-import { useUserHook } from "@/hooks/use-user";
 import { MemberCard } from "./components/member-card";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,8 +28,7 @@ export default function GroupDetail() {
   const groupId = Number(id);
   const navigate = useNavigate();
 
-  const { useGroupById, useMyGroup, useJoinGroup } = useGroupHook();
-  const { useMyGroupId } = useUserHook();
+  const { useGroupMembers, useGroupById, useMyGroup, useJoinGroup } = useGroupHook();
 
   // 🔹 Lấy nhóm hiện tại của user
   const { data: myGroupRes, isPending: isMyGroupPending } = useMyGroup();
@@ -57,7 +55,7 @@ export default function GroupDetail() {
     data: groupMembersRes,
     isPending: isGroupMembersPending,
     error: groupMembersError,
-  } = useMyGroupId(groupId);
+  } = useGroupMembers(groupId);
 
   const { mutateAsync: joinGroupAsync, isPending: isJoining } = useJoinGroup();
 
@@ -92,9 +90,11 @@ export default function GroupDetail() {
     );
   }, [isGroupPending, groupError, groupId, group]);
 
-const rawList: TUser[] = Array.isArray(groupMembersRes?.data)
-  ? groupMembersRes?.data
-  : [];
+  const rawList: TUser[] = Array.isArray(groupMembersRes?.data?.data)
+    ? groupMembersRes.data.data
+    : [];
+
+
   const members = rawList.map((u) => ({
     id: u.id,
     fullName: u.fullName,
@@ -207,7 +207,7 @@ const rawList: TUser[] = Array.isArray(groupMembersRes?.data)
           <AlertDialogAction
             onClick={() => navigate("/student/mygroup", { replace: true })}
           >
-            Xem nhóm của bạn
+            Xem nhóm của tôi
           </AlertDialogAction>
           <AlertDialogAction
             onClick={() => navigate("/groups", { replace: true })}
