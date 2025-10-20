@@ -17,16 +17,15 @@ export const useUserHook = () => {
     });
 
   const useUserList = (params: GetUserListParams) => {
-    const {
-      page = params.page || 1,
-      size = params.size || 10,
-      role = params.role || null,
-      q = params.q || "",
-      majorCode = params.majorCode || null,
-      isActive = params.isActive || null,
-      sort = params.sort || "id",
-      dir = params.dir || "asc",
-    } = params;
+    // Use nullish coalescing to preserve 0 and avoid sending empty strings
+    const page = params.page ?? 0;
+    const size = params.size ?? 10;
+    const role = params.role ?? null;
+    const q = params.q ?? params.search ?? undefined;
+    const majorCode = params.majorCode ?? null;
+    const isActive = params.isActive ?? null;
+    const sort = params.sort ?? "id";
+    const dir = params.dir ?? "asc";
     return useQuery({
       queryKey: ["userList", { page, size, role, q, majorCode, isActive, sort, dir }],
       queryFn: async () =>
