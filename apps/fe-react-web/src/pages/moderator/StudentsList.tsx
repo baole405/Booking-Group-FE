@@ -32,8 +32,8 @@ const StudentsList: React.FC = () => {
     setCurrentPage(0);
   }, [searchTerm, searchByCode]);
 
-  // Lấy dữ liệu từ API response - nested structure: data.data.data
-  const paginationData = data?.data?.data as unknown as TUserListResponse | undefined;
+  // Lấy dữ liệu từ API response: BaseResponse<T> -> data
+  const paginationData = data?.data as TUserListResponse | undefined;
   const students = useMemo(() => paginationData?.content || [], [paginationData]);
   const totalPages = paginationData?.totalPages || 0;
   const totalElements = paginationData?.totalElements || 0;
