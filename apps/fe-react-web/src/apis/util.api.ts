@@ -34,5 +34,6 @@ export const API_SUFFIX = {
   MY_JOIN_GROUP_API: "/joins/my-requests", // Yêu cầu tham gia nhóm của tôi
 
   VOTE_API: "/votes",                    // Vote cho ý tưởng
-  VOTE_BY_GROUP_API: "/votes/group",    // Lấy vote theo group
+  VOTE_BY_GROUP_API: "/votes/group",
+  POST_API: "/posts",                     // Lấy bài viết theo group
 };

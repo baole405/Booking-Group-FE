@@ -21,16 +21,15 @@ const getInitials = (name?: string | null) =>
 
 export function MemberCard({ user }: MemberCardProps) {
   return (
-    <div className="rounded-lg border bg-muted/20 p-3 transition-colors hover:bg-muted/40">
+    <div className="rounded-lg border bg-muted/20 p-3 transition-all hover:bg-muted/40 hover:shadow-sm">
       <div className="flex items-center gap-3">
-        <Avatar className="h-9 w-9">
+        <Avatar className="h-9 w-9 border">
           <AvatarImage src={user.avatarUrl ?? undefined} alt={user.fullName} />
           <AvatarFallback>{getInitials(user.fullName)}</AvatarFallback>
         </Avatar>
-
         <div className="min-w-0 flex-1">
           <div className="truncate font-medium">{user.fullName}</div>
-          <div className="text-muted-foreground mt-1 text-xs">
+          <div className="mt-1 text-xs text-muted-foreground">
             {user.studentCode?.trim() || "—"}
           </div>
         </div>

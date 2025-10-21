@@ -151,10 +151,10 @@ export default function GroupContent({
   const isDone = group.status === "DONE";
 
   // - Thay đổi trạng thái nhóm: chỉ Leader, members > 3, status = ACTIVE, và chưa DONE
-  const canShowChangeTypeBtn = !!isLeader && memberCount > 3 && isActive && !isDone;
+  const canShowChangeTypeBtn = !!isLeader && memberCount > 0 && isActive && !isDone;
 
   // - Hoàn tất nhóm: chỉ Leader, members > 5, status = ACTIVE, và chưa DONE
-  const canShowFinalizeBtn = !!isLeader && memberCount > 5 && isActive && !isDone;
+  const canShowFinalizeBtn = !!isLeader && memberCount > 0 && isActive && !isDone;
 
   return (
     <div className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-6 px-6 py-8 md:grid-cols-6">

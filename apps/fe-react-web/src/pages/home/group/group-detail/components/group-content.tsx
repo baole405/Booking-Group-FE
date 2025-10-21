@@ -3,6 +3,7 @@ import { Separator } from "@/components/ui/separator";
 import { useIdeaHook } from "@/hooks/use-idea";
 import type { TIdea } from "@/schema/ideas.schema";
 import { Loader2 } from "lucide-react";
+import { IdeaCard } from "./ideas-card";
 
 type GroupMinimal = {
   id: number;
@@ -15,67 +16,62 @@ export default function GroupContent({
   aside,
 }: {
   group: GroupMinimal;
-  aside?: React.ReactNode; // <— NEW
+  aside?: React.ReactNode;
 }) {
   const { useIdeaListByGroupId } = useIdeaHook();
-  const { data: ideasRes, isPending: isIdeasPending, error: ideasError } =
-    useIdeaListByGroupId(group.id);
+  const {
+    data: ideasRes,
+    isPending,
+    error,
+  } = useIdeaListByGroupId(group.id);
 
   const ideas = ideasRes?.data?.data ?? [];
 
   return (
     <div className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-6 px-6 py-8 md:grid-cols-6">
       {/* MAIN CONTENT */}
-      <main className="md:col-span-4">
+      <main className="md:col-span-4 space-y-6">
+        {/* Mục tiêu nhóm */}
         <Card className="p-6">
           <h2 className="mb-2 text-lg font-semibold">Mục tiêu của nhóm</h2>
           <Separator className="mb-4" />
-          <p className="text-foreground/80 text-sm leading-relaxed">
+          <p className="text-sm text-foreground/80 leading-relaxed">
             {group.description || "Chưa có mô tả."}
           </p>
         </Card>
 
-        {/* Ideas */}
-        <div className="mt-6">
+        {/* Danh sách ý tưởng */}
+        <section>
           <h3 className="mb-3 text-base font-semibold">Ý tưởng của nhóm</h3>
 
-          {(() => {
-            if (isIdeasPending) {
-              return (
-                <div className="text-muted-foreground flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Đang tải ý tưởng...
-                </div>
-              );
-            }
-            if (ideasError) {
-              return (
-                <div className="text-destructive">Không thể tải danh sách ý tưởng.</div>
-              );
-            }
-            if (!ideas.length) {
-              return <div className="text-muted-foreground text-sm">Chưa có ý tưởng nào.</div>;
-            }
-            return (
-              <div className="grid gap-4">
-                {ideas.map((idea: TIdea) => (
-                  <div key={idea.id} className="rounded-lg border p-4">
-                    <div className="font-medium">{idea.title}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {idea.description || "—"}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            );
-          })()}
-        </div>
+          {isPending && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" /> Đang tải ý tưởng...
+            </div>
+          )}
+
+          {error && (
+            <div className="text-destructive text-sm">
+              Không thể tải danh sách ý tưởng.
+            </div>
+          )}
+
+          {!isPending && !error && !ideas.length && (
+            <p className="text-sm text-muted-foreground">Chưa có ý tưởng nào.</p>
+          )}
+
+          {!isPending && !error && ideas.length > 0 && (
+            <div className="grid gap-4">
+              {ideas.map((idea: TIdea) => (
+                <IdeaCard key={idea.id} idea={idea} />
+              ))}
+            </div>
+          )}
+        </section>
       </main>
 
-      {/* ASIDE — vị trí cũ của danh sách thành viên */}
-      <aside className="md:col-span-2">
-        {aside /* <— render slot */}
-      </aside>
+      {/* ASIDE */}
+      <aside className="md:col-span-2">{aside}</aside>
     </div>
   );
 }

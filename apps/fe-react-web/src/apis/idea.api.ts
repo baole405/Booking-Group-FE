@@ -7,9 +7,11 @@ const getIdeaList = async (id: number) => await apiRequest.get<BaseResponse<TIde
 const createIdea = async (data: TCreateIdea) => await apiRequest.post<BaseResponse<TIdea>>(API_SUFFIX.IDEA_API, data);
 const updateIdea = async (id: number, data: TUpdateIdea) => await apiRequest.put<BaseResponse<TIdea>>(API_SUFFIX.IDEA_API + `/${id}`, data);
 const deleteIdea = async (id: number) => await apiRequest.delete<BaseResponse<null>>(API_SUFFIX.IDEA_API + `/${id}`);
+const getAllIdeas = async () => await apiRequest.get<BaseResponse<TIdea[]>>(API_SUFFIX.IDEA_API);
 export const ideaApi = {
   getIdeaList,
   createIdea,
   updateIdea,
   deleteIdea,
+  getAllIdeas
 };

@@ -1,11 +1,15 @@
-import { Loader2, Users } from "lucide-react";
 import { useMemo, useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import GroupContent from "./components/group-content";
+import { Loader2, Users } from "lucide-react";
+import { toast } from "sonner";
+
 import { useGroupHook } from "@/hooks/use-group";
-import { MemberCard } from "./components/member-card";
-import { Card } from "@/components/ui/card";
+import type { TJoinGroup } from "@/schema/group.schema";
+import type { TUser } from "@/schema/user.schema";
+
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -14,21 +18,28 @@ import {
   AlertDialogFooter,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
-import type { TUser } from "@/schema/user.schema";
-import { toast } from "sonner";
-import type { TGroup, TJoinGroup } from "@/schema/group.schema";
 
-type GroupMinimal = {
-  id: number;
-  title: string;
-  description?: string | null;
+import { MemberCard } from "./components/member-card";
+import GroupContent from "./components/group-content";
+
+// ───────────────────── Constants ─────────────────────
+const MEMBER_THRESHOLD = 6;
+
+const statusClass = (status?: string) => {
+  switch (status?.toUpperCase()) {
+    case "ACTIVE":
+      return "bg-emerald-100 text-emerald-800 border-emerald-200";
+    case "LOCKED":
+      return "bg-rose-100 text-rose-800 border-rose-200";
+    case "FORMING":
+      return "bg-blue-100 text-blue-800 border-blue-200";
+    default:
+      return "bg-gray-100 text-gray-800 border-gray-200";
+  }
 };
 
-// ✅ Rule: chỉ hiển thị nút khi memberCount > THRESHOLD
-const THRESHOLD = 6;
-
 export default function GroupDetail() {
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams();
   const groupId = Number(id);
   const navigate = useNavigate();
 
@@ -37,207 +48,156 @@ export default function GroupDetail() {
     useGroupById,
     useMyGroup,
     useJoinGroup,
-    useGetMyJoinRequests, // ⬅️ lấy yêu cầu đã gửi
+    useGetMyJoinRequests,
   } = useGroupHook();
 
-  // ───────────────────── My Group ─────────────────────
+  // ───────────────────── Fetch Hooks ─────────────────────
   const { data: myGroupRes, isPending: isMyGroupPending } = useMyGroup();
   const myGroup = myGroupRes?.data?.data ?? null;
 
-  // ───────────────────── Current Group (by id) ─────────────────────
   const { data: groupRes, isPending: isGroupPending, error: groupError } = useGroupById(groupId);
   const group = groupRes?.data?.data ?? null;
 
-  // Nếu nhóm đang xem === nhóm của mình ⇒ redirect
+  const { data: groupMembersRes, isPending: isMembersPending, error: membersError } =
+    useGroupMembers(groupId);
+
+  const { data: myReqRes, isPending: isReqLoading, refetch: refetchReqs } = useGetMyJoinRequests();
+  const myRequests: TJoinGroup[] = myReqRes?.data?.data ?? [];
+
+  const { mutateAsync: joinGroupAsync, isPending: isJoining } = useJoinGroup();
+
+  // ───────────────────── Derived State ─────────────────────
+  const members: TUser[] = groupMembersRes?.data?.data ?? [];
+  const memberCount = members.length;
+  const groupType = group?.type?.toUpperCase() ?? "";
+  const isPublic = groupType === "PUBLIC";
+
+  // Điều kiện hiển thị nút tham gia
+  const canShowJoinButton =
+    !isMyGroupPending &&
+    !myGroup && // chưa có nhóm
+    !isMembersPending &&
+    !!group &&
+    memberCount < MEMBER_THRESHOLD;
+
+  const hasPendingRequest = useMemo(
+    () =>
+      !!myRequests.find(
+        (r) =>
+          Number(r.toGroup?.id) === groupId &&
+          String(r.status).toUpperCase() === "PENDING"
+      ),
+    [groupId, myRequests]
+  );
+
+  // ───────────────────── Auto Redirect ─────────────────────
   useEffect(() => {
     if (!isMyGroupPending && myGroup && groupId === myGroup.id) {
       navigate("/student/mygroup", { replace: true });
     }
   }, [isMyGroupPending, myGroup, groupId, navigate]);
 
-  // ───────────────────── Members ─────────────────────
-  const {
-    data: groupMembersRes,
-    isPending: isGroupMembersPending,
-    error: groupMembersError,
-  } = useGroupMembers(groupId);
+  // ───────────────────── UI: Action Button Meta ─────────────────────
+  const actionMeta = useMemo(() => {
+    if (!canShowJoinButton)
+      return null;
 
-  // ───────────────────── My Join Requests ─────────────────────
-  const {
-    data: myReqRes,
-    isPending: isReqLoading,
-    refetch: refetchMyReqs,
-  } = useGetMyJoinRequests();
-
-  const myRequests: TJoinGroup[] = Array.isArray(myReqRes?.data?.data) ? myReqRes.data.data : [];
-
-  const { mutateAsync: joinGroupAsync, isPending: isJoining } = useJoinGroup();
-
-  // Popups
-  const [showJoinedPopup, setShowJoinedPopup] = useState(false); // sau khi join ngay (PUBLIC)
-  const [showRequestedPopup, setShowRequestedPopup] = useState(false); // sau khi gửi request (PRIVATE)
-
-  // ───────────────────── Members mapping ─────────────────────
-  const rawList: TUser[] = Array.isArray(groupMembersRes?.data?.data)
-    ? groupMembersRes.data.data
-    : [];
-
-  const members = rawList.map((u) => ({
-    id: u.id,
-    fullName: u.fullName,
-    studentCode: u.studentCode ?? null,
-    avatarUrl: u.avatarUrl ?? null,
-  }));
-
-  const memberCount = members.length;
-
-  // ───────────────────── Join/Request Logic ─────────────────────
-  // FE rule: chỉ SV chưa có nhóm & memberCount > THRESHOLD mới thấy nút
-  const groupType = String((group as TGroup)?.type ?? "").toUpperCase();
-  const isPublic = groupType === "PUBLIC";
-
-  const canInteract =
-    !isMyGroupPending && !myGroup && !isGroupMembersPending && memberCount > THRESHOLD;
-
-  // Đã gửi yêu cầu cho nhóm này?
-  const hasPendingRequest = useMemo(() => {
-    if (!groupId || !myRequests.length) return false;
-    return myRequests.some(
-      (r) =>
-        Number(r?.toGroup?.id) === groupId &&
-        String(r?.status).toUpperCase() === "PENDING"
-    );
-  }, [groupId, myRequests]);
-
-  type ActionMeta =
-    | {
-      label: string;
-      submittingLabel: string;
-      title: string;
-      disabled: boolean;
-    }
-    | null;
-
-  // Chuẩn hóa metadata cho nút để tránh nested ternary
-  const actionMeta: ActionMeta = (() => {
-    if (!canInteract) return null;
     if (isReqLoading || hasPendingRequest) {
       return {
         label: "Đang chờ xét duyệt",
-        submittingLabel: "Đang gửi...",
-        title: "Đang chờ xét duyệt",
+        loadingLabel: "Đang gửi...",
         disabled: true,
       };
     }
-    if (isPublic) {
-      return {
+
+    return isPublic
+      ? {
         label: "Tham gia nhóm",
-        submittingLabel: "Đang tham gia...",
-        title: "Tham gia nhóm",
+        loadingLabel: "Đang tham gia...",
+        disabled: false,
+      }
+      : {
+        label: "Gửi yêu cầu tham gia",
+        loadingLabel: "Đang gửi yêu cầu...",
         disabled: false,
       };
+  }, [canShowJoinButton, isReqLoading, hasPendingRequest, isPublic]);
+
+  // ───────────────────── Actions ─────────────────────
+  const [popupJoined, setPopupJoined] = useState(false);
+  const [popupRequested, setPopupRequested] = useState(false);
+
+  const handleJoin = async () => {
+    try {
+      await joinGroupAsync(groupId);
+      if (isPublic) {
+        toast.success("Tham gia nhóm thành công!");
+        setPopupJoined(true);
+      } else {
+        toast.success("Đã gửi yêu cầu tham gia nhóm!");
+        setPopupRequested(true);
+        await refetchReqs();
+      }
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.message ??
+        (isPublic ? "Không thể tham gia nhóm." : "Không thể gửi yêu cầu.");
+      toast.error(msg);
     }
-    // PRIVATE (và các type khác) → gửi yêu cầu
-    return {
-      label: "Gửi yêu cầu tham gia",
-      submittingLabel: "Đang gửi yêu cầu...",
-      title: "Gửi yêu cầu tham gia",
-      disabled: false,
-    };
-  })();
+  };
 
   // ───────────────────── Header ─────────────────────
-  const header = useMemo(() => {
-    if (isGroupPending) {
-      return (
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-2">
-            <Loader2 className="h-5 w-5 animate-spin" />
-            <h1 className="text-xl font-semibold">Đang tải nhóm...</h1>
-          </div>
-        </div>
-      );
-    }
-    if (groupError || !groupId || !group) {
-      return (
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4">
-          <h1 className="text-xl font-semibold">Không tìm thấy nhóm</h1>
-        </div>
-      );
-    }
-    return (
-      <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4">
-        <div className="flex items-center gap-3">
-          <h1 className="text-xl font-semibold">
-            Nhóm #{group.id} — {group.title}
-          </h1>
+  const header = (
+    <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4">
+      <div>
+        <h1 className="text-xl font-semibold">
+          Nhóm #{group?.id} — {group?.title}
+        </h1>
 
-          {/* ✅ Badge: đã gửi yêu cầu */}
-          {hasPendingRequest && (
-            <span className="text-xs rounded-full bg-amber-500/15 text-amber-700 px-2 py-0.5">
-              đã gửi yêu cầu
-            </span>
+        <div className="mt-1 flex flex-wrap items-center gap-2 text-sm">
+          {group?.semester && (
+            <Badge variant="secondary">
+              Học kỳ: {group.semester?.name ?? group.semester?.id ?? "?"}
+            </Badge>
+          )}
+          {group?.type && <Badge variant="outline">Loại: {group.type}</Badge>}
+          {group?.status && (
+            <Badge className={statusClass(String(group.status))}>
+              Trạng thái: {String(group.status)}
+            </Badge>
           )}
         </div>
       </div>
-    );
-  }, [isGroupPending, groupError, groupId, group, hasPendingRequest]);
 
-  // ───────────────────── Handler (xử lý exception đúng) ─────────────────────
-  const handleJoinOrRequest = async () => {
-    try {
-      await joinGroupAsync(groupId); // BE quyết định join ngay hay tạo request
+      {hasPendingRequest && (
+        <span className="text-xs rounded-full bg-amber-100 text-amber-700 px-2 py-0.5">
+          Đã gửi yêu cầu
+        </span>
+      )}
+    </div>
+  );
 
-      if (isPublic) {
-        toast.success("Tham gia nhóm thành công!");
-        setShowJoinedPopup(true);
-      } else {
-        toast.success("Đã gửi yêu cầu tham gia nhóm!");
-        setShowRequestedPopup(true);
-        await refetchMyReqs(); // ⬅️ cập nhật lại danh sách yêu cầu để khóa nút + hiện badge
-      }
-    } catch (err: any) {
-      const beMsg =
-        err?.response?.data?.message ??
-        (isPublic ? "Không thể tham gia nhóm." : "Không thể gửi yêu cầu tham gia.");
-      toast.error(beMsg);
-    }
-  };
-
-  // ───────────────────── Guards ─────────────────────
-  if (isGroupPending || !groupId || !group) {
-    return <div className="bg-background text-foreground flex min-h-screen flex-col">{header}</div>;
-  }
-
-  // ───────────────────── Minimal group ─────────────────────
-  const minimalGroup: GroupMinimal = {
-    id: Number(group.id) || 0,
-    title: group.title,
-    description: group.description ?? null,
-  };
-
-  // ───────────────────── Aside (members + action) ─────────────────────
+  // ───────────────────── Aside (Members + Join) ─────────────────────
   const membersAside = (
     <Card className="p-4">
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Users className="h-5 w-5 text-emerald-600" />
           <h3 className="text-lg font-semibold">
-            Thành viên ({memberCount}/{THRESHOLD})
+            Thành viên ({memberCount}/{MEMBER_THRESHOLD})
           </h3>
         </div>
 
         {actionMeta && (
           <Button
             size="sm"
-            onClick={handleJoinOrRequest}
+            onClick={handleJoin}
             disabled={isJoining || actionMeta.disabled}
-            title={actionMeta.title}
           >
             {isJoining ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {actionMeta.submittingLabel}
+                {actionMeta.loadingLabel}
               </>
             ) : (
               actionMeta.label
@@ -246,40 +206,30 @@ export default function GroupDetail() {
         )}
       </div>
 
-      {/* Gợi ý cho người dùng khi đã gửi request */}
       {hasPendingRequest && (
-        <div className="mb-2 text-xs text-muted-foreground">
-          Bạn đã gửi yêu cầu tham gia nhóm này. Vui lòng chờ trưởng nhóm xét duyệt.
-        </div>
+        <p className="mb-2 text-xs text-muted-foreground">
+          Bạn đã gửi yêu cầu tham gia nhóm này. Vui lòng chờ xét duyệt.
+        </p>
       )}
 
-      {isGroupMembersPending && (
+      {isMembersPending && (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Loader2 className="h-4 w-4 animate-spin" />
-          Đang tải danh sách thành viên...
+          <Loader2 className="h-4 w-4 animate-spin" /> Đang tải danh sách thành viên...
         </div>
       )}
 
-      {!isGroupMembersPending && groupMembersError && (
-        <div className="text-sm text-red-600">Không tải được danh sách thành viên.</div>
+      {!isMembersPending && membersError && (
+        <div className="text-sm text-destructive">Không tải được danh sách thành viên.</div>
       )}
 
-      {!isGroupMembersPending && !groupMembersError && members.length === 0 && (
+      {!isMembersPending && !membersError && !members.length && (
         <div className="text-sm text-muted-foreground">Chưa có thành viên nào.</div>
       )}
 
-      {!isGroupMembersPending && !groupMembersError && members.length > 0 && (
+      {!isMembersPending && !membersError && members.length > 0 && (
         <div className="grid grid-cols-1 gap-3">
           {members.map((m) => (
-            <MemberCard
-              key={m.id}
-              user={{
-                id: m.id,
-                fullName: m.fullName,
-                studentCode: m.studentCode ?? null,
-                avatarUrl: m.avatarUrl ?? null,
-              }}
-            />
+            <MemberCard key={m.id} user={m} />
           ))}
         </div>
       )}
@@ -288,7 +238,7 @@ export default function GroupDetail() {
 
   // ───────────────────── Popups ─────────────────────
   const joinedPopup = (
-    <AlertDialog open={showJoinedPopup} onOpenChange={setShowJoinedPopup}>
+    <AlertDialog open={popupJoined} onOpenChange={setPopupJoined}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>🎉 Tham gia nhóm thành công!</AlertDialogTitle>
@@ -304,7 +254,7 @@ export default function GroupDetail() {
             onClick={() => navigate("/groups", { replace: true })}
             className="bg-muted text-foreground hover:bg-muted/80"
           >
-            Xem các nhóm khác
+            Xem nhóm khác
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
@@ -312,12 +262,12 @@ export default function GroupDetail() {
   );
 
   const requestedPopup = (
-    <AlertDialog open={showRequestedPopup} onOpenChange={setShowRequestedPopup}>
+    <AlertDialog open={popupRequested} onOpenChange={setPopupRequested}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle> Đã gửi yêu cầu tham gia nhóm!</AlertDialogTitle>
+          <AlertDialogTitle>Đã gửi yêu cầu tham gia nhóm!</AlertDialogTitle>
           <p className="text-sm text-muted-foreground mt-1">
-            Yêu cầu của bạn đang chờ trưởng nhóm xét duyệt.
+            Yêu cầu của bạn đang chờ xét duyệt.
           </p>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -328,7 +278,7 @@ export default function GroupDetail() {
             onClick={() => navigate("/groups", { replace: true })}
             className="bg-muted text-foreground hover:bg-muted/80"
           >
-            Xem các nhóm khác
+            Xem nhóm khác
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
@@ -336,6 +286,26 @@ export default function GroupDetail() {
   );
 
   // ───────────────────── Render ─────────────────────
+  if (isGroupPending)
+    return (
+      <div className="flex items-center justify-center min-h-screen text-muted-foreground">
+        <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Đang tải nhóm...
+      </div>
+    );
+
+  if (groupError || !group)
+    return (
+      <div className="flex items-center justify-center min-h-screen text-destructive">
+        Không tìm thấy nhóm.
+      </div>
+    );
+
+  const minimalGroup = {
+    id: group.id!,
+    title: group.title,
+    description: group.description ?? null,
+  };
+
   return (
     <div className="bg-background text-foreground flex min-h-screen flex-col">
       <div

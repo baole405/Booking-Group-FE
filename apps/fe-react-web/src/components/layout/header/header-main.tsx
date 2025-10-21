@@ -42,7 +42,7 @@ const HeaderMain = () => {
             Diễn Đàn
           </Link>
 
-          <Link to="/stories" className="hover:text-foreground transition-colors">
+          <Link to="/student/ideas" className="hover:text-foreground transition-colors">
             Ý tưởng
           </Link>
 
