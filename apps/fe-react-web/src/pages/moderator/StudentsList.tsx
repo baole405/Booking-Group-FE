@@ -1,13 +1,25 @@
+import StudentProfileModal from "@/components/dialog/StudentProfileModal";
 import { useUserHook } from "@/hooks/use-user";
 import type { TUserListResponse } from "@/schema/user.schema";
 import React, { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
 
 const StudentsList: React.FC = () => {
   const { useUserList } = useUserHook();
   const [currentPage, setCurrentPage] = useState<number>(0); // Backend bắt đầu từ 0
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [searchByCode, setSearchByCode] = useState<string>("");
+  const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleViewStudent = (studentId: number) => {
+    setSelectedStudentId(studentId);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedStudentId(null);
+  };
 
   const itemsPerPage = 10;
 
@@ -39,7 +51,6 @@ const StudentsList: React.FC = () => {
   const totalElements = paginationData?.totalElements || 0;
 
   // Lọc local nếu cần (vì backend có thể không hỗ trợ search cả 2 field riêng biệt)
-  const navigate = useNavigate();
   const filteredStudents = useMemo(() => {
     return students.filter((student) => {
       const matchName = !searchTerm || student.fullName.toLowerCase().includes(searchTerm.toLowerCase());
@@ -73,12 +84,10 @@ const StudentsList: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="mx-auto max-w-7xl">
-        {/* Header */}
         <div className="mb-6 rounded-lg bg-white p-6 shadow-sm">
           <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
             <h1 className="text-2xl font-bold text-gray-900">Danh sách sinh viên</h1>
 
-            {/* Search Filters */}
             <div className="flex flex-col gap-3 sm:flex-row">
               <input
                 type="text"
@@ -133,7 +142,7 @@ const StudentsList: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <button
-                          onClick={() => navigate(`/moderator/students/${student.id}`)}
+                          onClick={() => handleViewStudent(student.id)}
                           className="inline-flex items-center rounded-full p-2 text-gray-400 transition-colors duration-200 hover:bg-blue-50 hover:text-blue-600"
                           title="Xem chi tiết sinh viên"
                         >
@@ -219,6 +228,9 @@ const StudentsList: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Modal */}
+      {selectedStudentId && <StudentProfileModal open={isModalOpen} onClose={handleCloseModal} studentId={selectedStudentId} />}
     </div>
   );
 };

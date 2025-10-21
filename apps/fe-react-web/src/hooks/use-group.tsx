@@ -1,10 +1,10 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { groupApi } from "@/apis/group.api";
 import type { TUpdateInformationGroup, UseGroupParams } from "@/schema/group.schema";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export const useGroupHook = () => {
   // 🔹 Lấy danh sách nhóm (phân trang, lọc, tìm kiếm)
-  const useGroupList = (params: UseGroupParams) => {
+  const useGroupList = (params: UseGroupParams, enabled: boolean = true) => {
     const {
       page = params.page || 1,
       size = params.size || 10,
@@ -20,9 +20,12 @@ export const useGroupHook = () => {
       queryFn: () => groupApi.getGroupList({ page, size, sort, dir, status, type, q }),
       staleTime: 1000 * 60 * 5,
       gcTime: 1000 * 60 * 10,
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+      refetchOnReconnect: false,
+      enabled, // ✅ chỉ gọi API khi enabled = true
     });
   };
-
   // 🔹 Lấy chi tiết nhóm theo ID (dùng cho xem detail)
   const useGroupById = (id: number) =>
     useQuery({
@@ -165,8 +168,7 @@ export const useGroupHook = () => {
     const qc = useQueryClient();
 
     return useMutation({
-      mutationFn: ({ newLeaderId }: { newLeaderId: number }) =>
-        groupApi.transferLeader(newLeaderId),
+      mutationFn: ({ newLeaderId }: { newLeaderId: number }) => groupApi.transferLeader(newLeaderId),
 
       onSuccess: async () => {
         await Promise.allSettled([
@@ -192,11 +194,8 @@ export const useGroupHook = () => {
     return useMutation({
       mutationFn: () => groupApi.finalizeGroup(),
       onSuccess: async () => {
-        await Promise.allSettled([
-          qc.invalidateQueries({ queryKey: ["myGroup"] }),
-          qc.invalidateQueries({ queryKey: ["groupList"] }),
-        ]);
-      }
+        await Promise.allSettled([qc.invalidateQueries({ queryKey: ["myGroup"] }), qc.invalidateQueries({ queryKey: ["groupList"] })]);
+      },
     });
   };
 
@@ -205,11 +204,8 @@ export const useGroupHook = () => {
     return useMutation({
       mutationFn: () => groupApi.changeGroupType(),
       onSuccess: async () => {
-        await Promise.allSettled([
-          qc.invalidateQueries({ queryKey: ["myGroup"] }),
-          qc.invalidateQueries({ queryKey: ["groupList"] }),
-        ]);
-      }
+        await Promise.allSettled([qc.invalidateQueries({ queryKey: ["myGroup"] }), qc.invalidateQueries({ queryKey: ["groupList"] })]);
+      },
     });
   };
   const useGetMyJoinRequests = () => {
@@ -219,12 +215,11 @@ export const useGroupHook = () => {
       retry: false,
     });
   };
-   const useChoiceVote = () => {
+  const useChoiceVote = () => {
     const qc = useQueryClient();
 
     return useMutation({
-      mutationFn: ({ voteId, choiceValue }: { voteId: number; choiceValue: "YES" | "NO" }) =>
-        groupApi.choiceVote(voteId, choiceValue),
+      mutationFn: ({ voteId, choiceValue }: { voteId: number; choiceValue: "YES" | "NO" }) => groupApi.choiceVote(voteId, choiceValue),
       onSuccess: async () => {
         await Promise.allSettled([
           qc.invalidateQueries({ queryKey: ["myGroup"] }),
@@ -236,19 +231,29 @@ export const useGroupHook = () => {
   };
 
   const useVotesByVoteId = (voteId: number) =>
-  useQuery({
-    queryKey: ["votesByVote", voteId],
-    queryFn: () => groupApi.getVotesByVoteId(voteId),
-    enabled: !!voteId,
-    retry: false,
-  });
+    useQuery({
+      queryKey: ["votesByVote", voteId],
+      queryFn: () => groupApi.getVotesByVoteId(voteId),
+      enabled: !!voteId,
+      retry: false,
+    });
   const useVoteByGroupId = (groupId: number) =>
-  useQuery({
-    queryKey: ["voteByGroup", groupId],
-    queryFn: () => groupApi.getVoteByGroupId(groupId),
-    enabled: !!groupId,
-    retry: false,
-  });
+    useQuery({
+      queryKey: ["voteByGroup", groupId],
+      queryFn: () => groupApi.getVoteByGroupId(groupId),
+      enabled: !!groupId,
+      retry: false,
+    });
+  const useCreateGroupWithSemester = () => {
+    const qc = useQueryClient();
+    return useMutation({
+      mutationFn: ({ size, semesterId }: { size: number; semesterId: number }) => groupApi.createGroupWithSemester(size, semesterId),
+      onSuccess: async () => {
+        await Promise.allSettled([qc.invalidateQueries({ queryKey: ["groupList"] })]);
+      },
+    });
+  };
+
   return {
     useGroupList,
     useGroupById,
@@ -267,5 +272,6 @@ export const useGroupHook = () => {
     useChoiceVote,
     useVotesByVoteId,
     useVoteByGroupId,
+    useCreateGroupWithSemester,
   };
 };

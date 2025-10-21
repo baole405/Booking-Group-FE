@@ -3,48 +3,24 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useUserHook } from "@/hooks/use-user";
 import { BookOpenText, Mail, User, Users } from "lucide-react";
-import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-
-type StudentDetail = {
-  id: number;
-  studentCode: string;
-  fullName: string;
-  email: string;
-  cvUrl: string;
-  avatarUrl: string;
-  major: { id: number; name: string };
-  role: string;
-  isActive: boolean;
-};
 
 export default function ModeratorStudentProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [student, setStudent] = useState<StudentDetail | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { useUserById } = useUserHook();
 
-  useEffect(() => {
-    if (!id) return;
-    setLoading(true);
-    setError(null);
-    fetch(`/api/users/${id}`)
-      .then(async (res) => {
-        if (!res.ok) throw new Error("Không tìm thấy sinh viên");
-        const json = await res.json();
-        setStudent(json.data);
-      })
-      .catch((err) => setError(err.message || "Lỗi không xác định"))
-      .finally(() => setLoading(false));
-  }, [id]);
+  const { data, isLoading, error } = useUserById(Number(id), { enabled: !!id });
+  const student = data?.data;
 
-  if (loading) {
+  if (isLoading) {
     return <div className="flex min-h-[50vh] items-center justify-center text-gray-500">Đang tải thông tin sinh viên...</div>;
   }
+
   if (error || !student) {
-    return <div className="text-muted-foreground flex min-h-[50vh] items-center justify-center">{error || "Không tìm thấy sinh viên."}</div>;
+    return <div className="text-muted-foreground flex min-h-[50vh] items-center justify-center">Không tìm thấy sinh viên.</div>;
   }
 
   return (
@@ -89,7 +65,7 @@ export default function ModeratorStudentProfile() {
                 <Label htmlFor="mssv" className="flex items-center gap-2">
                   <BookOpenText className="h-4 w-4" /> MSSV
                 </Label>
-                <Input id="mssv" value={student.studentCode} readOnly />
+                <Input id="mssv" value={student.studentCode || ""} readOnly />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="major" className="flex items-center gap-2">
