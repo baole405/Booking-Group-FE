@@ -1,7 +1,7 @@
 import { semesterApi } from "@/apis/semester.api";
+import { apiRequest } from "@/lib/http";
 import type { TSemester, TUpdateSemester } from "@/schema/semester.schema";
 import { useMutation, useQuery } from "@tanstack/react-query";
-
 export const useSemesterHook = () => {
   const useSemesterList = () =>
     useQuery({
@@ -28,3 +28,19 @@ export const useSemesterHook = () => {
     useUpdateSemester,
   };
 };
+export interface Semester {
+  id: number;
+  name: string;
+  active: boolean;
+}
+
+export function useSemesterList() {
+  return useQuery<Semester[]>({
+    queryKey: ["semesters"],
+    queryFn: async () => {
+      const res = await apiRequest.get("/semesters");
+      // API trả về { status, message, data: Semester[] }
+      return res.data.data;
+    },
+  });
+}
