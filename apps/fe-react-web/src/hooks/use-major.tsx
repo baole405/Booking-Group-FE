@@ -3,10 +3,10 @@ import type { TMajor } from "@/schema/major.schema";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
 export const useMajorHook = () => {
-  const useMajor = (code: string) =>
+  const useMajor = (id: number) =>
     useQuery({
-      queryKey: ["major", code],
-      queryFn: () => majorApi.getMajor(code),
+      queryKey: ["major", id],
+      queryFn: () => majorApi.getMajor(id),
     });
 
   const useMajorList = () =>
@@ -20,14 +20,14 @@ export const useMajorHook = () => {
       mutationFn: (data: TMajor) => majorApi.createMajor(data),
     });
 
-  const useUpdateMajor = (code: string) =>
+  const useUpdateMajor = (id: number) =>
     useMutation({
-      mutationFn: (data: TMajor) => majorApi.updateMajor(code, data),
+      mutationFn: (data: TMajor) => majorApi.updateMajor(id, data),
     });
 
-  const useDeleteMajor = (code: string) =>
+  const useDeleteMajor = (id: number) =>
     useMutation({
-      mutationFn: () => majorApi.deleteMajor(code),
+      mutationFn: () => majorApi.deleteMajor(id),
     });
 
   return {

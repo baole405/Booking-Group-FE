@@ -24,6 +24,7 @@ type MemberCardProps = {
     fullName: string;
     studentCode?: string | null;
     avatarUrl?: string | null;
+    majorName?: string | null;
   };
   isLeader: boolean;
   isCurrentUser?: boolean;
@@ -67,6 +68,10 @@ export function MemberCard({
           <div className="text-muted-foreground mt-1 text-xs">
             {user.studentCode?.trim() || "—"}
           </div>
+          <div className="text-muted-foreground mt-1 text-xs">
+            {user.majorName?.trim() || "—"}
+          </div>
+
         </div>
 
         {/* Menu hành động */}

@@ -1,32 +1,38 @@
-export const normalizeParams = (filters: any) => {
-  const normalized = { ...filters };
-  const sort = filters.sort?.split(",");
-
-  if (Array.isArray(sort) && sort.length) {
-    normalized.sortBy = sort[0];
-    normalized.sortDirection = sort[1];
-  }
-
-  const removeEmptyValueParams = Object.fromEntries(Object.entries(normalized).filter(([_, v]) => v != null));
-  return removeEmptyValueParams;
-};
-
+// api-suffix.ts
 export const API_SUFFIX = {
-  // Auth
-  AUTH_API: "/auth/login",
-  GOOGLE_AUTH_API: "/auth/google-login",
-  USER_API: "/users",
-  GROUPID_BY_USERID_API: "/groups/user",
-  MY_PROFILE_API: "/users/myInfo",
-  MAJOR_API: "/majors",
-  GROUP_API: "/groups",
-  IDEA_API: "/ideas",
-  IDEA_GROUP_API: "/ideas/group",
-  SEMESTER_API: "/semesters",
-  MY_GROUP_API: "/groups/my-group",
-  LEAVE_GROUP_API: "/groups/leave",
-  UPDATE_GROUP_API: "/groups/update",
-  JOIN_GROUP_API: "/joins",
-  GROUP_MEMBER_API: "/groups/members",
-  TRANSFER_LEADER_API: "/groups/change-leader",
+  // ───────────────────── Auth ─────────────────────
+  AUTH_API: "/auth/login",                 // Đăng nhập thường
+  GOOGLE_AUTH_API: "/auth/google-login",   // Đăng nhập Google OAuth
+
+  // ───────────────────── Users ────────────────────
+  USER_API: "/users",                      // CRUD user (base)
+  MY_PROFILE_API: "/users/myInfo",         // Lấy thông tin user hiện tại (me)
+
+  // ───────────────────── Majors ───────────────────
+  MAJOR_API: "/majors",                    // Danh mục ngành học
+
+  // ──────────────────── Semesters ─────────────────
+  SEMESTER_API: "/semesters",              // Kỳ học
+
+  // ───────────────────── Groups ───────────────────
+  GROUP_API: "/groups",                    // CRUD nhóm (base)
+  GROUP_MEMBER_API: "/groups/members",     // Lấy/Xử lý thành viên nhóm (cấp nhóm)
+  GROUPID_BY_USERID_API: "/groups/user",   // Lấy group theo user
+  MY_GROUP_API: "/groups/my-group",        // Group của user hiện tại
+  LEAVE_GROUP_API: "/groups/leave",        // Rời nhóm
+  UPDATE_GROUP_API: "/groups/update",      // Cập nhật thông tin nhóm
+  TRANSFER_LEADER_API: "/groups/change-leader", // Chuyển quyền trưởng nhóm
+  DONE_GROUP_API: "/groups/done",          // Finalize team (PATCH)
+  CHANGE_TYPE_GROUP_API: "/groups/change-type", // Đổi loại nhóm (PATCH)
+
+  // ───────────────────── Ideas ────────────────────
+  IDEA_API: "/ideas",                      // CRUD ý tưởng (base)
+  IDEA_GROUP_API: "/ideas/group",          // Lấy ý tưởng theo group
+
+  // ───────────────────── Joins ────────────────────
+  JOIN_GROUP_API: "/joins",                // Join group (gửi yêu cầu/duyệt)
+  MY_JOIN_GROUP_API: "/joins/my-requests", // Yêu cầu tham gia nhóm của tôi
+
+  VOTE_API: "/votes",                    // Vote cho ý tưởng
+  VOTE_BY_GROUP_API: "/votes/group",    // Lấy vote theo group
 };

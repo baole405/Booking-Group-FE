@@ -33,10 +33,10 @@ export const useUserHook = () => {
           await userApi.getUserList({
             page: page,
             size: size,
-            role: role,
+            role: role ? role : undefined,
             q: q,
-            majorCode: majorCode,
-            isActive: isActive,
+            majorCode: majorCode ? majorCode : undefined,
+            isActive: isActive ? isActive : undefined,
             sort: sort,
             dir: dir,
           })
