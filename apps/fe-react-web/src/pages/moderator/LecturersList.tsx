@@ -1,3 +1,4 @@
+import LecturerProfileModal from "@/components/dialog/LecturerProfileModal";
 import { useUserHook } from "@/hooks/use-user";
 import type { TUserListResponse } from "@/schema/user.schema";
 import React, { useMemo, useState } from "react";
@@ -7,7 +8,19 @@ const LecturersList: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<number>(0); // backend page 0-index
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [searchByCode, setSearchByCode] = useState<string>("");
+  const [selectedLecturerId, setSelectedLecturerId] = useState<number | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const itemsPerPage = 10;
+
+  const handleViewLecturer = (lecturerId: number) => {
+    setSelectedLecturerId(lecturerId);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedLecturerId(null);
+  };
 
   // Gộp search
   const searchQuery = useMemo(() => {
@@ -75,11 +88,7 @@ const LecturersList: React.FC = () => {
         </td>
         <td className="px-6 py-4 whitespace-nowrap">
           <button
-            onClick={() =>
-              alert(
-                `Chi tiết giảng viên:\n\nTên: ${lecturer.fullName}\nMã GV: ${lecturer.studentCode || "N/A"}\nEmail: ${lecturer.email}\nKhoa: ${lecturer.major?.name || "Chưa có"}`,
-              )
-            }
+            onClick={() => handleViewLecturer(lecturer.id)}
             className="inline-flex items-center rounded-full p-2 text-gray-400 transition-colors duration-200 hover:bg-blue-50 hover:text-blue-600"
             title="Xem chi tiết giảng viên"
           >
@@ -223,6 +232,9 @@ const LecturersList: React.FC = () => {
         {/* Summary */}
         <div className="mt-4 text-center text-sm text-gray-500">Tổng cộng: {lecturers.length} giảng viên</div>
       </div>
+
+      {/* Modal */}
+      {selectedLecturerId && <LecturerProfileModal open={isModalOpen} onClose={handleCloseModal} lecturerId={selectedLecturerId} />}
     </div>
   );
 };

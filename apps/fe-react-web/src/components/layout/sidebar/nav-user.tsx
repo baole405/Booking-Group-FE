@@ -1,5 +1,6 @@
 import { BellIcon, CreditCardIcon, LogOutIcon, MoreVerticalIcon, UserCircleIcon } from "lucide-react";
 
+import ProfileCard from "@/components/dialog/ProfileCard";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -12,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import { logout } from "@/redux/User/user-slice";
+import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
@@ -25,6 +27,7 @@ export function NavUser({
 }) {
   const { isMobile } = useSidebar();
   const dispatch = useDispatch();
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const navigate = useNavigate();
   const handleLogout = () => {
@@ -66,7 +69,7 @@ export function NavUser({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setIsProfileOpen(true)}>
                 <UserCircleIcon />
                 Account
               </DropdownMenuItem>
@@ -87,6 +90,9 @@ export function NavUser({
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
+
+      {/* Profile Card Modal */}
+      <ProfileCard open={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
     </SidebarMenu>
   );
 }
