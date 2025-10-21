@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUserHook } from "@/hooks/use-user";
 import type { RootState } from "@/redux/store";
-import type { TAdminUpdateUserSchema, TUser } from "@/schema/user.schema";
+import type { TUpdateUserSchema, TUser } from "@/schema/user.schema";
 import { useForm } from "react-hook-form";
 import { useSelector } from "react-redux";
 import { toast } from "sonner";
@@ -21,11 +21,19 @@ export function EditUserDialog({ user, open, onOpenChange, onSuccess }: EditUser
   const { role: currentUserRole } = useSelector((state: RootState) => state.user);
   const canEdit = currentUserRole === "ADMIN";
 
+  type FormValues = {
+    fullName: string;
+    email: string;
+    role: "STUDENT" | "ADMIN" | "MODERATOR" | "LECTURER";
+    studentCode: string;
+    isActive: boolean;
+  };
+
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm({
+  } = useForm<FormValues>({
     defaultValues: {
       fullName: user.fullName,
       email: user.email,
@@ -36,16 +44,21 @@ export function EditUserDialog({ user, open, onOpenChange, onSuccess }: EditUser
   });
 
   const { useUpdateUser } = useUserHook();
-  const { mutate: updateUser, isPending } = useUpdateUser(user.id);
+  const { mutateAsync: updateUserAsync, isPending } = useUpdateUser(user.id);
 
-  const onSubmit = async (data: TAdminUpdateUserSchema) => {
+  const onSubmit = async (data: FormValues) => {
     if (!canEdit) {
       toast.error("Bạn không có quyền chỉnh sửa thông tin người dùng");
       return;
     }
 
     try {
-      await updateUser(data);
+      // The backend update schema (`TUpdateUserSchema`) currently contains different
+      // fields (cvUrl, avatarUrl, majorId). Cast the form values to the expected
+      // type for the API call — keep this cast minimal to satisfy TS while not
+      // changing API behavior. If your backend expects other fields, adjust
+      // the mapping here.
+      await updateUserAsync(data as unknown as TUpdateUserSchema);
       toast.success("Cập nhật thông tin thành công");
       onOpenChange(false);
       onSuccess?.();

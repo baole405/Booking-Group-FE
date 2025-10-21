@@ -178,7 +178,77 @@ export const useGroupHook = () => {
     });
   };
 
+  const useGetPendingJoinRequests = (groupId: number) => {
+    return useQuery({
+      queryKey: ["pendingJoinRequests", groupId],
+      queryFn: () => groupApi.getPendingJoinRequests(groupId),
+      enabled: !!groupId,
+      retry: false,
+    });
+  };
 
+  const useFinalizeGroup = () => {
+    const qc = useQueryClient();
+    return useMutation({
+      mutationFn: () => groupApi.finalizeGroup(),
+      onSuccess: async () => {
+        await Promise.allSettled([
+          qc.invalidateQueries({ queryKey: ["myGroup"] }),
+          qc.invalidateQueries({ queryKey: ["groupList"] }),
+        ]);
+      }
+    });
+  };
+
+  const useChangeGroupType = () => {
+    const qc = useQueryClient();
+    return useMutation({
+      mutationFn: () => groupApi.changeGroupType(),
+      onSuccess: async () => {
+        await Promise.allSettled([
+          qc.invalidateQueries({ queryKey: ["myGroup"] }),
+          qc.invalidateQueries({ queryKey: ["groupList"] }),
+        ]);
+      }
+    });
+  };
+  const useGetMyJoinRequests = () => {
+    return useQuery({
+      queryKey: ["myJoinRequests"],
+      queryFn: () => groupApi.getMyJoinRequests(),
+      retry: false,
+    });
+  };
+   const useChoiceVote = () => {
+    const qc = useQueryClient();
+
+    return useMutation({
+      mutationFn: ({ voteId, choiceValue }: { voteId: number; choiceValue: "YES" | "NO" }) =>
+        groupApi.choiceVote(voteId, choiceValue),
+      onSuccess: async () => {
+        await Promise.allSettled([
+          qc.invalidateQueries({ queryKey: ["myGroup"] }),
+          qc.invalidateQueries({ queryKey: ["groupList"] }),
+          qc.invalidateQueries({ queryKey: ["openVotes"] }),
+        ]);
+      },
+    });
+  };
+
+  const useVotesByVoteId = (voteId: number) =>
+  useQuery({
+    queryKey: ["votesByVote", voteId],
+    queryFn: () => groupApi.getVotesByVoteId(voteId),
+    enabled: !!voteId,
+    retry: false,
+  });
+  const useVoteByGroupId = (groupId: number) =>
+  useQuery({
+    queryKey: ["voteByGroup", groupId],
+    queryFn: () => groupApi.getVoteByGroupId(groupId),
+    enabled: !!groupId,
+    retry: false,
+  });
   return {
     useGroupList,
     useGroupById,
@@ -190,5 +260,12 @@ export const useGroupHook = () => {
     useRemoveUserFromGroup,
     useGetGroupLeader,
     useTransferLeader,
+    useGetPendingJoinRequests,
+    useFinalizeGroup,
+    useChangeGroupType,
+    useGetMyJoinRequests,
+    useChoiceVote,
+    useVotesByVoteId,
+    useVoteByGroupId,
   };
 };

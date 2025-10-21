@@ -31,9 +31,10 @@ const UserProfile = Loadable(lazy(() => import("@/pages/home/user/user-profile")
 const GroupDetailPage = Loadable(lazy(() => import("@/pages/home/group/group-detail/group-detail")));
 const MyGroupPage = Loadable(lazy(() => import("@/pages/home/group/my-group/my-group-page")));
 const MyProfile = Loadable(lazy(() => import("@/pages/home/user/my-profile")));
+const JoinRequestsPage = Loadable(lazy(() => import("@/pages/home/group/join-request/join-requests")));
 
 const studentRoutes = {
-  path: ROUTES.STUDENT.ROOT,  
+  path: ROUTES.STUDENT.ROOT,
   element: (
     <RoleBasedGuard allowedRoles={["STUDENT" as TRole]}>
       <RoleBasedLayout />
@@ -47,6 +48,7 @@ const studentRoutes = {
     { path: ROUTES.STUDENT.MY_PROFILE, element: <MyProfile /> },
     { path: ROUTES.STUDENT.MY_GROUP, element: <MyGroupPage /> },
     { path: ROUTES.STUDENT.GROUP_DETAIL, element: <GroupDetailPage /> },
+    { path: ROUTES.STUDENT.JOIN_REQUESTS, element: <JoinRequestsPage /> }
   ],
 };
 

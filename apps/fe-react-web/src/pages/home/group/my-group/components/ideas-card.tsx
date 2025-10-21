@@ -1,97 +1,154 @@
-// components/idea-card.tsx
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { CalendarDays, MoreVertical, Pencil, Trash2, UserRound } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import type { TIdea } from "@/schema/ideas.schema";
-import { CalendarDays, UserRound } from "lucide-react";
+
+const getStatusColor = (status: string): string => {
+  switch (status) {
+    case "DRAFT":
+      return "bg-gray-200 text-gray-800";
+    case "PENDING":
+      return "bg-yellow-200 text-yellow-800";
+    case "APPROVED":
+      return "bg-green-200 text-green-800";
+    case "REJECTED":
+      return "bg-red-200 text-red-800";
+    default:
+      return "bg-muted text-foreground";
+  }
+};
 
 type IdeaCardProps = {
   idea: TIdea;
-  onClick?: (id: number) => void;
-  className?: string;
+  isLeader?: boolean;
+  onEdit?: (idea: TIdea) => void;
+  onDelete?: (id: number) => void;
 };
 
-const getInitials = (name?: string) =>
-  (name ?? "")
-    .trim()
-    .split(/\s+/)
-    .map((p) => p[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-
-const formatDate = (iso?: string, locale = "vi-VN") => {
-  if (!iso) return "—";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "—";
-  return new Intl.DateTimeFormat(locale, {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(d);
-};
-
-const statusLabel: Record<TIdea["status"], string> = {
-  DRAFT: "Nháp",
-  PENDING: "Chờ duyệt",
-  APPROVED: "Đã duyệt",
-  REJECTED: "Từ chối",
-};
-
-const statusClass: Record<TIdea["status"], string> = {
-  DRAFT: "bg-amber-100 text-amber-800 border-amber-200",
-  PENDING: "bg-blue-100 text-blue-800 border-blue-200",
-  APPROVED: "bg-emerald-100 text-emerald-800 border-emerald-200",
-  REJECTED: "bg-rose-100 text-rose-800 border-rose-200",
-};
-
-export function IdeaCard({ idea, onClick, className = "" }: IdeaCardProps) {
-  const initials = getInitials(idea.author?.fullName);
+export function IdeaCard({ idea, isLeader, onEdit, onDelete }: IdeaCardProps) {
+  const canEdit = !!isLeader && (idea.status === "DRAFT" || idea.status === "REJECTED");
 
   return (
-    <Card className={`p-4 transition-shadow hover:shadow-sm ${onClick ? "cursor-pointer" : ""} ${className}`} onClick={() => onClick?.(idea.id)}>
+    <div className="rounded-lg border p-4 relative group transition-colors hover:bg-muted/20">
       {/* Header */}
-      <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+      <div className="flex justify-between items-start">
         <div className="min-w-0">
-          <h3 className="truncate text-lg font-semibold">{idea.title}</h3>
-          <div className="text-muted-foreground mt-1 flex flex-wrap items-center gap-2 text-xs">
+          <div className="font-medium">{idea.title}</div>
+
+          {/* Tác giả & thời gian tạo */}
+          <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+            <span className="inline-flex items-center gap-1">
+              <UserRound className="h-4 w-4" />
+              {idea.author?.fullName ?? "Không rõ tác giả"}
+            </span>
+            <span>•</span>
             <span className="inline-flex items-center gap-1">
               <CalendarDays className="h-4 w-4" />
-              {formatDate(idea.createdAt)}
+              {idea.createdAt
+                ? new Date(idea.createdAt).toLocaleString("vi-VN", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+                : "Không rõ thời gian"}
             </span>
-            {idea.group?.title && (
-              <>
-                <span>•</span>
-                <span className="truncate">Nhóm: {idea.group.title}</span>
-              </>
-            )}
+          </div>
+
+          {/* Mô tả */}
+          <div className="text-sm text-muted-foreground mt-1">
+            {idea.description || "—"}
           </div>
         </div>
 
-        <Badge variant="secondary" className={`shrink-0 ${statusClass[idea.status]}`}>
-          {statusLabel[idea.status]}
-        </Badge>
+        {/* Trạng thái */}
+        <Badge className={`${getStatusColor(idea.status)} text-xs`}>{idea.status}</Badge>
       </div>
 
-      <Separator className="my-3" />
-
-      {/* Author (chỉ initials, không ảnh) */}
-      <div className="mb-3 flex items-center gap-3">
-        <Avatar className="h-8 w-8">
-          <AvatarFallback>{initials || <UserRound className="h-4 w-4" />}</AvatarFallback>
-        </Avatar>
-        <div className="min-w-0">
-          <div className="truncate text-sm font-medium">{idea.author?.fullName ?? "—"}</div>
-          <div className="text-muted-foreground truncate text-xs">{idea.author?.email ?? "—"}</div>
+      {/* Menu hành động (chỉ leader thấy menu) */}
+      {isLeader && (
+        <div className="absolute top-2 right-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {canEdit && (
+                <DropdownMenuItem onClick={() => onEdit?.(idea)}>
+                  <Pencil className="mr-2 h-4 w-4" /> Chỉnh sửa
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem
+                className="text-red-500 focus:text-red-600"
+                onClick={() => onDelete?.(idea.id)}
+              >
+                <Trash2 className="mr-2 h-4 w-4" /> Xóa ý tưởng
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
-      </div>
+      )}
+    </div>
+  );
+}
 
-      {/* Description */}
-      <p className="text-foreground/80 line-clamp-4 text-sm leading-relaxed">{idea.description || "Chưa có mô tả."}</p>
-    </Card>
+type IdeasListProps = {
+  ideas: TIdea[];
+  isLoading?: boolean;
+  isError?: boolean;
+  isLeader?: boolean;
+  emptyText?: string;
+  onEdit?: (idea: TIdea) => void;
+  onDelete?: (id: number) => void;
+};
+
+export function IdeasList({
+  ideas,
+  isLoading,
+  isError,
+  isLeader,
+  emptyText = "Chưa có ý tưởng nào.",
+  onEdit,
+  onDelete,
+}: IdeasListProps) {
+  if (isLoading) {
+    return (
+      <div className="text-muted-foreground text-sm">Đang tải ý tưởng...</div>
+    );
+  }
+
+  if (isError) {
+    return <div className="text-destructive text-sm">Không thể tải danh sách ý tưởng.</div>;
+  }
+
+  if (!ideas?.length) {
+    return <div className="text-muted-foreground text-sm">{emptyText}</div>;
+  }
+
+  return (
+    <div className="grid gap-4">
+      {ideas.map((idea) => (
+        <IdeaCard
+          key={idea.id}
+          idea={idea}
+          isLeader={isLeader}
+          onEdit={onEdit}
+          onDelete={onDelete}
+        />
+      ))}
+    </div>
   );
 }

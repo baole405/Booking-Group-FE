@@ -27,9 +27,9 @@ export const UserSchema = z.object({
 });
 
 export const UpdateUserSchema = z.object({
-  cvUrl: z.string().url("Đường dẫn CV không hợp lệ").min(1, "CV không được để trống"),
-  avatarUrl: z.string().url("Đường dẫn ảnh đại diện không hợp lệ").min(1, "Ảnh đại diện không được để trống"),
-  major: MajorSchema.refine((val) => val != null, { message: "Vui lòng chọn chuyên ngành" }),
+  cvUrl: z.string().url().nullable(),
+  avatarUrl: z.string().url().nullable(),
+  majorId: z.number().nullable(),
 });
 
 // Pagination Response Schema for GET /api/users

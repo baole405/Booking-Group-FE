@@ -20,6 +20,7 @@ export const ROUTES = {
     IDEAS_DETAIL: "/student/ideas/:id",
     MY_GROUP: "/student/mygroup",
     MY_PROFILE: "/student/myprofile",
+    JOIN_REQUESTS: "/student/joinrequests",
   },
 
   // Admin Routes
