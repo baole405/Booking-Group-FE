@@ -21,6 +21,7 @@ export const ROUTES = {
     MY_GROUP: "/student/mygroup",
     MY_PROFILE: "/student/myprofile",
     JOIN_REQUESTS: "/student/joinrequests",
+    IDEA_LIST: "/student/ideas",
   },
 
   // Admin Routes

@@ -7,10 +7,21 @@ import { Loader2 } from "lucide-react";
 import { useMemo } from "react";
 import GroupCard from "./components/group-card";
 
-const getFilterValue = (id: string, filters: { id: string; value: unknown }[]) => filters.find((f) => f.id === id)?.value ?? null;
+const getFilterValue = (id: string, filters: { id: string; value: unknown }[]) =>
+  filters.find((f) => f.id === id)?.value ?? null;
 
 export default function GroupPage() {
-  const { currentPage, pageSize, sortBy, isAsc, filter, setFilter, setSort, setPage, setPageSize } = useQueryParams({
+  const {
+    currentPage,
+    pageSize,
+    sortBy,
+    isAsc,
+    filter,
+    setFilter,
+    setSort,
+    setPage,
+    setPageSize,
+  } = useQueryParams({
     defaultSortBy: "id",
     defaultIsAsc: true,
     defaultFilter: [
@@ -44,92 +55,102 @@ export default function GroupPage() {
   const totalElements = payload?.totalElements ?? 0;
 
   const listSection = useMemo(() => {
-    if (isPending) {
+    if (isPending)
       return (
-        <div className="text-muted-foreground flex justify-center py-10">
-          <Loader2 className="mr-2 h-6 w-6 animate-spin" /> Đang tải danh sách nhóm...
+        <div className="flex justify-center py-10 text-muted-foreground">
+          <Loader2 className="mr-2 h-6 w-6 animate-spin" />
+          Đang tải danh sách nhóm...
         </div>
       );
-    }
-    if (error) {
-      return <div className="text-destructive py-10 text-center">Đã xảy ra lỗi khi tải dữ liệu nhóm.</div>;
-    }
-    if (!groups.length) {
-      return <div className="text-muted-foreground py-10 text-center">Không có nhóm nào phù hợp.</div>;
-    }
+    if (error)
+      return (
+        <div className="py-10 text-center text-destructive">
+          Đã xảy ra lỗi khi tải dữ liệu nhóm.
+        </div>
+      );
+    if (!groups.length)
+      return (
+        <div className="py-10 text-center text-muted-foreground">
+          Không có nhóm nào phù hợp.
+        </div>
+      );
 
     return (
-      <div className="flex flex-col gap-4">
-        {groups.map((group: any, index: number) => (
-          <div key={group.id ?? index} className="w-full">
-            <GroupCard group={group} />
-          </div>
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {groups.map((group: any) => (
+          <GroupCard key={group.id} group={group} />
         ))}
       </div>
     );
   }, [isPending, error, groups]);
 
   return (
-    <div className="bg-background text-foreground flex min-h-screen flex-col">
-      {/* Hiệu ứng nền */}
+    <div className="bg-gradient-to-b from-slate-50 to-white text-foreground min-h-screen">
+      {/* Background decorative effect */}
       <div
         className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_hsl(var(--primary)_/_12%)_0,_transparent_55%)]"
         aria-hidden="true"
       />
 
-      {/* Header */}
-      <div className="mx-auto w-full max-w-6xl px-6 py-4">
-        <div className="flex items-center justify-between"></div>
+      {/* Header Section */}
+      <header className="sticky top-0 z-20 bg-background/70 backdrop-blur-sm border-b">
+        <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-3 px-6 py-4">
+          <h1 className="text-xl font-semibold text-primary drop-shadow-sm">
+            Danh sách nhóm sinh viên
+          </h1>
 
-        {/* Toolbar: Filters + Sort + Search (search nằm cuối) */}
-        <div className="mt-4 flex flex-wrap items-center gap-3">
-          {/* Status */}
-          <select
-            className="h-9 rounded-md border bg-transparent px-2 text-sm"
-            value={(statusRaw as string) ?? "All"}
-            onChange={(e) => {
-              setFilter("status", e.target.value);
-              setPage(1);
-            }}
-          >
-            <option value="All">Tất cả trạng thái</option>
-            <option value="ACTIVE">Đang hoạt động</option>
-            <option value="LOCKED">Đã khóa</option>
-            <option value="FORMING">Đang hình thành</option>
-          </select>
-
-          {/* Type */}
-          <select
-            className="h-9 rounded-md border bg-transparent px-2 text-sm"
-            value={(typeRaw as string) ?? "All"}
-            onChange={(e) => {
-              setFilter("type", e.target.value);
-              setPage(1);
-            }}
-          >
-            <option value="All">Tất cả loại</option>
-            <option value="PUBLIC">Công khai</option>
-            <option value="PRIVATE">Riêng tư</option>
-          </select>
-
-          {/* Sort + dir */}
-          <div className="flex items-center gap-2">
-            <select className="h-9 rounded-md border bg-transparent px-2 text-sm" value={sortBy} onChange={(e) => setSort(e.target.value, isAsc)}>
-              <option value="id">Sắp xếp theo: ID</option>
-              <option value="title">Sắp xếp theo: Tên nhóm</option>
-              <option value="createdAt">Sắp xếp theo: Ngày tạo</option>
+          {/* Toolbar */}
+          <div className="flex flex-wrap items-center gap-3 text-sm">
+            {/* Filter: Status */}
+            <select
+              className="rounded-md border bg-white px-2 py-1"
+              value={(statusRaw as string) ?? "All"}
+              onChange={(e) => {
+                setFilter("status", e.target.value);
+                setPage(1);
+              }}
+            >
+              <option value="All">Tất cả trạng thái</option>
+              <option value="ACTIVE">Đang hoạt động</option>
+              <option value="LOCKED">Đã khóa</option>
+              <option value="FORMING">Đang hình thành</option>
             </select>
-            <Button variant="outline" onClick={() => setSort(sortBy, !isAsc)}>
-              {isAsc ? "Tăng dần" : "Giảm dần"}
-            </Button>
-          </div>
 
-          {/* Search (đặt cuối cùng) */}
-          <div className="ml-auto w-full sm:w-64">
+            {/* Filter: Type */}
+            <select
+              className="rounded-md border bg-white px-2 py-1"
+              value={(typeRaw as string) ?? "All"}
+              onChange={(e) => {
+                setFilter("type", e.target.value);
+                setPage(1);
+              }}
+            >
+              <option value="All">Tất cả loại</option>
+              <option value="PUBLIC">Công khai</option>
+              <option value="PRIVATE">Riêng tư</option>
+            </select>
+
+            {/* Sort */}
+            <div className="flex items-center gap-2">
+              <select
+                className="rounded-md border bg-white px-2 py-1"
+                value={sortBy}
+                onChange={(e) => setSort(e.target.value, isAsc)}
+              >
+                <option value="id">Theo ID</option>
+                <option value="title">Theo Tên nhóm</option>
+                <option value="createdAt">Theo Ngày tạo</option>
+              </select>
+              <Button variant="outline" size="sm" onClick={() => setSort(sortBy, !isAsc)}>
+                {isAsc ? "↑" : "↓"}
+              </Button>
+            </div>
+
+            {/* Search */}
             <Input
               type="text"
-              placeholder="Nhập tên nhóm..."
-              className="text-foreground border-input focus-visible:ring-primary border bg-white shadow-sm"
+              placeholder="Tìm nhóm..."
+              className="w-40 sm:w-56"
               value={q}
               onChange={(e) => {
                 setFilter("q", e.target.value);
@@ -138,13 +159,13 @@ export default function GroupPage() {
             />
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Main content (không còn sidebar) */}
-      <div className="mx-auto w-full max-w-6xl px-6 py-8 pb-24">{listSection}</div>
+      {/* Content Section */}
+      <main className="mx-auto w-full max-w-6xl px-6 py-8">{listSection}</main>
 
-      {/* PaginationBar cố định dưới cuối trang */}
-      <div className="bg-background/95 supports-[backdrop-filter]:bg-background/75 fixed inset-x-0 bottom-0 z-20 border-t backdrop-blur">
+      {/* Pagination */}
+      <footer className="bg-background/95 supports-[backdrop-filter]:bg-background/75 fixed inset-x-0 bottom-0 z-20 border-t backdrop-blur-sm">
         <div className="mx-auto w-full max-w-6xl px-6">
           <PaginationBar
             total={totalElements}
@@ -158,7 +179,7 @@ export default function GroupPage() {
             }}
           />
         </div>
-      </div>
+      </footer>
     </div>
   );
 }

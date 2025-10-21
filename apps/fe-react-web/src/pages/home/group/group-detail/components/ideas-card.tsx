@@ -1,4 +1,3 @@
-// components/idea-card.tsx
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -22,27 +21,25 @@ const getInitials = (name?: string) =>
     .join("")
     .toUpperCase();
 
-const formatDate = (iso?: string, locale = "vi-VN") => {
+const formatDate = (iso?: string) => {
   if (!iso) return "—";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "—";
-  return new Intl.DateTimeFormat(locale, {
+  return new Intl.DateTimeFormat("vi-VN", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
   }).format(d);
 };
 
-const statusLabel: Record<TIdea["status"], string> = {
+const STATUS_LABEL: Record<TIdea["status"], string> = {
   DRAFT: "Nháp",
   PENDING: "Chờ duyệt",
   APPROVED: "Đã duyệt",
   REJECTED: "Từ chối",
 };
 
-const statusClass: Record<TIdea["status"], string> = {
+const STATUS_STYLE: Record<TIdea["status"], string> = {
   DRAFT: "bg-amber-100 text-amber-800 border-amber-200",
   PENDING: "bg-blue-100 text-blue-800 border-blue-200",
   APPROVED: "bg-emerald-100 text-emerald-800 border-emerald-200",
@@ -53,14 +50,19 @@ export function IdeaCard({ idea, onClick, className = "" }: IdeaCardProps) {
   const initials = getInitials(idea.author?.fullName);
 
   return (
-    <Card className={`p-4 transition-shadow hover:shadow-sm ${onClick ? "cursor-pointer" : ""} ${className}`} onClick={() => onClick?.(idea.id)}>
+    <Card
+      onClick={() => onClick?.(idea.id)}
+      className={`p-4 transition-shadow hover:shadow-md ${
+        onClick ? "cursor-pointer" : ""
+      } ${className}`}
+    >
       {/* Header */}
       <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
         <div className="min-w-0">
           <h3 className="truncate text-lg font-semibold">{idea.title}</h3>
-          <div className="text-muted-foreground mt-1 flex flex-wrap items-center gap-2 text-xs">
+          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             <span className="inline-flex items-center gap-1">
-              <CalendarDays className="h-4 w-4" />
+              <CalendarDays className="h-3.5 w-3.5" />
               {formatDate(idea.createdAt)}
             </span>
             {idea.group?.title && (
@@ -72,26 +74,35 @@ export function IdeaCard({ idea, onClick, className = "" }: IdeaCardProps) {
           </div>
         </div>
 
-        <Badge variant="secondary" className={`shrink-0 ${statusClass[idea.status]}`}>
-          {statusLabel[idea.status]}
+        <Badge
+          variant="secondary"
+          className={`shrink-0 ${STATUS_STYLE[idea.status]}`}
+        >
+          {STATUS_LABEL[idea.status]}
         </Badge>
       </div>
 
       <Separator className="my-3" />
 
-      {/* Author (chỉ initials, không ảnh) */}
+      {/* Author */}
       <div className="mb-3 flex items-center gap-3">
         <Avatar className="h-8 w-8">
           <AvatarFallback>{initials || <UserRound className="h-4 w-4" />}</AvatarFallback>
         </Avatar>
         <div className="min-w-0">
-          <div className="truncate text-sm font-medium">{idea.author?.fullName ?? "—"}</div>
-          <div className="text-muted-foreground truncate text-xs">{idea.author?.email ?? "—"}</div>
+          <div className="truncate text-sm font-medium">
+            {idea.author?.fullName ?? "—"}
+          </div>
+          <div className="truncate text-xs text-muted-foreground">
+            {idea.author?.email ?? "—"}
+          </div>
         </div>
       </div>
 
       {/* Description */}
-      <p className="text-foreground/80 line-clamp-4 text-sm leading-relaxed">{idea.description || "Chưa có mô tả."}</p>
+      <p className="line-clamp-3 text-sm text-foreground/80 leading-relaxed">
+        {idea.description || "Chưa có mô tả."}
+      </p>
     </Card>
   );
 }

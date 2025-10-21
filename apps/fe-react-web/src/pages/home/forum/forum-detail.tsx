@@ -1,104 +1,115 @@
-// import { useState } from "react";
-// import { useParams } from "react-router-dom";
-
-// interface Comment {
-//   id: number;
-//   author: {
-//     name: string;
-//     avatar: string;
-//     group?: string;
-//   };
-//   content: string;
-//   replies?: Comment[];
-// }
-
-const mockPost = {
-  id: 1,
-  author: { name: "Nguyễn Văn A", avatar: "/avatar1.png", group: "Nhóm 1" },
-  type: "Discussion",
-  title: "Cách chăm sóc da mùa hè",
-  content: "Mùa hè da dễ bị nhờn, mọi người có tips gì không?",
-  image: "/post-img.png",
-};
-
-// const mockComments: Comment[] = [
-//   {
-//     id: 1,
-//     author: { name: "Trần Thị B", avatar: "/avatar2.png", group: "Nhóm Skincare" },
-//     content: "Mình hay dùng toner kiềm dầu.",
-//     replies: [
-//       {
-//         id: 11,
-//         author: { name: "Nguyễn Văn C", avatar: "/avatar3.png" },
-//         content: "Chuẩn luôn, toner cực hợp mùa hè.",
-//       },
-//     ],
-//   },
-//   {
-//     id: 2,
-//     author: { name: "Lê Văn D", avatar: "/avatar4.png" },
-//     content: "Nên dùng kem chống nắng SPF50 nhé!",
-//   },
-// ];
+// src/pages/forum/forum-detail.tsx
+import { useParams, useNavigate } from "react-router-dom";
+import { usePostHook } from "@/hooks/use-post";
+import { Button } from "@/components/ui/button";
+import { Loader2, CalendarDays } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function ForumDetail() {
-  // const { id } = useParams();
-  // const [comments, setComments] = useState<Comment[]>(mockComments);
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { useGetPostById } = usePostHook();
+  const { data, isPending, error } = useGetPostById(Number(id));
+
+  const post = data?.data?.data;
+  const createdAt = post ? new Date(post.createdAt) : null;
+
+  if (isPending)
+    return (
+      <div className="flex items-center justify-center min-h-screen text-muted-foreground">
+        <Loader2 className="mr-2 h-6 w-6 animate-spin" /> Đang tải bài viết...
+      </div>
+    );
+
+  if (error || !post)
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen text-destructive">
+        <p className="text-lg font-medium mb-2">Không thể tải bài đăng.</p>
+        <Button variant="outline" onClick={() => navigate(-1)}>
+          ← Quay lại
+        </Button>
+      </div>
+    );
 
   return (
-    <div className="grid grid-cols-3 gap-4 p-6">
-      {/* 2/3 bài viết */}
-      <div className="col-span-2 rounded-xl bg-white p-4 shadow">
-        <div className="mb-4 flex items-center space-x-3">
-          <img src={mockPost.author.avatar} alt={mockPost.author.name} className="h-12 w-12 rounded-full border" />
+    <div className="bg-background text-foreground min-h-screen">
+      {/* Hiệu ứng nền */}
+      <div
+        className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_hsl(var(--primary)_/_12%)_0,_transparent_55%)]"
+        aria-hidden="true"
+      />
+
+      <div className="mx-auto max-w-4xl p-6 space-y-6">
+        {/* Header: Tác giả */}
+        <div className="flex items-center gap-4 border-b pb-4">
+          <img
+            src={post.user.avatarUrl ?? "/avatars/default.png"}
+            alt={post.user.fullName}
+            className="h-16 w-16 rounded-full border object-cover"
+          />
           <div>
-            <h3 className="font-semibold">{mockPost.author.name}</h3>
-            <span className="rounded-full border bg-gray-100 px-2 py-1 text-xs text-gray-600">{mockPost.author.group || "N/A"}</span>
+            <h3 className="text-lg font-semibold">{post.user.fullName}</h3>
+            <p className="text-sm text-muted-foreground">
+              {post.user.major?.name ?? "Không rõ ngành"}
+            </p>
+            <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+              <CalendarDays size={14} />
+              {createdAt?.toLocaleDateString("vi-VN")}
+            </div>
           </div>
         </div>
-        <p className="mb-1 text-sm text-blue-500">#{mockPost.type}</p>
-        <h2 className="mb-2 text-lg font-bold">{mockPost.title}</h2>
-        <p className="mb-3 text-gray-700">{mockPost.content}</p>
-        {mockPost.image && <img src={mockPost.image} alt="Post" className="h-72 w-full rounded-lg border object-cover" />}
+
+        {/* Nội dung chính */}
+        <Card className="border shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-xl font-bold text-primary">
+              {post.group.title}
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              {post.type === "FIND_GROUP" ? "Tìm nhóm" : "Tìm thành viên"}
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm leading-relaxed text-foreground/90">
+              {post.content}
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Thông tin nhóm liên quan */}
+        <Card className="border shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-base font-semibold text-primary/90">
+              Thông tin nhóm
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm space-y-2">
+            <p>
+              <span className="font-medium">Tên nhóm:</span> {post.group.title}
+            </p>
+            <p>
+              <span className="font-medium">Mô tả:</span> {post.group.description}
+            </p>
+            <p>
+              <span className="font-medium">Trạng thái:</span> {post.group.status}
+            </p>
+            <p>
+              <span className="font-medium">Loại:</span> {post.group.type}
+            </p>
+            <p>
+              <span className="font-medium">Kỳ học:</span>{" "}
+              {post.group.semester?.name ?? "Không rõ"}
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Nút quay lại */}
+        <div className="pt-4">
+          <Button variant="outline" onClick={() => navigate(-1)}>
+            ← Quay lại danh sách
+          </Button>
+        </div>
       </div>
-
-      {/* 1/3 comment */}
-      {/* <div className="col-span-1 max-h-[80vh] overflow-y-auto rounded-xl bg-gray-50 p-4 shadow">
-        <h3 className="mb-3 font-bold">Bình luận</h3>
-        {comments.map((cmt) => (
-          <div key={cmt.id} className="mb-4">
-            <div className="flex items-center space-x-2">
-              <img src={cmt.author.avatar} alt={cmt.author.name} className="h-8 w-8 rounded-full border" />
-              <div>
-                <p className="text-sm font-semibold">{cmt.author.name}</p>
-                <span className="rounded-full border bg-gray-200 px-2 py-0.5 text-xs text-gray-600">{cmt.author.group || "N/A"}</span>
-              </div>
-            </div>
-            <p className="ml-10 text-sm text-gray-700">{cmt.content}</p>
-
-            {cmt.replies?.map((reply) => (
-              <div key={reply.id} className="mt-2 ml-12">
-                <div className="flex items-center space-x-2">
-                  <img src={reply.author.avatar} alt={reply.author.name} className="h-7 w-7 rounded-full border" />
-                  <div>
-                    <p className="text-xs font-semibold">{reply.author.name}</p>
-                    <span className="rounded-full border bg-gray-200 px-2 py-0.5 text-xs text-gray-600">{reply.author.group || "N/A"}</span>
-                  </div>
-                </div>
-                <p className="ml-10 text-sm text-gray-700">{reply.content}</p>
-              </div>
-            ))}
-
-            <div className="mt-2 ml-10">
-              <input type="text" placeholder="Trả lời..." className="w-full rounded-lg border px-2 py-1 text-sm" />
-            </div>
-          </div>
-        ))}
-
-        <div className="mt-4">
-          <input type="text" placeholder="Viết bình luận..." className="w-full rounded-lg border px-3 py-2 text-sm" />
-        </div>
-      </div> */}
     </div>
   );
 }

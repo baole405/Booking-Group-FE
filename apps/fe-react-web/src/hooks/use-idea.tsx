@@ -12,13 +12,18 @@ export const useIdeaHook = () => {
     useMutation({
       mutationFn: (data: TCreateIdea) => ideaApi.createIdea(data),
     });
-    const useUpdateIdea = () =>
+  const useUpdateIdea = () =>
     useMutation({
-      mutationFn: ({id, data}: {id: number, data: TUpdateIdea}) => ideaApi.updateIdea(id, data),
+      mutationFn: ({ id, data }: { id: number, data: TUpdateIdea }) => ideaApi.updateIdea(id, data),
     });
-    const useDeleteIdea = () =>
+  const useDeleteIdea = () =>
     useMutation({
       mutationFn: (id: number) => ideaApi.deleteIdea(id),
+    });
+  const useGetAllIdeas = () =>
+    useQuery({
+      queryKey: ["allIdeas"],
+      queryFn: () => ideaApi.getAllIdeas(),
     });
 
   return {
@@ -26,5 +31,6 @@ export const useIdeaHook = () => {
     useCreateIdea,
     useUpdateIdea,
     useDeleteIdea,
+    useGetAllIdeas
   };
 };
