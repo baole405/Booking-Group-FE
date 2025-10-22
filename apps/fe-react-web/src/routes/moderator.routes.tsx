@@ -27,6 +27,7 @@ const Loadable =
 // -------- Lazy pages --------
 const Forum = Loadable(lazy(() => import("@/pages/moderator/Forum")));
 const GroupList = Loadable(lazy(() => import("@/pages/moderator/GroupList")));
+const GroupDetail = Loadable(lazy(() => import("@/pages/moderator/GroupDetail")));
 const LecturersList = Loadable(lazy(() => import("@/pages/moderator/LecturersList")));
 const StudentsList = Loadable(lazy(() => import("@/pages/moderator/StudentsList")));
 const StudentProfile = Loadable(lazy(() => import("@/pages/moderator/StudentProfile")));
@@ -46,6 +47,7 @@ const moderatorRoutes = {
     { path: ROUTES.MODERATOR.LECTURERS, element: <LecturersList /> },
     // thêm các trang dành cho moderator ở đây
     { path: "students/:id", element: <StudentProfile /> },
+    { path: "groups/:id", element: <GroupDetail /> },
   ],
 };
 

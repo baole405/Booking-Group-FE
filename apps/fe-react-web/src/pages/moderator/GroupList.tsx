@@ -152,7 +152,7 @@ export default function GroupList() {
                     </TableCell>
                     <TableCell>{group.createdAt ? new Date(group.createdAt).toLocaleDateString("vi-VN") : ""}</TableCell>
                     <TableCell className="text-center">
-                      <Button variant="outline" size="icon" onClick={() => navigate(`/moderator/home/groups/${group.id}`)}>
+                      <Button variant="outline" size="icon" onClick={() => navigate(`/moderator/groups/${group.id}`)}>
                         <Eye className="size-4" />
                       </Button>
                     </TableCell>
