@@ -24,9 +24,10 @@ const finalizeGroup = async () => await apiRequest.patch<StatusResponse>(API_SUF
 const changeGroupType = async () => await apiRequest.patch<StatusResponse>(API_SUFFIX.CHANGE_TYPE_GROUP_API);
 const getMyJoinRequests = async () => await apiRequest.get<BaseResponse<TJoinGroup[]>>(API_SUFFIX.MY_JOIN_GROUP_API);
 const choiceVote = async (voteId: number, choiceValue: "YES" | "NO") =>
-  await apiRequest.post<StatusResponse>(API_SUFFIX.VOTE_API + `/${voteId}/choice`, {
-    choiceValue,
-  });
+  await apiRequest.post<StatusResponse>(
+    `${API_SUFFIX.VOTE_API}/${voteId}/choice?choiceValue=${choiceValue}`
+  );
+
 const getVotesByVoteId = async (voteId: number) => await apiRequest.get<BaseResponse<TVoteChoice[]>>(API_SUFFIX.VOTE_API + `/${voteId}/choices`);
 const getVoteByGroupId = async (groupId: number) => await apiRequest.get<BaseResponse<TVoteByGroup[]>>(API_SUFFIX.VOTE_BY_GROUP_API + `/${groupId}`);
 const createGroupWithSemester = async (size: number, semesterId: number) =>

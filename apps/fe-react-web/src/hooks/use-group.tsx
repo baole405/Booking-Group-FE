@@ -1,5 +1,5 @@
 import { groupApi } from "@/apis/group.api";
-import type { TUpdateInformationGroup, UseGroupParams } from "@/schema/group.schema";
+import type { TGroup, TUpdateInformationGroup, UseGroupParams } from "@/schema/group.schema";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export const useGroupHook = () => {
@@ -106,7 +106,7 @@ export const useGroupHook = () => {
         await qc.cancelQueries({ queryKey: ["myGroup"] });
         const previousData = qc.getQueryData(["myGroup"]);
 
-        qc.setQueryData(["myGroup"], (old: any) => {
+        qc.setQueryData(["myGroup"], (old: { data: { data: TGroup } }) => {
           if (!old?.data?.data) return old;
           return {
             ...old,

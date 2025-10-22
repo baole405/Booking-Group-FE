@@ -1,15 +1,16 @@
-import { z } from "zod";
+import { boolean, z } from "zod";
 import { TypePostSchema } from "./common/type-post.schema";
 import { UserSchema } from "./user.schema";
 import { GroupSchema } from "./group.schema";
 
 export const PostSchema = z.object({
   id: z.number(),
-  user: UserSchema,
-  group: GroupSchema,
+  userResponse: UserSchema.nullable(),
+  groupResponse: GroupSchema.nullable(),
   content: z.string().max(500),
   type: TypePostSchema,
   createdAt: z.string().datetime(),
+  action: boolean().optional(),
 });
 export const CreatePostSchema = z.object({
   postType: TypePostSchema,

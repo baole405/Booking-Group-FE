@@ -35,5 +35,8 @@ export const API_SUFFIX = {
 
   VOTE_API: "/votes",                    // Vote cho ý tưởng
   VOTE_BY_GROUP_API: "/votes/group",
+
   POST_API: "/posts",                     // Lấy bài viết theo group
+
+  COMMENT_API: "/comments",                 // Lấy bình luận theo bài viết
 };

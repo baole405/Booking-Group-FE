@@ -6,6 +6,7 @@ import { useQueryParams } from "@/hooks/use-query-params";
 import { Loader2 } from "lucide-react";
 import { useMemo } from "react";
 import GroupCard from "./components/group-card";
+import type { TGroup } from "@/schema/group.schema";
 
 const getFilterValue = (id: string, filters: { id: string; value: unknown }[]) =>
   filters.find((f) => f.id === id)?.value ?? null;
@@ -77,7 +78,7 @@ export default function GroupPage() {
 
     return (
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {groups.map((group: any) => (
+        {groups.map((group: TGroup) => (
           <GroupCard key={group.id} group={group} />
         ))}
       </div>
