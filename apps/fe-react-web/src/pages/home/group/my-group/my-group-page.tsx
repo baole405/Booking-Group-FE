@@ -327,7 +327,6 @@ export default function MyGroupPage() {
         onViewProfile={(id) => navigate(`/student/profile/${id}`)}
       />
 
-      {/* 🔸 DANH SÁCH ỨNG VIÊN (CHỈ VOTE OPEN) – mọi thành viên đều thấy */}
       <Card className="p-4">
         <div className="mb-2 flex items-center justify-between">
           <h3 className="text-lg font-semibold">Ứng viên đang mở ({openVotes.length})</h3>
