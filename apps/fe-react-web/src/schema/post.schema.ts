@@ -1,7 +1,7 @@
 import { boolean, z } from "zod";
 import { TypePostSchema } from "./common/type-post.schema";
-import { UserSchema } from "./user.schema";
 import { GroupSchema } from "./group.schema";
+import { UserSchema } from "./user.schema";
 
 export const PostSchema = z.object({
   id: z.number(),
@@ -10,7 +10,7 @@ export const PostSchema = z.object({
   content: z.string().max(500),
   type: TypePostSchema,
   createdAt: z.string().datetime(),
-  action: boolean().optional(),
+  active: boolean().optional(),
 });
 export const CreatePostSchema = z.object({
   postType: TypePostSchema,
@@ -20,7 +20,6 @@ export const UpdatePostSchema = z.object({
   postType: TypePostSchema,
   content: z.string().min(1, "Content is required").max(500, "Content must be at most 500 characters"),
 });
-
 
 export type TPost = z.infer<typeof PostSchema>;
 export type TCreatePost = z.infer<typeof CreatePostSchema>;

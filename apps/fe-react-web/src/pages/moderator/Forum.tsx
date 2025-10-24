@@ -1,483 +1,543 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { CheckCircle, Clock, Eye, MessageSquare, Search, Trash2, User, XCircle } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+import { usePostHook } from "@/hooks/use-post.tsx";
+import type { TPost } from "@/schema/post.schema";
+import { Calendar, Loader2, MessageSquare, Plus, Search, User, Users } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
 
-// Mock data - Bài viết để kiểm duyệt
-const mockPosts = [
-  {
-    id: 1,
-    title: "Đề xuất cải thiện hệ thống thư viện trường",
-    content: "Em đề xuất nên có thêm khu vực tự học nhóm và tăng giờ mở cửa thư viện vào cuối tuần để phục vụ nhu cầu học tập của sinh viên...",
-    author: "Nguyễn Văn An",
-    studentCode: "SE160123",
-    createdAt: "2025-10-15T14:30:00",
-    status: "PENDING",
-    category: "Cơ sở vật chất",
-    votes: 45,
-  },
-  {
-    id: 2,
-    title: "Gợi ý tổ chức workshop về AI và Machine Learning",
-    content: "Nhà trường nên tổ chức các buổi workshop thực hành về AI/ML để sinh viên có cơ hội tiếp cận công nghệ mới...",
-    author: "Trần Thị Bình",
-    studentCode: "SE160234",
-    createdAt: "2025-10-14T09:15:00",
-    status: "APPROVED",
-    category: "Hoạt động học tập",
-    votes: 78,
-  },
-  {
-    id: 3,
-    title: "Đề xuất cải thiện menu căn tin",
-    content: "Mong trường xem xét đa dạng hóa thực đơn căn tin, đặc biệt là các món ăn chay và healthy...",
-    author: "Lê Văn Cường",
-    studentCode: "SE160345",
-    createdAt: "2025-10-13T16:45:00",
-    status: "REJECTED",
-    category: "Dịch vụ",
-    votes: 23,
-  },
-  {
-    id: 4,
-    title: "Ý tưởng xây dựng app quản lý điểm danh thông minh",
-    content: "Đề xuất phát triển ứng dụng điểm danh bằng QR code hoặc GPS để tiện lợi hơn cho sinh viên và giảng viên...",
-    author: "Phạm Thị Dung",
-    studentCode: "SE160456",
-    createdAt: "2025-10-12T11:20:00",
-    status: "PENDING",
-    category: "Công nghệ",
-    votes: 92,
-  },
-  {
-    id: 5,
-    title: "Đề xuất tổ chức ngày hội việc làm",
-    content: "Trường nên tổ chức Job Fair thường xuyên hơn để sinh viên có cơ hội kết nối với doanh nghiệp...",
-    author: "Hoàng Văn Em",
-    studentCode: "SE160567",
-    createdAt: "2025-10-11T13:10:00",
-    status: "APPROVED",
-    category: "Sự kiện",
-    votes: 156,
-  },
-  {
-    id: 6,
-    title: "Gợi ý cải thiện hệ thống wifi campus",
-    content: "Wifi hiện tại thường xuyên bị chậm và mất kết nối, đề nghị nâng cấp để phục vụ tốt hơn cho việc học online...",
-    author: "Vũ Thị Phương",
-    studentCode: "SE160678",
-    createdAt: "2025-10-10T08:30:00",
-    status: "PENDING",
-    category: "Cơ sở vật chất",
-    votes: 203,
-  },
-  {
-    id: 7,
-    title: "Đề xuất mở rộng bãi đỗ xe sinh viên",
-    content: "Bãi xe hiện tại quá chật, đề nghị mở rộng hoặc xây thêm tầng để đáp ứng nhu cầu...",
-    author: "Đặng Văn Giang",
-    studentCode: "SE160789",
-    createdAt: "2025-10-09T15:25:00",
-    status: "PENDING",
-    category: "Cơ sở vật chất",
-    votes: 167,
-  },
-  {
-    id: 8,
-    title: "Ý tưởng CLB lập trình thi đấu",
-    content: "Thành lập CLB lập trình thi đấu để rèn luyện kỹ năng giải thuật và tham gia các cuộc thi...",
-    author: "Bùi Thị Hoa",
-    studentCode: "SE160890",
-    createdAt: "2025-10-08T10:40:00",
-    status: "APPROVED",
-    category: "Hoạt động ngoại khóa",
-    votes: 89,
-  },
-];
+// ───────────────────── Helper Functions ─────────────────────
+const getTypeLabel = (type: string) => {
+  const map: Record<string, string> = {
+    FIND_GROUP: "Tìm nhóm",
+    FIND_MEMBER: "Tìm thành viên",
+  };
+  return map[type] || type;
+};
 
-const getStatusConfig = (status: string) => {
-  switch (status) {
-    case "PENDING":
-      return {
-        label: "Chờ duyệt",
-        variant: "secondary" as const,
-        className: "bg-yellow-100 text-yellow-800 border-yellow-200",
-        icon: Clock,
-      };
-    case "APPROVED":
-      return {
-        label: "Đã duyệt",
-        variant: "default" as const,
-        className: "bg-green-100 text-green-800 border-green-200",
-        icon: CheckCircle,
-      };
-    case "REJECTED":
-      return {
-        label: "Từ chối",
-        variant: "destructive" as const,
-        className: "bg-red-100 text-red-800 border-red-200",
-        icon: XCircle,
-      };
+const getTypeBadgeColor = (type: string) => {
+  switch (type) {
+    case "FIND_GROUP":
+      return "bg-blue-100 text-blue-800 border-blue-200";
+    case "FIND_MEMBER":
+      return "bg-green-100 text-green-800 border-green-200";
     default:
-      return {
-        label: status,
-        variant: "outline" as const,
-        className: "",
-        icon: Clock,
-      };
+      return "bg-gray-100 text-gray-800 border-gray-200";
   }
 };
 
-const getCategoryColor = (category: string) => {
-  const colors: Record<string, string> = {
-    "Cơ sở vật chất": "bg-blue-100 text-blue-700",
-    "Hoạt động học tập": "bg-purple-100 text-purple-700",
-    "Dịch vụ": "bg-orange-100 text-orange-700",
-    "Công nghệ": "bg-cyan-100 text-cyan-700",
-    "Sự kiện": "bg-pink-100 text-pink-700",
-    "Hoạt động ngoại khóa": "bg-indigo-100 text-indigo-700",
-  };
-  return colors[category] || "bg-gray-100 text-gray-700";
-};
-
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
-
-  if (diffMins < 60) return `${diffMins} phút trước`;
-  if (diffHours < 24) return `${diffHours} giờ trước`;
-  if (diffDays < 7) return `${diffDays} ngày trước`;
-
-  return date.toLocaleDateString("vi-VN", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-};
-
 export default function Forum() {
-  const [posts, setPosts] = useState(mockPosts);
+  const { useGetAllPosts, useGetPostsByType, useDeletePost, useCreatePost } = usePostHook();
+  const deletePostMutation = useDeletePost();
+  const createPostMutation = useCreatePost();
+
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterStatus, setFilterStatus] = useState<string>("ALL");
-  const [selectedPost, setSelectedPost] = useState<(typeof mockPosts)[0] | null>(null);
-  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState(0);
+  const [filterType, setFilterType] = useState<string>("ALL");
+  const [filterStatus, setFilterStatus] = useState<string>("ACTIVE");
+  const [selectedPost, setSelectedPost] = useState<TPost | null>(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
 
-  const itemsPerPage = 15;
+  // Form state for creating post
+  const [newPostContent, setNewPostContent] = useState("");
+  const [newPostType, setNewPostType] = useState<"FIND_GROUP" | "FIND_MEMBER">("FIND_GROUP");
 
-  // Filter posts
+  // Fetch posts based on filter type
+  const { data: allPostsRes, isPending: isAllPending, error: allError, refetch: refetchAll } = useGetAllPosts();
+  const { data: findGroupRes, isPending: isGroupPending, error: groupError, refetch: refetchGroup } = useGetPostsByType("FIND_GROUP");
+  const { data: findMemberRes, isPending: isMemberPending, error: memberError, refetch: refetchMember } = useGetPostsByType("FIND_MEMBER");
+
+  // Select appropriate data based on filter type
+  let postsRes, isPending, error;
+  if (filterType === "FIND_GROUP") {
+    postsRes = findGroupRes;
+    isPending = isGroupPending;
+    error = groupError;
+  } else if (filterType === "FIND_MEMBER") {
+    postsRes = findMemberRes;
+    isPending = isMemberPending;
+    error = memberError;
+  } else {
+    postsRes = allPostsRes;
+    isPending = isAllPending;
+    error = allError;
+  }
+
+  // ───────────────────── Process Data ─────────────────────
+  const posts: TPost[] = postsRes?.data?.data ?? [];
+
   const filteredPosts = posts.filter((post) => {
-    const matchesSearch =
-      post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      post.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      post.content.toLowerCase().includes(searchTerm.toLowerCase());
+    // Filter by status (active/deleted)
+    if (filterStatus === "ACTIVE" && post.active === false) {
+      return false;
+    }
+    if (filterStatus === "DELETED" && post.active !== false) {
+      return false;
+    }
 
-    const matchesStatus = filterStatus === "ALL" || post.status === filterStatus;
+    // Filter by search term (content, user name, group title)
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      const matchContent = post.content?.toLowerCase().includes(searchLower);
+      const matchUserName = post.userResponse?.fullName?.toLowerCase().includes(searchLower);
+      const matchGroupTitle = post.groupResponse?.title?.toLowerCase().includes(searchLower);
 
-    return matchesSearch && matchesStatus;
+      return matchContent || matchUserName || matchGroupTitle;
+    }
+
+    return true;
   });
 
-  // Pagination
-  const totalPages = Math.ceil(filteredPosts.length / itemsPerPage);
-  const startIndex = currentPage * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const paginatedPosts = filteredPosts.slice(startIndex, endIndex);
+  // ───────────────────── Handlers ─────────────────────
+  const handleDeletePost = async (postId: number) => {
+    if (!window.confirm("Bạn có chắc chắn muốn xóa bài viết này?")) {
+      return;
+    }
 
-  const handleApprove = (postId: number, title: string) => {
-    if (window.confirm(`Bạn có chắc chắn muốn duyệt bài viết "${title}"?`)) {
-      setPosts(posts.map((post) => (post.id === postId ? { ...post, status: "APPROVED" } : post)));
-      toast.success("Đã duyệt bài viết thành công!");
-      setIsDetailDialogOpen(false);
+    try {
+      await deletePostMutation.mutateAsync(postId);
+      setIsDetailOpen(false);
+      // Refetch all APIs to update data
+      refetchAll();
+      refetchGroup();
+      refetchMember();
+      alert("Xóa bài viết thành công!");
+    } catch (error) {
+      console.error("Delete error:", error);
+      alert("Có lỗi xảy ra khi xóa bài viết!");
     }
   };
 
-  const handleReject = (postId: number, title: string) => {
-    if (window.confirm(`Bạn có chắc chắn muốn từ chối bài viết "${title}"?`)) {
-      setPosts(posts.map((post) => (post.id === postId ? { ...post, status: "REJECTED" } : post)));
-      toast.error("Đã từ chối bài viết!");
-      setIsDetailDialogOpen(false);
+  const handleCreatePost = async () => {
+    if (!newPostContent.trim()) {
+      alert("Vui lòng nhập nội dung bài viết!");
+      return;
+    }
+
+    try {
+      const payload = {
+        postType: newPostType,
+        content: newPostContent.trim(),
+      };
+      console.log("Creating post with payload:", payload);
+
+      await createPostMutation.mutateAsync(payload);
+      setIsCreateOpen(false);
+      setNewPostContent("");
+      setNewPostType("FIND_GROUP");
+      // Switch to deleted filter to show new post (since backend returns active: false)
+      setFilterStatus("DELETED");
+      // Refetch all APIs to update data
+      refetchAll();
+      refetchGroup();
+      refetchMember();
+      alert("Tạo bài viết thành công!");
+    } catch (error: unknown) {
+      console.error("Create error:", error);
+      const errorResponse = error as { response?: { data?: { message?: string } } };
+      console.error("Error response:", errorResponse?.response?.data);
+      alert(`Có lỗi xảy ra khi tạo bài viết! ${errorResponse?.response?.data?.message || ""}`);
     }
   };
 
-  const handleDelete = (postId: number, title: string) => {
-    if (window.confirm(`Bạn có chắc chắn muốn xóa bài viết "${title}"?`)) {
-      setPosts(posts.filter((post) => post.id !== postId));
-      toast.success("Đã xóa bài viết!");
-      setIsDetailDialogOpen(false);
-    }
-  };
+  // ───────────────────── Loading State ─────────────────────
+  if (isPending) {
+    return (
+      <div className="text-muted-foreground flex min-h-screen items-center justify-center">
+        <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Đang tải danh sách bài viết...
+      </div>
+    );
+  }
 
-  const handleViewDetail = (post: (typeof mockPosts)[0]) => {
-    setSelectedPost(post);
-    setIsDetailDialogOpen(true);
-  };
+  // ───────────────────── Error State ─────────────────────
+  if (error) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Card className="p-8 text-center">
+          <h2 className="text-destructive mb-4 text-xl font-bold">Không tải được danh sách bài viết!</h2>
+          <p className="text-muted-foreground text-sm">{error.message}</p>
+        </Card>
+      </div>
+    );
+  }
 
-  const handleSearch = (value: string) => {
-    setSearchTerm(value);
-    setCurrentPage(0);
-  };
-
-  const handleFilterChange = (status: string) => {
-    setFilterStatus(status);
-    setCurrentPage(0);
-  };
-
-  const pendingCount = posts.filter((p) => p.status === "PENDING").length;
-  const approvedCount = posts.filter((p) => p.status === "APPROVED").length;
-  const rejectedCount = posts.filter((p) => p.status === "REJECTED").length;
-
+  // ───────────────────── Render Main ─────────────────────
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4">
       <div className="mx-auto max-w-7xl">
-        {/* Header */}
-        <div className="mb-6 rounded-lg bg-white p-6 shadow-sm">
-          <div className="mb-4 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Kiểm duyệt bài viết</h1>
-              <p className="mt-1 text-sm text-gray-500">Quản lý và kiểm duyệt bài viết từ sinh viên</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="outline" className="text-sm">
-                {filteredPosts.length} bài viết
-              </Badge>
-            </div>
+        {/* Header with Search and Filter */}
+        <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Diễn đàn</h1>
+            <p className="mt-1 text-xs text-gray-600">Quản lý các bài viết tìm nhóm và tìm thành viên</p>
           </div>
 
-          {/* Search */}
-          <div className="relative mb-4">
-            <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-gray-400" />
-            <Input
-              type="text"
-              placeholder="Tìm kiếm theo tiêu đề, tác giả, nội dung..."
-              value={searchTerm}
-              onChange={(e) => handleSearch(e.target.value)}
-              className="pl-10"
-            />
-          </div>
+          <div className="flex flex-col gap-2 md:flex-row md:items-center">
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute top-1/2 left-2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
+              <Input
+                placeholder="Tìm kiếm..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="h-8 w-full pl-8 text-sm md:w-[250px]"
+              />
+            </div>
 
-          {/* Filter tabs */}
-          <div className="flex flex-wrap gap-2">
-            <Button variant={filterStatus === "ALL" ? "default" : "outline"} size="sm" onClick={() => handleFilterChange("ALL")}>
-              Tất cả ({posts.length})
-            </Button>
-            <Button
-              variant={filterStatus === "PENDING" ? "default" : "outline"}
-              size="sm"
-              onClick={() => handleFilterChange("PENDING")}
-              className={filterStatus === "PENDING" ? "" : "border-yellow-300 text-yellow-700 hover:bg-yellow-50"}
-            >
-              <Clock className="mr-1 size-3" />
-              Chờ duyệt ({pendingCount})
-            </Button>
-            <Button
-              variant={filterStatus === "APPROVED" ? "default" : "outline"}
-              size="sm"
-              onClick={() => handleFilterChange("APPROVED")}
-              className={filterStatus === "APPROVED" ? "" : "border-green-300 text-green-700 hover:bg-green-50"}
-            >
-              <CheckCircle className="mr-1 size-3" />
-              Đã duyệt ({approvedCount})
-            </Button>
-            <Button
-              variant={filterStatus === "REJECTED" ? "default" : "outline"}
-              size="sm"
-              onClick={() => handleFilterChange("REJECTED")}
-              className={filterStatus === "REJECTED" ? "" : "border-red-300 text-red-700 hover:bg-red-50"}
-            >
-              <XCircle className="mr-1 size-3" />
-              Từ chối ({rejectedCount})
+            {/* Status Filter */}
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger className="h-8 w-full text-sm md:w-[150px]">
+                <SelectValue placeholder="Trạng thái" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ACTIVE">Hoạt động</SelectItem>
+                <SelectItem value="DELETED">Đã xóa</SelectItem>
+                <SelectItem value="ALL">Tất cả</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Type Filter */}
+            <Select value={filterType} onValueChange={setFilterType}>
+              <SelectTrigger className="h-8 w-full text-sm md:w-[180px]">
+                <SelectValue placeholder="Lọc theo loại" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">Tất cả</SelectItem>
+                <SelectItem value="FIND_GROUP">Tìm nhóm</SelectItem>
+                <SelectItem value="FIND_MEMBER">Tìm thành viên</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Create Post Button */}
+            <Button onClick={() => setIsCreateOpen(true)} className="h-8 gap-1 text-sm" size="sm">
+              <Plus className="h-4 w-4" />
+              Tạo bài viết
             </Button>
           </div>
         </div>
 
-        {/* Posts Grid */}
-        {paginatedPosts.length === 0 ? (
-          <div className="rounded-lg bg-white p-12 text-center shadow-sm">
-            <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-gray-100">
-              <MessageSquare className="size-8 text-gray-400" />
-            </div>
-            <h3 className="mb-2 text-lg font-semibold text-gray-900">Không tìm thấy bài viết nào</h3>
-            <p className="text-sm text-gray-500">Thử thay đổi từ khóa tìm kiếm hoặc bộ lọc</p>
-          </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {paginatedPosts.map((post) => {
-                const statusConfig = getStatusConfig(post.status);
-                const StatusIcon = statusConfig.icon;
-
-                return (
-                  <Card key={post.id} className="flex flex-col transition-shadow hover:shadow-md">
-                    <CardHeader className="pb-3">
-                      <div className="mb-2 flex items-start justify-between gap-2">
-                        <h3 className="line-clamp-2 flex-1 text-base font-bold text-gray-900">{post.title}</h3>
-                        <Badge className={statusConfig.className}>
-                          <StatusIcon className="mr-1 size-3" />
-                          {statusConfig.label}
-                        </Badge>
-                      </div>
-                      <Badge variant="outline" className={`w-fit ${getCategoryColor(post.category)}`}>
-                        {post.category}
-                      </Badge>
-                    </CardHeader>
-
-                    <CardContent className="flex-1 space-y-3 pb-3">
-                      <p className="line-clamp-3 text-sm text-gray-600">{post.content}</p>
-
-                      <div className="flex items-center gap-2 text-xs text-gray-500">
-                        <User className="size-3" />
-                        <span className="font-medium">{post.author}</span>
-                        <span>•</span>
-                        <span>{post.studentCode}</span>
-                      </div>
-
-                      <div className="flex items-center justify-between text-xs text-gray-500">
-                        <div className="flex items-center gap-1">
-                          <Clock className="size-3" />
-                          {formatDate(post.createdAt)}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <MessageSquare className="size-3" />
-                          {post.votes} votes
-                        </div>
-                      </div>
-                    </CardContent>
-
-                    <CardFooter className="flex gap-2 border-t pt-3">
-                      <Button variant="outline" size="sm" className="flex-1" onClick={() => handleViewDetail(post)}>
-                        <Eye className="mr-1 size-3" />
-                        Chi tiết
-                      </Button>
-                      {post.status === "PENDING" && (
-                        <>
-                          <Button
-                            variant="default"
-                            size="sm"
-                            className="flex-1 bg-green-600 hover:bg-green-700"
-                            onClick={() => handleApprove(post.id, post.title)}
-                          >
-                            <CheckCircle className="mr-1 size-3" />
-                            Duyệt
-                          </Button>
-                          <Button variant="destructive" size="sm" onClick={() => handleReject(post.id, post.title)}>
-                            <XCircle className="size-3" />
-                          </Button>
-                        </>
-                      )}
-                      {post.status !== "PENDING" && (
-                        <Button variant="destructive" size="sm" onClick={() => handleDelete(post.id, post.title)}>
-                          <Trash2 className="mr-1 size-3" />
-                          Xóa
-                        </Button>
-                      )}
-                    </CardFooter>
-                  </Card>
-                );
-              })}
-            </div>
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="mt-6 flex items-center justify-between rounded-lg bg-white p-4 shadow-sm">
-                <p className="text-sm text-gray-600">
-                  Hiển thị {startIndex + 1}-{Math.min(endIndex, filteredPosts.length)} trong tổng số {filteredPosts.length} bài viết
-                </p>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 0}>
-                    Trang trước
-                  </Button>
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: totalPages }, (_, i) => (
-                      <Button
-                        key={i}
-                        variant={currentPage === i ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setCurrentPage(i)}
-                        className="min-w-[2rem]"
-                      >
-                        {i + 1}
-                      </Button>
-                    ))}
-                  </div>
-                  <Button variant="outline" size="sm" onClick={() => setCurrentPage(currentPage + 1)} disabled={currentPage === totalPages - 1}>
-                    Trang sau
-                  </Button>
-                </div>
+        {/* Stats */}
+        <div className="mb-4 grid grid-cols-1 gap-3 md:grid-cols-4">
+          <Card className="p-3">
+            <div className="flex items-center gap-2">
+              <div className="rounded-full bg-blue-100 p-2">
+                <MessageSquare className="h-4 w-4 text-blue-600" />
               </div>
-            )}
-          </>
+              <div>
+                <p className="text-xs text-gray-600">Tổng bài viết</p>
+                <p className="text-lg font-bold text-gray-900">{posts.length}</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-3">
+            <div className="flex items-center gap-2">
+              <div className="rounded-full bg-green-100 p-2">
+                <Users className="h-4 w-4 text-green-600" />
+              </div>
+              <div>
+                <p className="text-xs text-gray-600">Tìm nhóm</p>
+                <p className="text-lg font-bold text-gray-900">{posts.filter((p) => p.type === "FIND_GROUP").length}</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-3">
+            <div className="flex items-center gap-2">
+              <div className="rounded-full bg-purple-100 p-2">
+                <User className="h-4 w-4 text-purple-600" />
+              </div>
+              <div>
+                <p className="text-xs text-gray-600">Tìm thành viên</p>
+                <p className="text-lg font-bold text-gray-900">{posts.filter((p) => p.type === "FIND_MEMBER").length}</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-3">
+            <div className="flex items-center gap-2">
+              <div className="rounded-full bg-red-100 p-2">
+                <MessageSquare className="h-4 w-4 text-red-600" />
+              </div>
+              <div>
+                <p className="text-xs text-gray-600">Đã xóa</p>
+                <p className="text-lg font-bold text-gray-900">{posts.filter((p) => p.active === false).length}</p>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Posts List */}
+        {filteredPosts.length === 0 ? (
+          <Card className="p-8 text-center">
+            <MessageSquare className="mx-auto mb-3 h-10 w-10 text-gray-400" />
+            <h3 className="text-base font-semibold text-gray-900">Không tìm thấy bài viết nào</h3>
+            <p className="mt-1 text-xs text-gray-600">
+              {searchTerm || filterType !== "ALL" ? "Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm" : "Chưa có bài viết nào trong hệ thống"}
+            </p>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
+            {filteredPosts.map((post) => (
+              <Card key={post.id} className="flex h-full flex-col transition-shadow hover:shadow-md">
+                <CardHeader className="p-3 pb-2">
+                  <div className="mb-2 flex items-center gap-2">
+                    {/* User Avatar */}
+                    {post.userResponse?.avatarUrl ? (
+                      <img src={post.userResponse.avatarUrl} alt={post.userResponse.fullName} className="h-8 w-8 rounded-full object-cover" />
+                    ) : (
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500 text-xs font-bold text-white">
+                        {post.userResponse?.fullName?.charAt(0).toUpperCase() || "U"}
+                      </div>
+                    )}
+
+                    <div className="flex-1 overflow-hidden">
+                      <p className="truncate text-xs font-semibold text-gray-900">{post.userResponse?.fullName || "Unknown"}</p>
+                      <p className="truncate text-[10px] text-gray-500">{post.userResponse?.studentCode || "N/A"}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1">
+                    <Badge className={`text-[10px] ${getTypeBadgeColor(post.type)}`}>{getTypeLabel(post.type)}</Badge>
+                    <Badge variant="secondary" className="text-[10px]">
+                      #{post.id}
+                    </Badge>
+                  </div>
+                </CardHeader>
+
+                <CardContent className="flex flex-1 flex-col p-3 pt-0">
+                  {/* Post Content */}
+                  <p className="line-clamp-3 flex-1 text-xs leading-relaxed text-gray-700">{post.content}</p>
+
+                  {/* Created Date */}
+                  <p className="mt-2 text-[10px] text-gray-500">{post.createdAt ? new Date(post.createdAt).toLocaleDateString("vi-VN") : "N/A"}</p>
+
+                  {/* Group Info (if exists) */}
+                  {post.groupResponse && (
+                    <div className="mt-2 rounded border bg-gray-50 p-2">
+                      <div className="flex items-start gap-1.5">
+                        <Users className="mt-0.5 h-3 w-3 flex-shrink-0 text-gray-600" />
+                        <div className="flex-1 overflow-hidden">
+                          <p className="truncate text-[10px] font-medium text-gray-900">{post.groupResponse.title}</p>
+                          {post.groupResponse.description && (
+                            <p className="line-clamp-1 text-[10px] text-gray-600">{post.groupResponse.description}</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Actions */}
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 w-full text-xs"
+                      onClick={() => {
+                        setSelectedPost(post);
+                        setIsDetailOpen(true);
+                      }}
+                    >
+                      Xem
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 w-full text-xs text-red-600 hover:bg-red-50"
+                      onClick={() => handleDeletePost(post.id)}
+                      disabled={deletePostMutation.isPending || post.active === false}
+                    >
+                      {(() => {
+                        if (deletePostMutation.isPending) return "...";
+                        if (post.active === false) return "Đã xóa";
+                        return "Xóa";
+                      })()}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         )}
 
         {/* Detail Dialog */}
-        <Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
-          <DialogContent className="max-w-2xl">
+        <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
+          <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
             {selectedPost && (
               <>
                 <DialogHeader>
-                  <div className="flex items-start justify-between gap-4">
-                    <DialogTitle className="flex-1 text-xl">{selectedPost.title}</DialogTitle>
-                    <Badge className={getStatusConfig(selectedPost.status).className}>{getStatusConfig(selectedPost.status).label}</Badge>
-                  </div>
-                  <DialogDescription>
-                    <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
-                      <Badge variant="outline" className={getCategoryColor(selectedPost.category)}>
-                        {selectedPost.category}
-                      </Badge>
-                      <span>•</span>
-                      <span className="font-medium">{selectedPost.author}</span>
-                      <span>({selectedPost.studentCode})</span>
-                      <span>•</span>
-                      <span>{formatDate(selectedPost.createdAt)}</span>
-                      <span>•</span>
-                      <span>{selectedPost.votes} votes</span>
-                    </div>
-                  </DialogDescription>
+                  <DialogTitle className="text-xl font-bold">Chi tiết bài viết</DialogTitle>
+                  <DialogDescription className="text-sm text-gray-600">Xem thông tin chi tiết của bài viết</DialogDescription>
                 </DialogHeader>
 
-                <div className="max-h-96 overflow-y-auto">
-                  <div className="rounded-lg bg-gray-50 p-4">
-                    <h4 className="mb-2 font-semibold text-gray-900">Nội dung:</h4>
-                    <p className="text-sm whitespace-pre-wrap text-gray-700">{selectedPost.content}</p>
+                <div className="space-y-4">
+                  {/* User Info */}
+                  <div className="rounded-lg border bg-gray-50 p-4">
+                    <div className="flex items-center gap-3">
+                      {selectedPost.userResponse?.avatarUrl ? (
+                        <img
+                          src={selectedPost.userResponse.avatarUrl}
+                          alt={selectedPost.userResponse.fullName}
+                          className="h-12 w-12 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500 text-lg font-bold text-white">
+                          {selectedPost.userResponse?.fullName?.charAt(0).toUpperCase() || "U"}
+                        </div>
+                      )}
+                      <div className="flex-1">
+                        <p className="font-semibold text-gray-900">{selectedPost.userResponse?.fullName || "Unknown User"}</p>
+                        <p className="text-sm text-gray-600">{selectedPost.userResponse?.studentCode || "N/A"}</p>
+                        <p className="text-xs text-gray-500">{selectedPost.userResponse?.email || "N/A"}</p>
+                      </div>
+                      <Badge className={getTypeBadgeColor(selectedPost.type)}>{getTypeLabel(selectedPost.type)}</Badge>
+                    </div>
+                  </div>
+
+                  {/* Post Content */}
+                  <div>
+                    <h3 className="mb-2 font-semibold text-gray-900">Nội dung bài viết:</h3>
+                    <Separator className="mb-3" />
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap text-gray-700">{selectedPost.content}</p>
+                  </div>
+
+                  {/* Group Info */}
+                  {selectedPost.groupResponse && (
+                    <div>
+                      <h3 className="mb-2 font-semibold text-gray-900">Thông tin nhóm:</h3>
+                      <Separator className="mb-3" />
+                      <div className="rounded-lg border bg-gradient-to-r from-blue-50 to-purple-50 p-4">
+                        <div className="mb-3 flex items-start justify-between">
+                          <div className="flex-1">
+                            <h4 className="text-lg font-bold text-gray-900">{selectedPost.groupResponse.title}</h4>
+                            <p className="mt-1 text-sm text-gray-700">{selectedPost.groupResponse.description || "Chưa có mô tả"}</p>
+                          </div>
+                          <Badge variant="outline" className="ml-2">
+                            #{selectedPost.groupResponse.id}
+                          </Badge>
+                        </div>
+                        {selectedPost.groupResponse.semester && (
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <Calendar className="h-4 w-4" />
+                            <span>{selectedPost.groupResponse.semester.name}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Created Date */}
+                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <Calendar className="h-3.5 w-3.5" />
+                    <span>
+                      Đăng ngày:{" "}
+                      {selectedPost.createdAt
+                        ? new Date(selectedPost.createdAt).toLocaleDateString("vi-VN", {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
+                        : "N/A"}
+                    </span>
                   </div>
                 </div>
 
-                <DialogFooter className="gap-2">
-                  {selectedPost.status === "PENDING" ? (
-                    <>
-                      <Button variant="outline" onClick={() => setIsDetailDialogOpen(false)}>
-                        Đóng
-                      </Button>
-                      <Button variant="destructive" onClick={() => handleReject(selectedPost.id, selectedPost.title)}>
-                        <XCircle className="mr-1 size-4" />
-                        Từ chối
-                      </Button>
-                      <Button className="bg-green-600 hover:bg-green-700" onClick={() => handleApprove(selectedPost.id, selectedPost.title)}>
-                        <CheckCircle className="mr-1 size-4" />
-                        Duyệt bài
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <Button variant="outline" onClick={() => setIsDetailDialogOpen(false)}>
-                        Đóng
-                      </Button>
-                      <Button variant="destructive" onClick={() => handleDelete(selectedPost.id, selectedPost.title)}>
-                        <Trash2 className="mr-1 size-4" />
-                        Xóa bài viết
-                      </Button>
-                    </>
-                  )}
-                </DialogFooter>
+                {/* Actions */}
+                <div className="flex justify-end gap-2 border-t pt-4">
+                  <Button variant="outline" onClick={() => setIsDetailOpen(false)}>
+                    Đóng
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    className="text-sm"
+                    onClick={() => selectedPost && handleDeletePost(selectedPost.id)}
+                    disabled={deletePostMutation.isPending || selectedPost?.active === false}
+                  >
+                    {(() => {
+                      if (deletePostMutation.isPending) return "Đang xóa...";
+                      if (selectedPost?.active === false) return "Đã xóa";
+                      return "Xóa bài viết";
+                    })()}
+                  </Button>
+                </div>
               </>
             )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Create Post Dialog */}
+        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold">Tạo bài viết mới</DialogTitle>
+              <DialogDescription>Tạo bài viết tìm nhóm hoặc tìm thành viên cho diễn đàn</DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 py-4">
+              {/* Post Type */}
+              <div className="space-y-2">
+                <Label htmlFor="postType" className="text-sm font-medium">
+                  Loại bài viết
+                </Label>
+                <Select value={newPostType} onValueChange={(value: "FIND_GROUP" | "FIND_MEMBER") => setNewPostType(value)}>
+                  <SelectTrigger id="postType">
+                    <SelectValue placeholder="Chọn loại bài viết" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="FIND_GROUP">Tìm nhóm</SelectItem>
+                    <SelectItem value="FIND_MEMBER">Tìm thành viên</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Post Content */}
+              <div className="space-y-2">
+                <Label htmlFor="postContent" className="text-sm font-medium">
+                  Nội dung bài viết
+                </Label>
+                <Textarea
+                  id="postContent"
+                  placeholder="Nhập nội dung bài viết (tối đa 500 ký tự)..."
+                  value={newPostContent}
+                  onChange={(e) => setNewPostContent(e.target.value)}
+                  className="min-h-[200px] resize-none"
+                  maxLength={500}
+                />
+                <p className="text-right text-xs text-gray-500">{newPostContent.length}/500 ký tự</p>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex justify-end gap-2 border-t pt-4">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsCreateOpen(false);
+                  setNewPostContent("");
+                  setNewPostType("FIND_GROUP");
+                }}
+              >
+                Hủy
+              </Button>
+              <Button onClick={handleCreatePost} disabled={createPostMutation.isPending || !newPostContent.trim()}>
+                {createPostMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Đang tạo...
+                  </>
+                ) : (
+                  "Tạo bài viết"
+                )}
+              </Button>
+            </div>
           </DialogContent>
         </Dialog>
       </div>
