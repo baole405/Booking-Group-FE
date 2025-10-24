@@ -35,13 +35,20 @@ export const usePostHook = () => {
   const useCreatePost = () =>
     useMutation({
       mutationFn: (data: TCreatePost) => postApi.createPost(data),
+      retry: false,
+      onSuccess: () => {
+        console.log("Post created successfully");
+      },
+      onError: (error: any) => {
+        console.error("Mutation error:", error);
+        console.error("Error details:", error?.response);
+      },
     });
 
   /** Cập nhật bài đăng */
   const useUpdatePost = () =>
     useMutation({
-      mutationFn: ({ id, data }: { id: number; data: TUpdatePost }) =>
-        postApi.updatePost(id, data),
+      mutationFn: ({ id, data }: { id: number; data: TUpdatePost }) => postApi.updatePost(id, data),
     });
 
   /** Xóa bài đăng */
