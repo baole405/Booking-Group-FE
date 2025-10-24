@@ -1,12 +1,15 @@
 import { useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { Loader2, CalendarDays, Pencil } from "lucide-react";
+import { Loader2, CalendarDays, Pencil, Edit3, Trash2 } from "lucide-react";
 
 import { usePostHook } from "@/hooks/use-post";
 import { useCommentHook } from "@/hooks/use-comment";
+import { useGroupHook } from "@/hooks/use-group";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import type { RootState } from "@/redux/store";
 
 export default function ForumDetail() {
@@ -24,7 +27,7 @@ export default function ForumDetail() {
   const createdAt = post ? new Date(post.createdAt) : null;
 
   // Comments theo post
-  const { useGetCommentsByPost, useCreateComment } = useCommentHook();
+  const { useGetCommentsByPost, useCreateComment, useUpdateComment, useDeleteComment } = useCommentHook();
   const {
     data: cmtRes,
     isPending: isCmtPending,
@@ -32,48 +35,47 @@ export default function ForumDetail() {
   } = useGetCommentsByPost(postId);
   const comments = cmtRes?.data?.data ?? [];
 
+  // Group hook để lấy leader
+  const { useGetGroupLeader } = useGroupHook();
+  const { data: leaderData } = useGetGroupLeader(post?.groupResponse?.id ?? 0);
+
+  // Mutations cho comment
+  const { mutate: createComment, isPending: sendingCmt } = useCreateComment();
+  const { mutate: updateComment, isPending: updatingCmt } = useUpdateComment();
+  const { mutate: deleteComment } = useDeleteComment();
+
+  // State cho comment editing
+  const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
+  const [editContent, setEditContent] = useState("");
+
   // Tạo comment
   const [content, setContent] = useState("");
-  const { mutate: createComment, isPending: sendingCmt } = useCreateComment();
 
-  // Quyền update
+  // Quyền update post
   const user = post?.userResponse;
-  const group = post?.groupResponse;
   const isFindGroup = post?.type === "FIND_GROUP";
   const isFindMember = post?.type === "FIND_MEMBER";
 
-  // Chủ bài viết (FIND_GROUP)
+  // Chủ bài viết (FIND_GROUP) - check email trực tiếp
   const isOwnerOfFindGroup = useMemo(
     () => !!currentEmail && !!user?.email && user.email === currentEmail,
     [currentEmail, user?.email]
   );
 
-  // Leader/Owner của group (FIND_MEMBER) — dùng any để tránh TS error vì backend không trả đủ field trong type
+  // Leader của group (FIND_MEMBER) - lấy từ useGetGroupLeader
   const isLeaderOfGroup = useMemo(() => {
-    if (!currentEmail || !group) return false;
+    if (!currentEmail || !leaderData?.data?.data) return false;
+    const leader = leaderData.data.data;
+    return leader.email === currentEmail;
+  }, [currentEmail, leaderData]);
 
-    const g: any = group ?? {};
-
-    const directLeaderMatch =
-      g?.leader?.email === currentEmail ||
-      g?.owner?.email === currentEmail ||
-      g?.createdBy?.email === currentEmail ||
-      g?.leaderEmail === currentEmail;
-
-    const membersLeaderMatch = Array.isArray(g?.members)
-      ? g.members.some(
-          (m: any) =>
-            m?.email === currentEmail &&
-            ["LEADER", "OWNER", "ADMIN"].includes(String(m?.role).toUpperCase())
-        )
-      : false;
-
-    return !!(directLeaderMatch || membersLeaderMatch);
-  }, [currentEmail, group]);
-
-  const canUpdate =
+  const canUpdatePost =
     (isFindGroup && isOwnerOfFindGroup) ||
     (isFindMember && isLeaderOfGroup);
+
+  // Quyền update/delete comment - chỉ chủ comment mới được
+  const canModifyComment = (commentUserEmail: string) =>
+    !!currentEmail && commentUserEmail === currentEmail;
 
   // Submit comment
   const handleCreateComment = (e: React.FormEvent) => {
@@ -83,6 +85,26 @@ export default function ForumDetail() {
       { postId, content: content.trim() },
       { onSuccess: () => setContent("") }
     );
+  };
+
+  // Handle update comment
+  const handleUpdateComment = (commentId: number, newContent: string) => {
+    updateComment(
+      { id: commentId, data: { postId, content: newContent } },
+      {
+        onSuccess: () => {
+          setEditingCommentId(null);
+          setEditContent("");
+        }
+      }
+    );
+  };
+
+  // Handle delete comment
+  const handleDeleteComment = (commentId: number) => {
+    if (window.confirm("Bạn có chắc muốn xóa bình luận này?")) {
+      deleteComment(commentId);
+    }
   };
 
   // UI states
@@ -111,11 +133,23 @@ export default function ForumDetail() {
         aria-hidden="true"
       />
 
-      <div className="mx-auto max-w-4xl p-6 space-y-6">
-        {/* Header */}
+      <div className="mx-auto max-w-7xl p-6 space-y-6">
+        {/* Header với thông tin cơ bản */}
         <div className="flex items-start justify-between border-b pb-4">
-          <div className="space-y-1">
-            <h2 className="text-xl font-semibold text-primary">
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <Badge variant={isFindGroup ? "default" : "secondary"} className="text-xs">
+                {isFindGroup ? "Tìm nhóm" : "Tìm thành viên"}
+              </Badge>
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <CalendarDays size={14} />
+                {createdAt?.toLocaleDateString("vi-VN")}
+              </div>
+            </div>
+            <h2
+              className={`text-xl font-semibold text-primary ${isFindGroup && post.userResponse?.id ? "cursor-pointer hover:underline transition-colors" : ""}`}
+              onClick={() => isFindGroup && post.userResponse?.id && navigate(`/student/profile/${post.userResponse.id}`)}
+            >
               {isFindGroup
                 ? post.userResponse?.fullName ?? "Người dùng ẩn danh"
                 : post.groupResponse?.title ?? "Nhóm chưa đặt tên"}
@@ -125,15 +159,11 @@ export default function ForumDetail() {
                 ? post.userResponse?.major?.name ?? "Không rõ ngành"
                 : post.groupResponse?.semester?.name ?? "Không rõ kỳ học"}
             </p>
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <CalendarDays size={14} />
-              {createdAt?.toLocaleDateString("vi-VN")}
-            </div>
           </div>
 
-          {canUpdate && (
+          {canUpdatePost && (
             <Button
-              onClick={() => navigate(`/forum/${postId}/edit`)}
+              onClick={() => navigate(`/student/forum/edit/${postId}`)}
               className="gap-2"
               variant="secondary"
             >
@@ -143,135 +173,204 @@ export default function ForumDetail() {
           )}
         </div>
 
-        {/* Nội dung bài đăng */}
-        <Card className="border shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-lg font-bold text-primary">
-              {isFindGroup ? "Bài đăng tìm nhóm" : "Bài đăng tìm thành viên"}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm leading-relaxed text-foreground/90">
-              {post.content ?? "Không có nội dung."}
-            </p>
-          </CardContent>
-        </Card>
+        {/* Layout chính với grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Cột trái: Thông tin post */}
+          <div className="lg:col-span-2 space-y-4">
+            {/* Nội dung bài đăng */}
+            <Card className="border shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg font-semibold text-primary">
+                  Nội dung bài đăng
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm leading-relaxed text-foreground/90 whitespace-pre-wrap">
+                  {post.content ?? "Không có nội dung."}
+                </p>
+              </CardContent>
+            </Card>
 
-        {/* Thông tin nhóm (khi FIND_MEMBER) */}
-        {isFindMember && post.groupResponse && (
-          <Card className="border shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-base font-semibold text-primary/90">
-                Thông tin nhóm
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="text-sm space-y-2">
-              <p>
-                <span className="font-medium">Tên nhóm:</span>{" "}
-                {post.groupResponse.title ?? "Không rõ"}
-              </p>
-              <p>
-                <span className="font-medium">Mô tả:</span>{" "}
-                {post.groupResponse.description ?? "Không có mô tả"}
-              </p>
-              <p>
-                <span className="font-medium">Trạng thái:</span>{" "}
-                {post.groupResponse.status ?? "Không rõ"}
-              </p>
-              <p>
-                <span className="font-medium">Loại:</span>{" "}
-                {post.groupResponse.type ?? "Không rõ"}
-              </p>
-              <p>
-                <span className="font-medium">Kỳ học:</span>{" "}
-                {post.groupResponse.semester?.name ?? "Không rõ"}
-              </p>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Bình luận */}
-        <Card className="border shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-base font-semibold text-primary/90">
-              Bình luận ({isCmtPending ? "…" : comments.length})
-            </CardTitle>
-          </CardHeader>
-
-          <CardContent className="space-y-4">
-            {/* list */}
-            {isCmtPending && (
-              <div className="flex items-center text-muted-foreground">
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Đang tải bình luận…
-              </div>
-            )}
-            {cmtError && (
-              <p className="text-sm text-destructive">Không thể tải bình luận.</p>
-            )}
-            {!isCmtPending && !cmtError && comments.length === 0 && (
-              <p className="text-sm text-muted-foreground">
-                Chưa có bình luận nào.
-              </p>
-            )}
-
-            {!isCmtPending &&
-              !cmtError &&
-              comments.map((c: any) => {
-                const author = c.user;
-                const when = new Date(c.createdAt);
-                return (
-                  <div
-                    key={c.id}
-                    className="flex items-start gap-3 rounded-md border p-3"
-                  >
-                    <img
-                      src={
-                        author?.avatarUrl ||
-                        "https://ui-avatars.com/api/?name=U&background=eee"
-                      }
-                      alt={author?.fullName || "User"}
-                      className="h-9 w-9 rounded-full object-cover"
-                    />
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium">
-                          {author?.fullName || "Ẩn danh"}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {when.toLocaleString("vi-VN")}
-                        </span>
-                      </div>
-                      <p className="text-sm text-foreground/90">{c.content}</p>
+            {/* Thông tin nhóm (khi FIND_MEMBER) */}
+            {isFindMember && post.groupResponse && (
+              <Card className="border shadow-sm">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base font-semibold text-primary/90">
+                    Thông tin nhóm
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="font-medium text-muted-foreground">Tên nhóm:</span>
+                      <p className="font-medium">{post.groupResponse.title ?? "Không rõ"}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-muted-foreground">Trạng thái:</span>
+                      <p className="font-medium">{post.groupResponse.status ?? "Không rõ"}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-muted-foreground">Loại:</span>
+                      <p className="font-medium">{post.groupResponse.type ?? "Không rõ"}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-muted-foreground">Kỳ học:</span>
+                      <p className="font-medium">{post.groupResponse.semester?.name ?? "Không rõ"}</p>
                     </div>
                   </div>
-                );
-              })}
-
-            {/* form tạo comment */}
-            <form onSubmit={handleCreateComment} className="space-y-2">
-              <label className="text-sm font-medium">Viết bình luận</label>
-              <textarea
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                rows={3}
-                className="w-full rounded-md border bg-background p-2 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
-                placeholder="Nhập nội dung bình luận…"
-              />
-              <div className="flex justify-end">
-                <Button type="submit" disabled={sendingCmt}>
-                  {sendingCmt && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {post.groupResponse.description && (
+                    <div>
+                      <span className="font-medium text-muted-foreground text-sm">Mô tả:</span>
+                      <p className="text-sm mt-1 leading-relaxed">{post.groupResponse.description}</p>
+                    </div>
                   )}
-                  Gửi bình luận
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* Cột phải: Bình luận */}
+          <div className="lg:col-span-1">
+            <Card className="border shadow-sm sticky top-6">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base font-semibold text-primary/90">
+                  Bình luận ({isCmtPending ? "…" : comments.length})
+                </CardTitle>
+              </CardHeader>
+
+              <CardContent className="space-y-4 max-h-96 overflow-y-auto">
+                {/* List comments */}
+                {isCmtPending && (
+                  <div className="flex items-center text-muted-foreground">
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Đang tải bình luận…
+                  </div>
+                )}
+                {cmtError && (
+                  <p className="text-sm text-destructive">Không thể tải bình luận.</p>
+                )}
+                {!isCmtPending && !cmtError && comments.length === 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    Chưa có bình luận nào.
+                  </p>
+                )}
+
+                {!isCmtPending &&
+                  !cmtError &&
+                  comments.map((c: any) => {
+                    const author = c.user;
+                    const when = new Date(c.createdAt);
+                    const canEdit = canModifyComment(author?.email);
+
+                    return (
+                      <div
+                        key={c.id}
+                        className="group flex gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+                      >
+                        <img
+                          src={
+                            author?.avatarUrl ||
+                            "https://ui-avatars.com/api/?name=U&background=eee"
+                          }
+                          alt={author?.fullName || "User"}
+                          className="h-8 w-8 rounded-full object-cover flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                          onClick={() => author?.id && navigate(`/student/profile/${author.id}`)}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2 mb-1">
+                            <span
+                              className="text-sm font-medium truncate cursor-pointer hover:text-primary hover:underline transition-colors"
+                              onClick={() => author?.id && navigate(`/student/profile/${author.id}`)}
+                            >
+                              {author?.fullName || "Ẩn danh"}
+                            </span>
+                            {canEdit && (
+                              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 w-6 p-0"
+                                  onClick={() => {
+                                    setEditingCommentId(c.id);
+                                    setEditContent(c.content);
+                                  }}
+                                >
+                                  <Edit3 className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                                  onClick={() => handleDeleteComment(c.id)}
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                          {editingCommentId === c.id ? (
+                            <div className="space-y-2">
+                              <Textarea
+                                value={editContent}
+                                onChange={(e) => setEditContent(e.target.value)}
+                                rows={2}
+                                className="text-sm"
+                              />
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  onClick={() => {
+                                    handleUpdateComment(c.id, editContent.trim());
+                                  }}
+                                  disabled={updatingCmt}
+                                >
+                                  Lưu
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => setEditingCommentId(null)}
+                                >
+                                  Hủy
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              <p className="text-sm text-foreground/90 leading-relaxed">{c.content}</p>
+                              <span className="text-xs text-muted-foreground">
+                                {when.toLocaleString("vi-VN")}
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                {/* Form tạo comment */}
+                <div className="border-t pt-4">
+                  <form onSubmit={handleCreateComment} className="space-y-3">
+                    <Textarea
+                      value={content}
+                      onChange={(e) => setContent(e.target.value)}
+                      rows={3}
+                      placeholder="Viết bình luận của bạn…"
+                      className="text-sm"
+                    />
+                    <Button type="submit" disabled={sendingCmt} className="w-full">
+                      {sendingCmt && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Gửi bình luận
+                    </Button>
+                  </form>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
 
         {/* Back */}
-        <div className="pt-2">
+        <div className="pt-4">
           <Button variant="outline" onClick={() => navigate(-1)}>
             ← Quay lại danh sách
           </Button>

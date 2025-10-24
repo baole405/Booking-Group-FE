@@ -1,8 +1,6 @@
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import type { TIdea } from "@/schema/ideas.schema";
+import { STATUS_LABEL } from "@/schema/common/type-ideas.schema";
 import { CalendarDays, UserRound } from "lucide-react";
 
 type IdeaCardProps = {
@@ -11,98 +9,65 @@ type IdeaCardProps = {
   className?: string;
 };
 
-const getInitials = (name?: string) =>
-  (name ?? "")
-    .trim()
-    .split(/\s+/)
-    .map((p) => p[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-
-const formatDate = (iso?: string) => {
-  if (!iso) return "—";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "—";
-  return new Intl.DateTimeFormat("vi-VN", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  }).format(d);
-};
-
-const STATUS_LABEL: Record<TIdea["status"], string> = {
-  DRAFT: "Nháp",
-  PENDING: "Chờ duyệt",
-  APPROVED: "Đã duyệt",
-  REJECTED: "Từ chối",
-};
-
-const STATUS_STYLE: Record<TIdea["status"], string> = {
-  DRAFT: "bg-amber-100 text-amber-800 border-amber-200",
-  PENDING: "bg-blue-100 text-blue-800 border-blue-200",
-  APPROVED: "bg-emerald-100 text-emerald-800 border-emerald-200",
-  REJECTED: "bg-rose-100 text-rose-800 border-rose-200",
+const getStatusColor = (status: string): string => {
+  switch (status) {
+    case "DRAFT":
+      return "bg-gray-200 text-gray-800";
+    case "PENDING":
+      return "bg-yellow-200 text-yellow-800";
+    case "APPROVED":
+      return "bg-green-200 text-green-800";
+    case "REJECTED":
+      return "bg-red-200 text-red-800";
+    default:
+      return "bg-muted text-foreground";
+  }
 };
 
 export function IdeaCard({ idea, onClick, className = "" }: IdeaCardProps) {
-  const initials = getInitials(idea.author?.fullName);
-
   return (
-    <Card
+    <div
       onClick={() => onClick?.(idea.id)}
-      className={`p-4 transition-shadow hover:shadow-md ${
-        onClick ? "cursor-pointer" : ""
-      } ${className}`}
+      className={`rounded-lg border p-4 relative group transition-colors hover:bg-muted/20 ${onClick ? "cursor-pointer" : ""
+        } ${className}`}
     >
       {/* Header */}
-      <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
-        <div className="min-w-0">
-          <h3 className="truncate text-lg font-semibold">{idea.title}</h3>
-          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+      <div className="flex justify-between items-start gap-3">
+        <div className="min-w-0 flex-1 pr-2">
+          <div className="font-medium">{idea.title}</div>
+
+          {/* Tác giả & thời gian tạo */}
+          <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
             <span className="inline-flex items-center gap-1">
-              <CalendarDays className="h-3.5 w-3.5" />
-              {formatDate(idea.createdAt)}
+              <UserRound className="h-4 w-4" />
+              {idea.author?.fullName ?? "Không rõ tác giả"}
             </span>
-            {idea.group?.title && (
-              <>
-                <span>•</span>
-                <span className="truncate">Nhóm: {idea.group.title}</span>
-              </>
-            )}
+            <span>•</span>
+            <span className="inline-flex items-center gap-1">
+              <CalendarDays className="h-4 w-4" />
+              {idea.createdAt
+                ? new Date(idea.createdAt).toLocaleString("vi-VN", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+                : "Không rõ thời gian"}
+            </span>
+          </div>
+
+          {/* Mô tả */}
+          <div className="text-sm text-muted-foreground mt-1">
+            {idea.description || "—"}
           </div>
         </div>
 
-        <Badge
-          variant="secondary"
-          className={`shrink-0 ${STATUS_STYLE[idea.status]}`}
-        >
-          {STATUS_LABEL[idea.status]}
+        {/* Trạng thái */}
+        <Badge className={`${getStatusColor(idea.status)} text-xs shrink-0 ml-2`}>
+          {STATUS_LABEL[idea.status] || idea.status}
         </Badge>
       </div>
-
-      <Separator className="my-3" />
-
-      {/* Author */}
-      <div className="mb-3 flex items-center gap-3">
-        <Avatar className="h-8 w-8">
-          <AvatarFallback>{initials || <UserRound className="h-4 w-4" />}</AvatarFallback>
-        </Avatar>
-        <div className="min-w-0">
-          <div className="truncate text-sm font-medium">
-            {idea.author?.fullName ?? "—"}
-          </div>
-          <div className="truncate text-xs text-muted-foreground">
-            {idea.author?.email ?? "—"}
-          </div>
-        </div>
-      </div>
-
-      {/* Description */}
-      <p className="line-clamp-3 text-sm text-foreground/80 leading-relaxed">
-        {idea.description || "Chưa có mô tả."}
-      </p>
-    </Card>
+    </div>
   );
 }

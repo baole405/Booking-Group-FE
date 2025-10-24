@@ -319,6 +319,7 @@ export default function MyGroupPage() {
         members={members}
         isLeader={isLeader}
         currentEmail={currentEmail}
+        leaderEmail={leader?.email ?? null}
         isGroupMembersPending={isGroupMembersPending}
         isLeaving={isLeaving}
         onKick={handleKick}

@@ -34,6 +34,7 @@ const MyGroupPage = Loadable(lazy(() => import("@/pages/home/group/my-group/my-g
 const MyProfile = Loadable(lazy(() => import("@/pages/home/user/my-profile")));
 const JoinRequestsPage = Loadable(lazy(() => import("@/pages/home/group/join-request/join-requests")));
 const ForumDetail = Loadable(lazy(() => import("@/pages/home/forum/forum-detail")));
+const ForumEdit = Loadable(lazy(() => import("@/pages/home/forum/forum-edit")));
 
 const studentRoutes = {
   path: ROUTES.STUDENT.ROOT,
@@ -47,6 +48,7 @@ const studentRoutes = {
     { path: ROUTES.STUDENT.GROUPS, element: <GroupPage /> },
     { path: ROUTES.STUDENT.FORUM, element: <ForumPage /> },
     { path: ROUTES.STUDENT.FORUM_DETAIL, element: <ForumDetail /> },
+    { path: ROUTES.STUDENT.FORUM_EDIT, element: <ForumEdit /> },
     { path: ROUTES.STUDENT.PROFILE, element: <UserProfile /> },
     { path: ROUTES.STUDENT.MY_PROFILE, element: <MyProfile /> },
     { path: ROUTES.STUDENT.MY_GROUP, element: <MyGroupPage /> },
