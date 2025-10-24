@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,26 +25,18 @@ type MemberCardProps = {
     avatarUrl?: string | null;
     majorName?: string | null;
   };
-  isLeader: boolean;
+  isLeader: boolean; // indicates if current user has leader permissions (for actions)
+  isThisUserTheLeader?: boolean; // indicates if this specific user is the group leader
   isCurrentUser?: boolean;
   onViewProfile?: (id: number) => void;
   onKick?: (id: number) => void;
   onTransferLeader?: (id: number) => void;
 };
 
-const getInitials = (name?: string | null) =>
-  (name ?? "")
-    .trim()
-    .split(/\s+/)
-    .map((p) => p[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-
 export function MemberCard({
   user,
   isLeader,
+  isThisUserTheLeader = false,
   isCurrentUser,
   onViewProfile,
   onKick,
@@ -58,13 +49,17 @@ export function MemberCard({
   return (
     <div className="rounded-lg border bg-muted/20 p-3 transition-colors hover:bg-muted/40">
       <div className="flex items-center gap-3">
-        <Avatar className="h-9 w-9">
-          <AvatarImage src={user.avatarUrl ?? undefined} alt={user.fullName} />
-          <AvatarFallback>{getInitials(user.fullName)}</AvatarFallback>
-        </Avatar>
-
         <div className="min-w-0 flex-1">
-          <div className="truncate font-medium">{user.fullName}</div>
+          {isThisUserTheLeader && (
+            <div className="mb-1">
+              <span className="rounded bg-yellow-200 px-2 py-[1px] text-[10px] font-semibold text-yellow-800">
+                LEADER
+              </span>
+            </div>
+          )}
+          <div className="truncate text-sm font-medium">
+            {user.fullName}
+          </div>
           <div className="text-muted-foreground mt-1 text-xs">
             {user.studentCode?.trim() || "—"}
           </div>

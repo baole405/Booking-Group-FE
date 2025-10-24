@@ -1,5 +1,5 @@
 // src/pages/forum/forum-page.tsx
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2, Plus } from "lucide-react";
@@ -30,6 +30,41 @@ export default function ForumPage() {
   const [content, setContent] = useState("");
   const [type, setType] = useState<"FIND_GROUP" | "FIND_MEMBER" | "">("");
 
+  // Trạng thái cho filter và search
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterType, setFilterType] = useState<"ALL" | "FIND_GROUP" | "FIND_MEMBER">("ALL");
+  const [sortOrder, setSortOrder] = useState<"DESC" | "ASC">("DESC"); // DESC = mới nhất trước
+
+  // Xử lý filter, search và sort
+  const filteredAndSortedPosts = useMemo(() => {
+    let filtered = [...posts];
+
+    // Filter theo loại bài đăng
+    if (filterType !== "ALL") {
+      filtered = filtered.filter(post => post.type === filterType);
+    }
+
+    // Search theo nội dung hoặc tên người/nhóm đăng
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(post => {
+        const content = post.content?.toLowerCase() || "";
+        const userName = post.userResponse?.fullName?.toLowerCase() || "";
+        const groupName = post.groupResponse?.title?.toLowerCase() || "";
+        return content.includes(term) || userName.includes(term) || groupName.includes(term);
+      });
+    }
+
+    // Sort theo ngày đăng
+    filtered.sort((a, b) => {
+      const dateA = new Date(a.createdAt).getTime();
+      const dateB = new Date(b.createdAt).getTime();
+      return sortOrder === "DESC" ? dateB - dateA : dateA - dateB;
+    });
+
+    return filtered;
+  }, [posts, filterType, searchTerm, sortOrder]);
+
   const handleSubmit = async () => {
     if (!content || !type) {
       toast.error("Vui lòng nhập đầy đủ thông tin.");
@@ -57,16 +92,49 @@ export default function ForumPage() {
       />
 
       {/* Header */}
-      <div className="mx-auto w-full max-w-6xl px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <h1 className="text-xl font-semibold text-primary">Bài đăng diễn đàn</h1>
+      <div className="mx-auto w-full max-w-6xl px-6 py-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+          <h1 className="text-xl font-semibold text-primary">Bài đăng diễn đàn</h1>
 
-        <div className="flex items-center gap-2">
-          <div className="w-64">
-            <Input type="text" placeholder="Tìm bài viết..." />
-          </div>
           <Button onClick={() => setOpen(true)} className="gap-2">
             <Plus className="h-4 w-4" /> Tạo bài đăng
           </Button>
+        </div>
+
+        {/* Filter và Search Controls */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex-1">
+            <Input
+              type="text"
+              placeholder="Tìm bài viết theo nội dung hoặc người đăng..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full"
+            />
+          </div>
+
+          <div className="flex gap-2">
+            <Select value={filterType} onValueChange={(v) => setFilterType(v as "ALL" | "FIND_GROUP" | "FIND_MEMBER")}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Loại bài đăng" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">Tất cả</SelectItem>
+                <SelectItem value="FIND_GROUP">Tìm nhóm</SelectItem>
+                <SelectItem value="FIND_MEMBER">Tìm thành viên</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={sortOrder} onValueChange={(v) => setSortOrder(v as "DESC" | "ASC")}>
+              <SelectTrigger className="w-36">
+                <SelectValue placeholder="Sắp xếp" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="DESC">Mới nhất</SelectItem>
+                <SelectItem value="ASC">Cũ nhất</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
@@ -85,11 +153,26 @@ export default function ForumPage() {
         )}
 
         {!isPending && !error && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {posts.map((p: TPost) => (
-              <ForumCard key={p.id} post={p} />
-            ))}
-          </div>
+          <>
+            <div className="mb-4 text-sm text-muted-foreground">
+              Hiển thị {filteredAndSortedPosts.length} trong tổng số {posts.length} bài đăng
+            </div>
+
+            {filteredAndSortedPosts.length === 0 ? (
+              <div className="text-center text-muted-foreground py-16">
+                {searchTerm || filterType !== "ALL"
+                  ? "Không tìm thấy bài viết nào phù hợp với bộ lọc."
+                  : "Chưa có bài viết nào."
+                }
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {filteredAndSortedPosts.map((p: TPost) => (
+                  <ForumCard key={p.id} post={p} />
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
 

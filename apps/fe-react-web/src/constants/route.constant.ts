@@ -16,6 +16,7 @@ export const ROUTES = {
     // RESULTS: "/student/results",
     FORUM: "/student/forum",
     FORUM_DETAIL: "/student/forum/:id",
+    FORUM_EDIT: "/student/forum/edit/:id/",
     IDEAS: "/student/ideas",
     IDEAS_DETAIL: "/student/ideas/:id",
     MY_GROUP: "/student/mygroup",

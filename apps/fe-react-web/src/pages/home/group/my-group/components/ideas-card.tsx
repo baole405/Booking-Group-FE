@@ -8,6 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { TIdea } from "@/schema/ideas.schema";
+import { STATUS_LABEL } from "@/schema/common/type-ideas.schema";
 
 const getStatusColor = (status: string): string => {
   switch (status) {
@@ -52,12 +53,12 @@ export function IdeaCard({ idea, isLeader, onEdit, onDelete }: IdeaCardProps) {
               <CalendarDays className="h-4 w-4" />
               {idea.createdAt
                 ? new Date(idea.createdAt).toLocaleString("vi-VN", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
                 : "Không rõ thời gian"}
             </span>
           </div>
@@ -69,18 +70,20 @@ export function IdeaCard({ idea, isLeader, onEdit, onDelete }: IdeaCardProps) {
         </div>
 
         {/* Trạng thái */}
-        <Badge className={`${getStatusColor(idea.status)} text-xs`}>{idea.status}</Badge>
+        <Badge className={`${getStatusColor(idea.status)} text-xs`}>
+          {STATUS_LABEL[idea.status] || idea.status}
+        </Badge>
       </div>
 
       {/* Menu hành động (chỉ leader thấy menu) */}
       {isLeader && (
-        <div className="absolute top-2 right-2">
+        <div className="absolute top-12 right-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
-                className="opacity-0 group-hover:opacity-100 transition-opacity"
+                className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8"
               >
                 <MoreVertical className="h-4 w-4" />
               </Button>

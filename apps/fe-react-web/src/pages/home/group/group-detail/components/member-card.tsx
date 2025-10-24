@@ -1,36 +1,35 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
 type MemberCardProps = {
   user: {
     id: number;
     fullName: string;
     studentCode?: string | null;
     avatarUrl?: string | null;
+    major?: {
+      id: number;
+      name: string;
+    } | null;
   };
+  isThisUserTheLeader?: boolean;
 };
 
-const getInitials = (name?: string | null) =>
-  (name ?? "")
-    .trim()
-    .split(/\s+/)
-    .map((p) => p[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-
-export function MemberCard({ user }: MemberCardProps) {
+export function MemberCard({ user, isThisUserTheLeader = false }: MemberCardProps) {
   return (
     <div className="rounded-lg border bg-muted/20 p-3 transition-all hover:bg-muted/40 hover:shadow-sm">
       <div className="flex items-center gap-3">
-        <Avatar className="h-9 w-9 border">
-          <AvatarImage src={user.avatarUrl ?? undefined} alt={user.fullName} />
-          <AvatarFallback>{getInitials(user.fullName)}</AvatarFallback>
-        </Avatar>
         <div className="min-w-0 flex-1">
-          <div className="truncate font-medium">{user.fullName}</div>
+          {isThisUserTheLeader && (
+            <div className="mb-1">
+              <span className="rounded bg-yellow-200 px-2 py-[1px] text-[10px] font-semibold text-yellow-800">
+                LEADER
+              </span>
+            </div>
+          )}
+          <div className="truncate text-sm font-medium">{user.fullName}</div>
           <div className="mt-1 text-xs text-muted-foreground">
             {user.studentCode?.trim() || "—"}
+          </div>
+          <div className="mt-1 text-xs text-muted-foreground">
+            {user.major?.name?.trim() || "—"}
           </div>
         </div>
       </div>

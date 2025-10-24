@@ -49,6 +49,7 @@ export default function GroupDetail() {
     useMyGroup,
     useJoinGroup,
     useGetMyJoinRequests,
+    useGetGroupLeader,
   } = useGroupHook();
 
   // ───────────────────── Fetch Hooks ─────────────────────
@@ -60,6 +61,9 @@ export default function GroupDetail() {
 
   const { data: groupMembersRes, isPending: isMembersPending, error: membersError } =
     useGroupMembers(groupId);
+
+  const { data: leaderRes } = useGetGroupLeader(groupId);
+  const leader = leaderRes?.data?.data ?? null;
 
   const { data: myReqRes, isPending: isReqLoading, refetch: refetchReqs } = useGetMyJoinRequests();
   const myRequests: TJoinGroup[] = myReqRes?.data?.data ?? [];
@@ -228,9 +232,16 @@ export default function GroupDetail() {
 
       {!isMembersPending && !membersError && members.length > 0 && (
         <div className="grid grid-cols-1 gap-3">
-          {members.map((m) => (
-            <MemberCard key={m.id} user={m} />
-          ))}
+          {members.map((m) => {
+            const isThisUserTheLeader = m.email === leader?.email;
+            return (
+              <MemberCard
+                key={m.id}
+                user={m}
+                isThisUserTheLeader={isThisUserTheLeader}
+              />
+            );
+          })}
         </div>
       )}
     </Card>

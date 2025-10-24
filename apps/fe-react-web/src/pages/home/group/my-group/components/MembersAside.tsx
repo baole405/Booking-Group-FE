@@ -21,6 +21,7 @@ type Props = {
   members: SimpleUser[];
   isLeader: boolean;
   currentEmail: string | null;
+  leaderEmail?: string | null; // email of the group leader
   isGroupMembersPending: boolean;
   isLeaving: boolean;
   onKick: (id: number, fullName: string) => Promise<void> | void;
@@ -30,8 +31,9 @@ type Props = {
 };
 
 export default function MembersAside({
-  members, isLeader, currentEmail, isGroupMembersPending,
-  isLeaving, onKick, onTransfer, onLeave, onViewProfile,
+  members, isLeader, currentEmail, leaderEmail,
+  isGroupMembersPending, isLeaving, onKick, onTransfer,
+  onLeave, onViewProfile,
 }: Props) {
   return (
     <Card className="p-4 space-y-4">
@@ -47,11 +49,13 @@ export default function MembersAside({
           <div className="grid grid-cols-1 gap-3">
             {members.map((m) => {
               const isCurrentUser = m.email === currentEmail;
+              const isThisUserTheLeader = m.email === leaderEmail;
               return (
                 <MemberCard
                   key={m.id}
                   user={m}
                   isLeader={isLeader}
+                  isThisUserTheLeader={isThisUserTheLeader}
                   isCurrentUser={isCurrentUser}
                   onViewProfile={(id) => onViewProfile(id)}
                   onKick={async (id) => onKick(id, m.fullName)}
