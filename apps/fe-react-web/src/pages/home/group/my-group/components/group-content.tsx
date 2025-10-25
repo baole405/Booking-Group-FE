@@ -14,6 +14,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 import { useIdeaHook } from "@/hooks/use-idea";
 import { useGroupHook } from "@/hooks/use-group";
@@ -233,20 +244,51 @@ export default function GroupContent({
 
               {/* ✅ Hoàn tất nhóm (điều kiện) */}
               {canShowFinalizeBtn && (
-                <Button
-                  size="sm"
-                  variant="default"
-                  disabled={isFinalizing}
-                  onClick={() => onFinalize?.()}
-                >
-                  {isFinalizing ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Đang hoàn tất…
-                    </>
-                  ) : (
-                    "Hoàn tất nhóm"
-                  )}
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="default"
+                      disabled={isFinalizing}
+                    >
+                      {isFinalizing ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Đang hoàn tất…
+                        </>
+                      ) : (
+                        "Hoàn tất nhóm"
+                      )}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Xác nhận hoàn tất nhóm</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Vui lòng đảm bảo các thành viên trong nhóm có đủ từ 2 chuyên ngành trở lên trước khi hoàn tất nhóm.
+                        <br /><br />
+                        Sau khi hoàn tất, bạn sẽ không thể thay đổi thông tin nhóm.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel disabled={isFinalizing}>
+                        Hủy
+                      </AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => onFinalize?.()}
+                        disabled={isFinalizing}
+                      >
+                        {isFinalizing ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Đang xử lý...
+                          </>
+                        ) : (
+                          "Xác nhận hoàn tất"
+                        )}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               )}
             </div>
           </div>

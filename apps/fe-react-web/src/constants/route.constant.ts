@@ -58,5 +58,6 @@ export const ROUTES = {
     FORUMS: "/lecturer/forums",
     PROFILE: "/lecturer/profile",
     IDEAS: "/lecturer/ideas",
+    FORUM_DETAIL: "/lecturer/forum/:id",
   },
 };
