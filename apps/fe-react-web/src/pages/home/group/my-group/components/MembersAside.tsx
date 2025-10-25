@@ -1,4 +1,4 @@
-import { Users, Loader2, LogOut } from "lucide-react";
+import { Users, Loader2, LogOut, UserCheck } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MemberCard } from "./member-card"; // đường dẫn phù hợp dự án của bạn
@@ -24,16 +24,18 @@ type Props = {
   leaderEmail?: string | null; // email of the group leader
   isGroupMembersPending: boolean;
   isLeaving: boolean;
+  groupStatus?: "ACTIVE" | "DONE" | string; // trạng thái nhóm
   onKick: (id: number, fullName: string) => Promise<void> | void;
   onTransfer: (id: number, fullName: string) => Promise<void> | void;
   onLeave: () => Promise<void> | void;
   onViewProfile: (id: number) => void;
+  onSelectLecturer?: () => Promise<void> | void; // callback chọn giảng viên
 };
 
 export default function MembersAside({
   members, isLeader, currentEmail, leaderEmail,
-  isGroupMembersPending, isLeaving, onKick, onTransfer,
-  onLeave, onViewProfile,
+  isGroupMembersPending, isLeaving, groupStatus,
+  onKick, onTransfer, onLeave, onViewProfile, onSelectLecturer,
 }: Props) {
   return (
     <Card className="p-4 space-y-4">
@@ -66,7 +68,24 @@ export default function MembersAside({
           </div>
         )}
 
-        {!isLeader && (
+        {/* Nút chọn giảng viên chấm Checkpoint khi group DONE */}
+        {groupStatus === "DONE" && (
+          <div className="mt-4">
+            <Button
+              variant="default"
+              size="sm"
+              disabled={isGroupMembersPending}
+              onClick={() => onSelectLecturer?.()}
+              className="w-full"
+            >
+              <UserCheck className="mr-2 h-4 w-4" />
+              Chọn giảng viên chấm Checkpoint
+            </Button>
+          </div>
+        )}
+
+        {/* Nút rời khỏi nhóm khi group không phải DONE */}
+        {groupStatus !== "DONE" && ((!isLeader) || (isLeader && members.length === 1)) && (
           <div className="mt-4">
             <AlertDialog>
               <AlertDialogTrigger asChild>
@@ -86,19 +105,32 @@ export default function MembersAside({
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Xác nhận rời nhóm?</AlertDialogTitle>
+                  <AlertDialogTitle>
+                    {isLeader && members.length === 1
+                      ? "Xác nhận giải tán nhóm?"
+                      : "Xác nhận rời nhóm?"
+                    }
+                  </AlertDialogTitle>
+                  {isLeader && members.length === 1 && (
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Bạn là thành viên duy nhất trong nhóm. Rời khỏi nhóm sẽ giải tán nhóm này.
+                    </p>
+                  )}
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel disabled={isLeaving}>Hủy</AlertDialogCancel>
                   <AlertDialogAction onClick={() => onLeave()} disabled={isLeaving}>
-                    {isLeaving ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Đang xử lý...
-                      </>
-                    ) : (
-                      "Xác nhận"
-                    )}
+                    {(() => {
+                      if (isLeaving) {
+                        return (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Đang xử lý...
+                          </>
+                        );
+                      }
+                      return isLeader && members.length === 1 ? "Giải tán nhóm" : "Xác nhận";
+                    })()}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>

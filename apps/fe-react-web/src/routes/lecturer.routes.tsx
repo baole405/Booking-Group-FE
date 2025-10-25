@@ -28,6 +28,7 @@ const Loadable =
 const GroupPage = Loadable(lazy(() => import("@/pages/home/group/list-group/list-group-page")));
 const ForumPage = Loadable(lazy(() => import("@/pages/home/forum/forum-page")));
 const UserProfile = Loadable(lazy(() => import("@/pages/home/user/user-profile")));
+const ForumDetail = Loadable(lazy(() => import("@/pages/home/forum/forum-detail")));
 
 const lecturerRoutes = {
   path: ROUTES.LECTURER.ROOT,
@@ -40,6 +41,7 @@ const lecturerRoutes = {
     { index: true, element: <GroupPage /> },
     { path: ROUTES.LECTURER.GROUPS, element: <GroupPage /> },
     { path: ROUTES.LECTURER.FORUMS, element: <ForumPage /> },
+    { path: ROUTES.LECTURER.FORUM_DETAIL, element: <ForumDetail /> },
     { path: ROUTES.LECTURER.PROFILE, element: <UserProfile /> },
     { path: ROUTES.LECTURER.IDEAS, element: <GroupPage /> },
     // thêm các trang dành cho giảng viên ở đây
