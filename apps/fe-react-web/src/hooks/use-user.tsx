@@ -63,10 +63,18 @@ export const useUserHook = () => {
     useMutation({
       mutationFn: (id: number) => userApi.toggleLecturerModeratorRole(id),
     });
+
+  const useUsersNoGroup = () =>
+    useQuery({
+      queryKey: ["usersNoGroup"],
+      queryFn: async () => (await userApi.getUsersNoGroup()).data,
+    });
+
   return {
     useUserById,
     useMyProfile,
     useUserList,
+    useUsersNoGroup,
     useUpdateStatus,
     useUpdateUser,
     useUpdateMyProfile,
