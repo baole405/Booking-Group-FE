@@ -1,13 +1,15 @@
 import StudentProfileModal from "@/components/dialog/StudentProfileModal";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUserHook } from "@/hooks/use-user";
 import type { TUserListResponse } from "@/schema/user.schema";
 import React, { useMemo, useState } from "react";
 
 const StudentsList: React.FC = () => {
-  const { useUserList } = useUserHook();
+  const { useUserList, useUsersNoGroup } = useUserHook();
   const [currentPage, setCurrentPage] = useState<number>(0); // Backend bắt đầu từ 0
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [searchByCode, setSearchByCode] = useState<string>("");
+  const [filterGroup, setFilterGroup] = useState<string>("ALL"); // ALL, NO_GROUP
   const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -31,24 +33,43 @@ const StudentsList: React.FC = () => {
     return undefined;
   }, [searchTerm, searchByCode]);
 
-  // Gọi API với pagination
-  const { data, isLoading, error } = useUserList({
+  // Gọi API tùy theo filter
+  const {
+    data: allStudentsData,
+    isLoading: isLoadingAll,
+    error: errorAll,
+  } = useUserList({
     page: currentPage,
     size: itemsPerPage,
-    role: "STUDENT", // Chỉ lấy sinh viên
+    role: "STUDENT",
     search: searchQuery,
   });
 
-  // Reset trang khi tìm kiếm
+  const { data: noGroupData, isLoading: isLoadingNoGroup, error: errorNoGroup } = useUsersNoGroup();
+
+  // Chọn data source theo filter
+  const isLoading = filterGroup === "NO_GROUP" ? isLoadingNoGroup : isLoadingAll;
+  const error = filterGroup === "NO_GROUP" ? errorNoGroup : errorAll;
+
+  // Reset trang khi tìm kiếm hoặc đổi filter
   React.useEffect(() => {
     setCurrentPage(0);
-  }, [searchTerm, searchByCode]);
+  }, [searchTerm, searchByCode, filterGroup]);
 
-  // Lấy dữ liệu từ API response: BaseResponse<T> -> data
-  const paginationData = data?.data as TUserListResponse | undefined;
-  const students = useMemo(() => paginationData?.content || [], [paginationData]);
-  const totalPages = paginationData?.totalPages || 0;
-  const totalElements = paginationData?.totalElements || 0;
+  // Lấy dữ liệu từ API response
+  const paginationData =
+    filterGroup === "NO_GROUP"
+      ? undefined // No-group API không có pagination
+      : (allStudentsData?.data as TUserListResponse | undefined);
+
+  const students = useMemo(() => {
+    if (filterGroup === "NO_GROUP") {
+      // Lọc STUDENT từ noGroupData (backend trả tất cả role)
+      const noGroupUsers = noGroupData?.data || [];
+      return noGroupUsers.filter((user) => user.role === "STUDENT");
+    }
+    return paginationData?.content || [];
+  }, [filterGroup, noGroupData, paginationData]);
 
   // Lọc local nếu cần (vì backend có thể không hỗ trợ search cả 2 field riêng biệt)
   const filteredStudents = useMemo(() => {
@@ -59,9 +80,26 @@ const StudentsList: React.FC = () => {
     });
   }, [students, searchTerm, searchByCode]);
 
-  const currentStudents = filteredStudents;
+  // Pagination cho NO_GROUP mode (client-side)
+  const totalElements = filterGroup === "NO_GROUP" ? filteredStudents.length : paginationData?.totalElements || 0;
+  const totalPages = filterGroup === "NO_GROUP" ? Math.ceil(filteredStudents.length / itemsPerPage) || 0 : paginationData?.totalPages || 0;
+
   const startIndex = currentPage * itemsPerPage;
   const endIndex = (currentPage + 1) * itemsPerPage;
+
+  // Slice data cho NO_GROUP mode, ALL mode đã có pagination từ backend
+  const currentStudents = filterGroup === "NO_GROUP" ? filteredStudents.slice(startIndex, endIndex) : filteredStudents;
+
+  // Debug pagination
+  console.log("StudentsList Debug:", {
+    filterGroup,
+    studentsLength: students.length,
+    filteredStudentsLength: filteredStudents.length,
+    totalElements,
+    totalPages,
+    currentPage,
+    currentStudentsLength: currentStudents.length,
+  });
 
   // Loading state
   if (isLoading) {
@@ -89,6 +127,15 @@ const StudentsList: React.FC = () => {
             <h1 className="text-2xl font-bold text-gray-900">Danh sách sinh viên</h1>
 
             <div className="flex flex-col gap-3 sm:flex-row">
+              <Select value={filterGroup} onValueChange={setFilterGroup}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Chọn trạng thái nhóm" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">Tất cả sinh viên</SelectItem>
+                  <SelectItem value="NO_GROUP">Chưa có nhóm</SelectItem>
+                </SelectContent>
+              </Select>
               <input
                 type="text"
                 placeholder="Tìm theo tên sinh viên..."
@@ -174,56 +221,60 @@ const StudentsList: React.FC = () => {
           </div>
         </div>
 
-        {/* Pagination */}
-        {totalPages > 1 && (
+        {/* Pagination - Luôn hiển thị info, chỉ ẩn buttons khi chỉ có 1 trang */}
+        {totalElements > 0 && (
           <div className="mt-6 flex items-center justify-between rounded-lg border-t border-gray-200 bg-white px-4 py-3 shadow-sm sm:px-6">
-            <div className="flex flex-1 justify-between sm:hidden">
-              <button
-                onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
-                disabled={currentPage === 0}
-                className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Trước
-              </button>
-              <button
-                onClick={() => setCurrentPage(Math.min(totalPages - 1, currentPage + 1))}
-                disabled={currentPage === totalPages - 1}
-                className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Sau
-              </button>
-            </div>
+            {totalPages > 1 && (
+              <div className="flex flex-1 justify-between sm:hidden">
+                <button
+                  onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
+                  disabled={currentPage === 0}
+                  className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Trước
+                </button>
+                <button
+                  onClick={() => setCurrentPage(Math.min(totalPages - 1, currentPage + 1))}
+                  disabled={currentPage === totalPages - 1}
+                  className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Sau
+                </button>
+              </div>
+            )}
             <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm text-gray-700">
-                  Hiển thị <span className="font-medium">{startIndex + 1}</span> đến{" "}
+                  Hiển thị <span className="font-medium">{Math.min(startIndex + 1, totalElements)}</span> đến{" "}
                   <span className="font-medium">{Math.min(endIndex, totalElements)}</span> trong tổng số{" "}
                   <span className="font-medium">{totalElements}</span> sinh viên
                 </p>
               </div>
-              <div>
-                <nav className="relative z-0 inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
-                  <button
-                    onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
-                    disabled={currentPage === 0}
-                    className="relative inline-flex items-center rounded-l-md border border-gray-300 bg-white px-2 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    <span>Trước</span>
-                  </button>
+              {totalPages > 1 && (
+                <div>
+                  <nav className="relative z-0 inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                    <button
+                      onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
+                      disabled={currentPage === 0}
+                      className="relative inline-flex items-center rounded-l-md border border-gray-300 bg-white px-2 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <span>Trước</span>
+                    </button>
 
-                  <span className="relative inline-flex items-center border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700">
-                    Trang {currentPage + 1} / {totalPages}
-                  </span>
+                    <span className="relative inline-flex items-center border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700">
+                      Trang {currentPage + 1} / {totalPages}
+                    </span>
 
-                  <button
-                    onClick={() => setCurrentPage(Math.min(totalPages - 1, currentPage + 1))}
-                    disabled={currentPage === totalPages - 1}
-                    className="relative inline-flex items-center rounded-r-md border border-gray-300 bg-white px-2 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    <span>Sau</span>
-                  </button>
-                </nav>
-              </div>
+                    <button
+                      onClick={() => setCurrentPage(Math.min(totalPages - 1, currentPage + 1))}
+                      disabled={currentPage === totalPages - 1}
+                      className="relative inline-flex items-center rounded-r-md border border-gray-300 bg-white px-2 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <span>Sau</span>
+                    </button>
+                  </nav>
+                </div>
+              )}
             </div>
           </div>
         )}
