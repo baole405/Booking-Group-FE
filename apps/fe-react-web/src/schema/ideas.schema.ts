@@ -34,9 +34,15 @@ export const UpdateIdeaSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().min(1, "Description is required"),
 });
+
+export const RejectIdeaSchema = z.object({
+  reason: z.string().min(1, "Lý do từ chối không được để trống"),
+});
+
 // Type inference (nếu bạn dùng TypeScript)
 export type TAuthor = z.infer<typeof AuthorSchema>;
 export type TGroupInfo = z.infer<typeof GroupInfoSchema>;
 export type TIdea = z.infer<typeof IdeaSchema>;
 export type TCreateIdea = z.infer<typeof CreateIdeaSchema>;
 export type TUpdateIdea = z.infer<typeof UpdateIdeaSchema>;
+export type TRejectIdea = z.infer<typeof RejectIdeaSchema>;

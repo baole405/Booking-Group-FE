@@ -27,11 +27,18 @@ import { toast } from "sonner";
 import type { TUpdateUserSchema } from "@/schema/user.schema";
 import type { TMajor } from "@/schema/major.schema";
 import { useQueryClient } from "@tanstack/react-query";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/redux/store";
 
 export default function MyProfile() {
   const { useMyProfile, useUpdateMyProfile } = useUserHook();
   const { useMajorList } = useMajorHook();
   const qc = useQueryClient();
+
+  // Lấy role của user hiện tại
+  const userRole = useSelector((state: RootState) => state.user.role);
+  const isLecturer = userRole === "LECTURER";
+  const isStudent = userRole === "STUDENT";
   // 🔹 Fetch dữ liệu người dùng & chuyên ngành
   const { data, isPending, error } = useMyProfile();
   const { data: majorListRes, isPending: isMajorPending } = useMajorList();
@@ -148,7 +155,10 @@ export default function MyProfile() {
               {user?.fullName || "Chưa có tên"}
             </div>
             <div className="text-muted-foreground text-xs">
-              {user?.studentCode || "Không rõ mã số"}
+              {isLecturer
+                ? "Giảng viên - Môn EXE"
+                : (user?.studentCode || "Không rõ mã số")
+              }
             </div>
           </div>
 
@@ -159,10 +169,21 @@ export default function MyProfile() {
               <Input value={user?.email ?? ""} readOnly />
             </div>
 
-            <div>
-              <Label className="text-xs">Chuyên ngành</Label>
-              <Input value={user?.major?.name ?? "Chưa có chuyên ngành"} readOnly />
-            </div>
+            {/* Chỉ hiển thị chuyên ngành cho STUDENT */}
+            {isStudent && (
+              <div>
+                <Label className="text-xs">Chuyên ngành</Label>
+                <Input value={user?.major?.name ?? "Chưa có chuyên ngành"} readOnly />
+              </div>
+            )}
+
+            {/* Hiển thị môn giảng dạy cho LECTURER */}
+            {isLecturer && (
+              <div>
+                <Label className="text-xs">Môn giảng dạy</Label>
+                <Input value="EXE201 - Capstone Project" readOnly />
+              </div>
+            )}
 
             {user?.cvUrl && (
               <div>
@@ -202,26 +223,39 @@ export default function MyProfile() {
                     </Button>
                   </div>
 
-                  {/* Chuyên ngành */}
-                  <div>
-                    <Label className="text-xs">Chuyên ngành</Label>
-                    <Select
-                      onValueChange={(value) => setValue("majorId", Number(value))}
-                      value={String(selectedMajor)}
-                      disabled={isMajorPending}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Chọn chuyên ngành" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {majorList.map((m: TMajor) => (
-                          <SelectItem key={m.id} value={String(m.id)}>
-                            {m.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  {/* Chuyên ngành - chỉ hiển thị cho STUDENT */}
+                  {isStudent && (
+                    <div>
+                      <Label className="text-xs">Chuyên ngành</Label>
+                      <Select
+                        onValueChange={(value) => setValue("majorId", Number(value))}
+                        value={String(selectedMajor)}
+                        disabled={isMajorPending}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Chọn chuyên ngành" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {majorList.map((m: TMajor) => (
+                            <SelectItem key={m.id} value={String(m.id)}>
+                              {m.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
+                  {/* Môn giảng dạy - chỉ hiển thị cho LECTURER */}
+                  {isLecturer && (
+                    <div>
+                      <Label className="text-xs">Môn giảng dạy</Label>
+                      <Input value="EXE201 - Capstone Project" readOnly className="bg-muted" />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Thông tin này không thể thay đổi
+                      </p>
+                    </div>
+                  )}
 
                   {/* CV */}
                   <div>

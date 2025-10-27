@@ -120,6 +120,17 @@
       height: 0;
     }
   }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  --animate-float: float 3s ease-in-out infinite;
 }
 
 /* Dark scheme (theme emerald không định nghĩa dark riêng; vẫn giữ format & chọn cặp màu tương ứng, ưu tiên tương phản tốt) */

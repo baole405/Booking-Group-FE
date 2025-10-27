@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import type { TGroup } from "@/schema/group.schema";
 import { CalendarDays, Globe2, Lock, Users } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useRoleNavigate } from "@/hooks/useRoleNavigate";
 import { Button } from "@/components/ui/button";
 
 /** Màu nền gradient theo loại nhóm */
@@ -34,8 +34,8 @@ const getStatusLabel = (status?: string) => {
 };
 
 export default function GroupCard({ group }: { group: TGroup }) {
-  const navigate = useNavigate();
-  const handleViewDetail = () => navigate(`/student/groups/${group.id}`);
+const roleNavigate = useRoleNavigate();
+const handleViewDetail = () => roleNavigate(`/groups/${group.id}`);
 
   const gradient = gradientByType[group.type] ?? "from-muted to-background";
 

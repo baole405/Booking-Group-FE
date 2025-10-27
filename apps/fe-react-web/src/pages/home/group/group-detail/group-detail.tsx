@@ -1,7 +1,9 @@
 import { useMemo, useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { Loader2, Users } from "lucide-react";
 import { toast } from "sonner";
+import type { RootState } from "@/redux/store";
 
 import { useGroupHook } from "@/hooks/use-group";
 import type { TJoinGroup } from "@/schema/group.schema";
@@ -21,6 +23,15 @@ import {
 
 import { MemberCard } from "./components/member-card";
 import GroupContent from "./components/group-content";
+
+// Type extension để handle checkpointTeacher
+interface GroupWithCheckpointTeacher {
+  checkpointTeacher?: {
+    id: number;
+    fullName: string;
+    email: string;
+  } | null;
+}
 
 // ───────────────────── Constants ─────────────────────
 const MEMBER_THRESHOLD = 6;
@@ -43,6 +54,11 @@ export default function GroupDetail() {
   const groupId = Number(id);
   const navigate = useNavigate();
 
+  // Lấy role của user hiện tại
+  const userRole = useSelector((state: RootState) => state.user.role);
+  const isStudent = userRole === "STUDENT";
+  const isLecturer = userRole === "LECTURER";
+
   const {
     useGroupMembers,
     useGroupById,
@@ -53,8 +69,10 @@ export default function GroupDetail() {
   } = useGroupHook();
 
   // ───────────────────── Fetch Hooks ─────────────────────
+  // STUDENT: lấy đầy đủ thông tin để tham gia nhóm
+  // LECTURER: chỉ lấy thông tin nhóm để xem
   const { data: myGroupRes, isPending: isMyGroupPending } = useMyGroup();
-  const myGroup = myGroupRes?.data?.data ?? null;
+  const myGroup = isStudent ? (myGroupRes?.data?.data ?? null) : null;
 
   const { data: groupRes, isPending: isGroupPending, error: groupError } = useGroupById(groupId);
   const group = groupRes?.data?.data ?? null;
@@ -66,7 +84,7 @@ export default function GroupDetail() {
   const leader = leaderRes?.data?.data ?? null;
 
   const { data: myReqRes, isPending: isReqLoading, refetch: refetchReqs } = useGetMyJoinRequests();
-  const myRequests: TJoinGroup[] = myReqRes?.data?.data ?? [];
+  const myRequests: TJoinGroup[] = isStudent ? (myReqRes?.data?.data ?? []) : [];
 
   const { mutateAsync: joinGroupAsync, isPending: isJoining } = useJoinGroup();
 
@@ -76,8 +94,9 @@ export default function GroupDetail() {
   const groupType = group?.type?.toUpperCase() ?? "";
   const isPublic = groupType === "PUBLIC";
 
-  // Điều kiện hiển thị nút tham gia
+  // Điều kiện hiển thị nút tham gia - chỉ STUDENT được tham gia
   const canShowJoinButton =
+    isStudent && // chỉ student mới được tham gia
     !isMyGroupPending &&
     !myGroup && // chưa có nhóm
     !isMembersPending &&
@@ -94,12 +113,12 @@ export default function GroupDetail() {
     [groupId, myRequests]
   );
 
-  // ───────────────────── Auto Redirect ─────────────────────
+  // ───────────────────── Auto Redirect - chỉ áp dụng cho STUDENT ─────────────────────
   useEffect(() => {
-    if (!isMyGroupPending && myGroup && groupId === myGroup.id) {
+    if (isStudent && !isMyGroupPending && myGroup && groupId === myGroup.id) {
       navigate("/student/mygroup", { replace: true });
     }
-  }, [isMyGroupPending, myGroup, groupId, navigate]);
+  }, [isStudent, isMyGroupPending, myGroup, groupId, navigate]);
 
   // ───────────────────── UI: Action Button Meta ─────────────────────
   const actionMeta = useMemo(() => {
@@ -154,9 +173,16 @@ export default function GroupDetail() {
   const header = (
     <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4">
       <div>
-        <h1 className="text-xl font-semibold">
-          Nhóm #{group?.id} — {group?.title}
-        </h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl font-semibold">
+            Nhóm #{group?.id} — {group?.title}
+          </h1>
+          {isLecturer && (
+            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+              Xem với quyền Giảng viên
+            </Badge>
+          )}
+        </div>
 
         <div className="mt-1 flex flex-wrap items-center gap-2 text-sm">
           {group?.semester && (
@@ -170,10 +196,20 @@ export default function GroupDetail() {
               Trạng thái: {String(group.status)}
             </Badge>
           )}
+          {/* Hiển thị thông tin giáo viên chấm checkpoint */}
+          {(group as GroupWithCheckpointTeacher)?.checkpointTeacher ? (
+            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+              GV chấm: {(group as GroupWithCheckpointTeacher).checkpointTeacher?.fullName}
+            </Badge>
+          ) : (
+            <Badge variant="outline" className="bg-gray-50 text-gray-600 border-gray-200">
+              Chưa có GV chấm
+            </Badge>
+          )}
         </div>
       </div>
 
-      {hasPendingRequest && (
+      {isStudent && hasPendingRequest && (
         <span className="text-xs rounded-full bg-amber-100 text-amber-700 px-2 py-0.5">
           Đã gửi yêu cầu
         </span>
@@ -210,9 +246,15 @@ export default function GroupDetail() {
         )}
       </div>
 
-      {hasPendingRequest && (
+      {isStudent && hasPendingRequest && (
         <p className="mb-2 text-xs text-muted-foreground">
           Bạn đã gửi yêu cầu tham gia nhóm này. Vui lòng chờ xét duyệt.
+        </p>
+      )}
+
+      {isLecturer && (
+        <p className="mb-2 text-xs text-blue-600 bg-blue-50 p-2 rounded border">
+          <strong>Chế độ xem Giảng viên:</strong> Bạn đang xem thông tin nhóm với quyền chỉ đọc.
         </p>
       )}
 

@@ -1,10 +1,16 @@
+import { AdminErrorState, AdminFilterBar, AdminLayout, AdminLoadingState, AdminTableContainer } from "@/components/layout/AdminLayout";
 import { CreateSemesterDialog } from "@/components/dialog/CreateSemesterDialog";
 import { SemesterDetailDialog } from "@/components/dialog/SemesterDetailDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { useSemesterHook } from "@/hooks/use-semester";
 import type { TSemester } from "@/schema/semester.schema";
-import { useEffect, useState } from "react";
+import { Calendar, Eye, RefreshCw, Search } from "lucide-react";
+import { useState } from "react";
 
 export default function ListSemesterScreen() {
   const { useSemesterList } = useSemesterHook();
@@ -18,7 +24,7 @@ export default function ListSemesterScreen() {
 
   const { data: semesterListResponse, isLoading, error, refetch } = useSemesterList();
 
-  // Safely handle semesters data (add a default value if data doesn't exist yet)
+  // Safely handle semesters data
   const semesters: TSemester[] = semesterListResponse?.data?.data ?? [];
 
   // Client-side filtering
@@ -35,120 +41,152 @@ export default function ListSemesterScreen() {
   const totalPages = Math.ceil(filteredSemesters.length / itemsPerPage);
   const paginatedSemesters = filteredSemesters.slice((page - 1) * itemsPerPage, page * itemsPerPage);
 
-  const handlePreviousPage = () => {
-    setPage((prev) => Math.max(prev - 1, 1));
+  const handleDetailClick = (semester: TSemester) => {
+    setSelectedSemester(semester);
+    setIsDetailOpen(true);
   };
 
-  const handleNextPage = () => {
-    setPage((prev) => Math.min(prev + 1, totalPages));
+  const getStatusColor = (isActive: boolean) => {
+    return isActive
+      ? "bg-green-100 text-green-800 border-green-200"
+      : "bg-red-100 text-red-800 border-red-200";
   };
-
-  useEffect(() => {
-    console.log("Fetched Semester List:", semesterListResponse); // Debugging
-  }, [semesterListResponse]);
-
-  useEffect(() => {
-    console.log("Filtered Semesters:", filteredSemesters); // Debugging
-  }, [filteredSemesters]);
 
   return (
-    <div className="rounded bg-white p-6 shadow">
-      <div className="mb-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <input
-          className="w-full rounded border px-3 py-2 md:w-64"
-          placeholder="Tìm kiếm học kỳ..."
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1); // Reset to first page on search
-          }}
-        />
+    <AdminLayout
+      title="Quản lý học kỳ"
+      description="Quản lý thông tin các học kỳ trong hệ thống"
+      headerActions={
         <div className="flex items-center gap-2">
-          <select
-            className="rounded border px-2 py-2"
-            value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value as "all" | "active" | "inactive");
-              setPage(1); // Reset to first page on filter change
-            }}
-          >
-            <option value="all">Tất cả trạng thái</option>
-            <option value="active">Đang hoạt động</option>
-            <option value="inactive">Ngưng hoạt động</option>
-          </select>
           <Button size="sm" onClick={() => refetch()} disabled={isLoading}>
-            {isLoading ? "Đang tải..." : "Tải lại"}
+            <RefreshCw className={`mr-1 h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+            Tải lại
           </Button>
           <CreateSemesterDialog />
         </div>
-      </div>
+      }
+    >
+      {/* Filter Section */}
+      <AdminFilterBar>
+        <div className="flex flex-1 items-center space-x-4">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Input
+              placeholder="Tìm kiếm học kỳ..."
+              className="pl-9"
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+            />
+          </div>
 
-      {isLoading && (
-        <div className="py-8 text-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900" />
-          <p className="mt-2">Đang tải dữ liệu...</p>
+          <Select value={statusFilter} onValueChange={(value: "all" | "active" | "inactive") => {
+            setStatusFilter(value);
+            setPage(1);
+          }}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Trạng thái" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả trạng thái</SelectItem>
+              <SelectItem value="active">Đang hoạt động</SelectItem>
+              <SelectItem value="inactive">Ngưng hoạt động</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-      )}
+      </AdminFilterBar>
 
-      {error && (
-        <div className="mb-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-red-700">
-          <p className="font-bold">Lỗi</p>
-          <p>{error.message}</p>
-        </div>
-      )}
+      {/* Content */}
+      <AdminTableContainer>
+        {isLoading && <AdminLoadingState />}
 
-      {!isLoading && !error && paginatedSemesters.length === 0 && <div className="py-8 text-center text-gray-500">Không có dữ liệu học kỳ</div>}
+        {error && (
+          <AdminErrorState
+            title="Lỗi tải dữ liệu"
+            message={error.message}
+            onRetry={() => refetch()}
+          />
+        )}
 
-      {!isLoading && !error && paginatedSemesters.length > 0 && (
-        <div className="overflow-x-auto">
-          <table className="min-w-full border text-sm">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="border px-4 py-2">Tên học kỳ</th>
-                <th className="border px-4 py-2">Trạng thái</th>
-                <th className="border px-4 py-2">Hành động</th>
-              </tr>
-            </thead>
-            <tbody>
-              {paginatedSemesters.map((semester) => (
-                <tr key={semester.id} className="text-center">
-                  <td className="border px-4 py-2">{semester.name}</td>
-                  <td className="border px-4 py-2">
-                    <Badge variant={semester.active ? "default" : "destructive"}>{semester.active ? "Active" : "Inactive"}</Badge>
-                  </td>
-                  <td className="border px-4 py-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        setSelectedSemester(semester);
-                        setIsDetailOpen(true);
-                      }}
-                    >
-                      Chi tiết
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+        {!isLoading && !error && paginatedSemesters.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <Calendar className="h-12 w-12 text-gray-400 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900">Không có dữ liệu</h3>
+            <p className="mt-1 text-sm text-gray-500">Không tìm thấy học kỳ nào phù hợp với bộ lọc</p>
+            <div className="mt-4">
+              <CreateSemesterDialog />
+            </div>
+          </div>
+        )}
 
-      {totalPages > 1 && (
-        <div className="mt-4 flex items-center justify-center gap-2">
-          <Button size="sm" variant="outline" onClick={handlePreviousPage} disabled={page === 1}>
-            Trang trước
-          </Button>
-          <span className="mx-2">
-            {page}/{totalPages}
-          </span>
-          <Button size="sm" variant="outline" onClick={handleNextPage} disabled={page === totalPages}>
-            Trang sau
-          </Button>
-        </div>
-      )}
+        {!isLoading && !error && paginatedSemesters.length > 0 && (
+          <>
+            <Table>
+              <TableHeader className="bg-gray-50/50">
+                <TableRow>
+                  <TableHead className="w-20 text-center">ID</TableHead>
+                  <TableHead>Tên học kỳ</TableHead>
+                  <TableHead className="w-32 text-center">Trạng thái</TableHead>
+                  <TableHead className="w-32 text-center">Thao tác</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paginatedSemesters.map((semester) => (
+                  <TableRow key={semester.id} className="hover:bg-gray-50/50">
+                    <TableCell className="text-center font-mono text-sm text-gray-500">
+                      {semester.id}
+                    </TableCell>
+                    <TableCell className="font-medium">{semester.name}</TableCell>
+                    <TableCell className="text-center">
+                      <Badge className={getStatusColor(semester.active)}>
+                        {semester.active ? "Hoạt động" : "Tạm khóa"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Button size="sm" variant="outline" onClick={() => handleDetailClick(semester)}>
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="border-t bg-gray-50/50 px-6 py-4">
+                <div className="flex items-center justify-center">
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious
+                          onClick={page === 1 ? undefined : () => setPage(prev => Math.max(prev - 1, 1))}
+                          aria-disabled={page === 1}
+                          className={page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                      <span className="px-4 py-2 text-sm text-gray-600">
+                        Trang {page} / {totalPages}
+                      </span>
+                      <PaginationItem>
+                        <PaginationNext
+                          onClick={page >= totalPages ? undefined : () => setPage(prev => Math.min(prev + 1, totalPages))}
+                          aria-disabled={page >= totalPages}
+                          className={page >= totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </AdminTableContainer>
+
       <SemesterDetailDialog semester={selectedSemester} open={isDetailOpen} onOpenChange={setIsDetailOpen} />
-    </div>
+    </AdminLayout>
   );
 }

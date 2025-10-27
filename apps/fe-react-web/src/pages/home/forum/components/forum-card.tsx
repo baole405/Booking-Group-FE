@@ -1,16 +1,16 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
 import { CalendarDays } from "lucide-react";
 import type { TPost } from "@/schema/post.schema";
+import { useRoleNavigate } from "@/hooks/useRoleNavigate";
 
 interface ForumCardProps {
   post: TPost;
 }
 
 export default function ForumCard({ post }: ForumCardProps) {
-  const navigate = useNavigate();
+  const roleNavigate = useRoleNavigate();
   const createdAt = new Date(post.createdAt);
 
   // ✅ Dữ liệu người đăng và nhóm
@@ -19,6 +19,20 @@ export default function ForumCard({ post }: ForumCardProps) {
 
   const isFindGroup = post.type === "FIND_GROUP";   // bài đăng tìm nhóm (có user)
   const isFindMember = post.type === "FIND_MEMBER"; // bài đăng tìm thành viên (có group)
+  const isSharing = post.type === "SHARING";        // bài đăng chia sẻ (có user - giảng viên)
+
+  // Helper functions
+  const getBadgeVariant = () => {
+    if (isFindGroup) return "outline";
+    if (isSharing) return "default";
+    return "secondary";
+  };
+
+  const getBadgeText = () => {
+    if (isFindGroup) return "Tìm nhóm";
+    if (isFindMember) return "Tìm thành viên";
+    return "Chia sẻ";
+  };
 
   return (
     <Card className="overflow-hidden rounded-xl border shadow-sm hover:shadow-md transition-shadow">
@@ -43,12 +57,19 @@ export default function ForumCard({ post }: ForumCardProps) {
                 </p>
               </div>
             )}
-          </div>
 
-          <Button
+            {isSharing && user && (
+              <div>
+                <h3 className="font-semibold">{user.fullName ?? "Giảng viên"}</h3>
+                <p className="text-xs text-muted-foreground">
+                  {user.major?.name ?? "Giảng viên"}
+                </p>
+              </div>
+            )}
+          </div>          <Button
             variant="outline"
             size="sm"
-            onClick={() => navigate(`/student/forum/${post.id}`)}
+            onClick={() => roleNavigate(`/forum/${post.id}`)}
             className="ml-3"
           >
             Xem chi tiết
@@ -59,8 +80,8 @@ export default function ForumCard({ post }: ForumCardProps) {
       {/* Content - Loại bài đăng, nội dung và thời gian */}
       <CardContent className="px-4 py-3 space-y-3">
         <div className="flex items-center justify-between">
-          <Badge variant={isFindGroup ? "outline" : "secondary"}>
-            {isFindGroup ? "Tìm nhóm" : "Tìm thành viên"}
+          <Badge variant={getBadgeVariant()}>
+            {getBadgeText()}
           </Badge>
 
           <div className="flex items-center gap-1 text-xs text-muted-foreground">

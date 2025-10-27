@@ -1,4 +1,4 @@
-import { CalendarDays, MoreVertical, Pencil, Trash2, UserRound } from "lucide-react";
+import { CalendarDays, MoreVertical, Pencil, Trash2, UserRound, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -28,12 +28,15 @@ const getStatusColor = (status: string): string => {
 type IdeaCardProps = {
   idea: TIdea;
   isLeader?: boolean;
+  hasCheckpointTeacher?: boolean; // Nhóm đã có giảng viên chấm
   onEdit?: (idea: TIdea) => void;
   onDelete?: (id: number) => void;
+  onSubmit?: (id: number) => void;
 };
 
-export function IdeaCard({ idea, isLeader, onEdit, onDelete }: IdeaCardProps) {
+export function IdeaCard({ idea, isLeader, hasCheckpointTeacher, onEdit, onDelete, onSubmit }: IdeaCardProps) {
   const canEdit = !!isLeader && (idea.status === "DRAFT" || idea.status === "REJECTED");
+  const canSubmit = !!isLeader && idea.status === "DRAFT" && !!hasCheckpointTeacher;
 
   return (
     <div className="rounded-lg border p-4 relative group transition-colors hover:bg-muted/20">
@@ -94,6 +97,11 @@ export function IdeaCard({ idea, isLeader, onEdit, onDelete }: IdeaCardProps) {
                   <Pencil className="mr-2 h-4 w-4" /> Chỉnh sửa
                 </DropdownMenuItem>
               )}
+              {canSubmit && (
+                <DropdownMenuItem onClick={() => onSubmit?.(idea.id)}>
+                  <Send className="mr-2 h-4 w-4" /> Gửi ý tưởng
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem
                 className="text-red-500 focus:text-red-600"
                 onClick={() => onDelete?.(idea.id)}
@@ -113,9 +121,11 @@ type IdeasListProps = {
   isLoading?: boolean;
   isError?: boolean;
   isLeader?: boolean;
+  hasCheckpointTeacher?: boolean; // Nhóm đã có giảng viên chấm
   emptyText?: string;
   onEdit?: (idea: TIdea) => void;
   onDelete?: (id: number) => void;
+  onSubmit?: (id: number) => void;
 };
 
 export function IdeasList({
@@ -123,9 +133,11 @@ export function IdeasList({
   isLoading,
   isError,
   isLeader,
+  hasCheckpointTeacher,
   emptyText = "Chưa có ý tưởng nào.",
   onEdit,
   onDelete,
+  onSubmit,
 }: IdeasListProps) {
   if (isLoading) {
     return (
@@ -148,8 +160,10 @@ export function IdeasList({
           key={idea.id}
           idea={idea}
           isLeader={isLeader}
+          hasCheckpointTeacher={hasCheckpointTeacher}
           onEdit={onEdit}
           onDelete={onDelete}
+          onSubmit={onSubmit}
         />
       ))}
     </div>

@@ -54,6 +54,7 @@ interface GroupContentProps {
   group: GroupMinimal;
   aside?: ReactNode;
   isLeader?: boolean;
+  hasCheckpointTeacher?: boolean; // Nhóm đã có giảng viên chấm
 
   // ✅ props mới để điều kiện & handler 2 nút
   memberCount?: number;
@@ -67,6 +68,7 @@ export default function GroupContent({
   group,
   aside,
   isLeader,
+  hasCheckpointTeacher,
   memberCount = 0,
   isChangingType = false,
   isFinalizing = false,
@@ -74,7 +76,7 @@ export default function GroupContent({
   onFinalize,
 }: GroupContentProps) {
   // Hooks
-  const { useIdeaListByGroupId, useCreateIdea, useUpdateIdea, useDeleteIdea } = useIdeaHook();
+  const { useIdeaListByGroupId, useCreateIdea, useUpdateIdea, useDeleteIdea, useSubmitIdea } = useIdeaHook();
   const { useUpdateGroupInfo } = useGroupHook();
 
   // Queries & Mutations
@@ -89,6 +91,7 @@ export default function GroupContent({
   const { mutateAsync: createIdeaAsync, isPending: isCreating } = useCreateIdea();
   const { mutateAsync: updateIdeaAsync, isPending: isUpdatingIdea } = useUpdateIdea();
   const { mutateAsync: deleteIdeaAsync } = useDeleteIdea();
+  const { mutateAsync: submitIdeaAsync } = useSubmitIdea();
 
   // Local state
   const [openUpdateGroup, setOpenUpdateGroup] = useState(false);
@@ -152,6 +155,16 @@ export default function GroupContent({
       await refetch();
     } catch {
       toast.error("❌ Không thể xóa ý tưởng!");
+    }
+  };
+
+  const handleSubmitIdea = async (id: number) => {
+    try {
+      await submitIdeaAsync(id);
+      toast.success("🚀 Gửi ý tưởng thành công!");
+      await refetch();
+    } catch {
+      toast.error("❌ Không thể gửi ý tưởng!");
     }
   };
 
@@ -356,6 +369,7 @@ export default function GroupContent({
             isLoading={isIdeasPending}
             isError={!!ideasError}
             isLeader={isLeader}
+            hasCheckpointTeacher={hasCheckpointTeacher}
             onEdit={(idea) => {
               editIdeaForm.reset({
                 title: idea.title,
@@ -364,6 +378,7 @@ export default function GroupContent({
               setEditingIdea(idea);
             }}
             onDelete={(id) => void handleDeleteIdea(id)}
+            onSubmit={(id) => void handleSubmitIdea(id)}
           />
         </Card>
       </main>

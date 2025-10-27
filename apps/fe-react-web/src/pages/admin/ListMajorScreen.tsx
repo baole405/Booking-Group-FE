@@ -1,3 +1,4 @@
+import { AdminErrorState, AdminFilterBar, AdminLayout, AdminLoadingState, AdminTableContainer } from "@/components/layout/AdminLayout";
 import { CreateMajorDialog } from "@/components/dialog/CreateMajorDialog";
 import { MajorDetailDialog } from "@/components/dialog/MajorDetailDialog";
 import {
@@ -12,9 +13,14 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { useMajorHook } from "@/hooks/use-major";
 import type { TMajor } from "@/schema/major.schema";
 import { useQueryClient } from "@tanstack/react-query";
+import { Eye, GraduationCap, RefreshCw, Search, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -50,14 +56,6 @@ export default function ListMajorScreen() {
   const totalPages = Math.ceil(filteredMajors.length / itemsPerPage);
   const paginatedMajors = filteredMajors.slice((page - 1) * itemsPerPage, page * itemsPerPage);
 
-  const handlePreviousPage = () => {
-    setPage((prev) => Math.max(prev - 1, 1));
-  };
-
-  const handleNextPage = () => {
-    setPage((prev) => Math.min(prev + 1, totalPages));
-  };
-
   const handleDeleteClick = (major: TMajor) => {
     setMajorToDelete(major);
     setDeleteDialogOpen(true);
@@ -74,7 +72,6 @@ export default function ListMajorScreen() {
     deleteMajor(majorToDelete.id, {
       onSuccess: () => {
         toast.success(`Đã xóa ngành học "${majorToDelete.name}" thành công!`);
-        // Invalidate và refetch để đảm bảo dữ liệu được cập nhật
         queryClient.invalidateQueries({ queryKey: ["majorList"] });
         refetch();
         setDeleteDialogOpen(false);
@@ -86,107 +83,148 @@ export default function ListMajorScreen() {
     });
   };
 
-  return (
-    <div className="rounded bg-white p-6 shadow">
-      <div className="mb-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <h1 className="text-2xl font-bold">Quản lý Ngành học</h1>
-      </div>
+  const getStatusColor = (isActive: boolean) => {
+    return isActive
+      ? "bg-green-100 text-green-800 border-green-200"
+      : "bg-red-100 text-red-800 border-red-200";
+  };
 
-      <div className="mb-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <input
-          className="w-full rounded border px-3 py-2 md:w-64"
-          placeholder="Tìm kiếm ngành học..."
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1); // Reset to first page on search
-          }}
-        />
+  return (
+    <AdminLayout
+      title="Quản lý ngành học"
+      description="Quản lý thông tin các ngành học trong hệ thống"
+      headerActions={
         <div className="flex items-center gap-2">
-          <select
-            className="rounded border px-2 py-2"
-            value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value as "all" | "active" | "inactive");
-              setPage(1); // Reset to first page on filter change
-            }}
-          >
-            <option value="all">Tất cả trạng thái</option>
-            <option value="active">Đang hoạt động</option>
-            <option value="inactive">Ngưng hoạt động</option>
-          </select>
           <Button size="sm" onClick={() => refetch()} disabled={isLoading}>
-            {isLoading ? "Đang tải..." : "Tải lại"}
+            <RefreshCw className={`mr-1 h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+            Tải lại
           </Button>
           <CreateMajorDialog />
         </div>
-      </div>
+      }
+    >
+      {/* Filter Section */}
+      <AdminFilterBar>
+        <div className="flex flex-1 items-center space-x-4">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Input
+              placeholder="Tìm kiếm ngành học..."
+              className="pl-9"
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+            />
+          </div>
 
-      {isLoading && (
-        <div className="py-8 text-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900" />
-          <p className="mt-2">Đang tải dữ liệu...</p>
+          <Select value={statusFilter} onValueChange={(value: "all" | "active" | "inactive") => {
+            setStatusFilter(value);
+            setPage(1);
+          }}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Trạng thái" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả trạng thái</SelectItem>
+              <SelectItem value="active">Đang hoạt động</SelectItem>
+              <SelectItem value="inactive">Ngưng hoạt động</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-      )}
+      </AdminFilterBar>
 
-      {error && (
-        <div className="mb-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-red-700">
-          <p className="font-bold">Lỗi</p>
-          <p>{error.message}</p>
-        </div>
-      )}
+      {/* Content */}
+      <AdminTableContainer>
+        {isLoading && <AdminLoadingState />}
 
-      {!isLoading && !error && paginatedMajors.length === 0 && <div className="py-8 text-center text-gray-500">Không có dữ liệu ngành học</div>}
+        {error && (
+          <AdminErrorState
+            title="Lỗi tải dữ liệu"
+            message={error.message}
+            onRetry={() => refetch()}
+          />
+        )}
 
-      {!isLoading && !error && paginatedMajors.length > 0 && (
-        <div className="overflow-x-auto">
-          <table className="min-w-full border text-sm">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="border px-4 py-2">ID</th>
-                <th className="border px-4 py-2">Tên ngành học</th>
-                <th className="border px-4 py-2">Trạng thái</th>
-                <th className="border px-4 py-2">Hành động</th>
-              </tr>
-            </thead>
-            <tbody>
-              {paginatedMajors.map((major) => (
-                <tr key={major.id} className="text-center">
-                  <td className="border px-4 py-2">{major.id}</td>
-                  <td className="border px-4 py-2">{major.name}</td>
-                  <td className="border px-4 py-2">
-                    <Badge variant={major.active ? "default" : "destructive"}>{major.active ? "Đang hoạt động" : "Ngưng hoạt động"}</Badge>
-                  </td>
-                  <td className="border px-4 py-2">
-                    <div className="flex justify-center gap-2">
-                      <Button size="sm" variant="outline" onClick={() => handleDetailClick(major)}>
-                        Chi tiết
-                      </Button>
-                      <Button size="sm" variant="destructive" onClick={() => handleDeleteClick(major)}>
-                        Xóa
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+        {!isLoading && !error && paginatedMajors.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <GraduationCap className="h-12 w-12 text-gray-400 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900">Không có dữ liệu</h3>
+            <p className="mt-1 text-sm text-gray-500">Không tìm thấy ngành học nào phù hợp với bộ lọc</p>
+            <CreateMajorDialog />
+          </div>
+        )}
 
-      {totalPages > 1 && (
-        <div className="mt-4 flex items-center justify-center gap-2">
-          <Button size="sm" variant="outline" onClick={handlePreviousPage} disabled={page === 1}>
-            Trang trước
-          </Button>
-          <span className="mx-2">
-            Trang {page}/{totalPages}
-          </span>
-          <Button size="sm" variant="outline" onClick={handleNextPage} disabled={page === totalPages}>
-            Trang sau
-          </Button>
-        </div>
-      )}
+        {!isLoading && !error && paginatedMajors.length > 0 && (
+          <>
+            <Table>
+              <TableHeader className="bg-gray-50/50">
+                <TableRow>
+                  <TableHead className="w-20 text-center">ID</TableHead>
+                  <TableHead>Tên ngành học</TableHead>
+                  <TableHead className="w-32 text-center">Trạng thái</TableHead>
+                  <TableHead className="w-40 text-center">Thao tác</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paginatedMajors.map((major) => (
+                  <TableRow key={major.id} className="hover:bg-gray-50/50">
+                    <TableCell className="text-center font-mono text-sm text-gray-500">
+                      {major.id}
+                    </TableCell>
+                    <TableCell className="font-medium">{major.name}</TableCell>
+                    <TableCell className="text-center">
+                      <Badge className={getStatusColor(major.active)}>
+                        {major.active ? "Hoạt động" : "Tạm khóa"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        <Button size="sm" variant="outline" onClick={() => handleDetailClick(major)}>
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => handleDeleteClick(major)} className="text-red-600 hover:text-red-700 hover:bg-red-50">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="border-t bg-gray-50/50 px-6 py-4">
+                <div className="flex items-center justify-center">
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious
+                          onClick={page === 1 ? undefined : () => setPage(prev => Math.max(prev - 1, 1))}
+                          aria-disabled={page === 1}
+                          className={page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                      <span className="px-4 py-2 text-sm text-gray-600">
+                        Trang {page} / {totalPages}
+                      </span>
+                      <PaginationItem>
+                        <PaginationNext
+                          onClick={page >= totalPages ? undefined : () => setPage(prev => Math.min(prev + 1, totalPages))}
+                          aria-disabled={page >= totalPages}
+                          className={page >= totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </AdminTableContainer>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
@@ -206,8 +244,10 @@ export default function ListMajorScreen() {
         </AlertDialogContent>
       </AlertDialog>
 
+
+
       {/* Major Detail Dialog */}
       <MajorDetailDialog major={selectedMajor} open={isDetailOpen} onOpenChange={setIsDetailOpen} onUpdateSuccess={refetch} />
-    </div>
+    </AdminLayout>
   );
 }

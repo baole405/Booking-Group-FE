@@ -1,7 +1,9 @@
 import { useMemo, useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { Loader2, ArrowLeft } from "lucide-react";
+
+import { useRoleNavigate } from "@/hooks/useRoleNavigate";
 
 import { usePostHook } from "@/hooks/use-post";
 import { useGroupHook } from "@/hooks/use-group";
@@ -15,9 +17,7 @@ import type { TUpdatePost } from "@/schema/post.schema";
 export default function ForumEdit() {
   const { id } = useParams();
   const postId = Number(id);
-  const navigate = useNavigate();
-
-  // Lấy email hiện tại từ Redux
+  const roleNavigate = useRoleNavigate();  // Lấy email hiện tại từ Redux
   const currentEmail = useSelector((s: RootState) => s.user.user?.email) ?? "";
 
   // Post data
@@ -85,7 +85,7 @@ export default function ForumEdit() {
       {
         onSuccess: () => {
           console.log("Update successful");
-          navigate(`/student/forum/${postId}`);
+          roleNavigate(`/forum/${postId}`);
         },
         onError: (error) => {
           console.error("Update error:", error);
@@ -106,7 +106,7 @@ export default function ForumEdit() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen text-destructive">
         <p className="text-lg font-medium mb-2">Không thể tải bài đăng.</p>
-        <Button variant="outline" onClick={() => navigate(-1)}>
+        <Button variant="outline" onClick={() => window.history.back()}>
           ← Quay lại
         </Button>
       </div>
@@ -116,7 +116,7 @@ export default function ForumEdit() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen text-destructive">
         <p className="text-lg font-medium mb-2">Bạn không có quyền chỉnh sửa bài đăng này.</p>
-        <Button variant="outline" onClick={() => navigate(-1)}>
+        <Button variant="outline" onClick={() => window.history.back()}>
           ← Quay lại
         </Button>
       </div>
@@ -133,7 +133,7 @@ export default function ForumEdit() {
       <div className="mx-auto max-w-4xl p-6 space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
+          <Button variant="outline" size="sm" onClick={() => window.history.back()}>
             <ArrowLeft className="h-4 w-4 mr-1" />
             Quay lại
           </Button>
@@ -184,7 +184,7 @@ export default function ForumEdit() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => navigate(-1)}
+                  onClick={() => window.history.back()}
                   disabled={updating}
                 >
                   Hủy

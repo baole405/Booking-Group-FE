@@ -3,7 +3,6 @@ import LoadingScreen from "@/components/ui/loading-screen";
 import { ROUTES } from "@/constants/route.constant";
 import RoleBasedGuard from "@/guards/role-based-guard";
 import RoleBasedLayout from "@/layouts/RoleBasedLayout";
-import IdeaListPage from "@/pages/home/idea/list-idea-page";
 import type { TRole } from "@/schema/common/role.schema";
 import { QueryErrorResetBoundary } from "@tanstack/react-query";
 import { lazy, Suspense } from "react";
@@ -35,6 +34,7 @@ const MyProfile = Loadable(lazy(() => import("@/pages/home/user/my-profile")));
 const JoinRequestsPage = Loadable(lazy(() => import("@/pages/home/group/join-request/join-requests")));
 const ForumDetail = Loadable(lazy(() => import("@/pages/home/forum/forum-detail")));
 const ForumEdit = Loadable(lazy(() => import("@/pages/home/forum/forum-edit")));
+const IdeaListPage = Loadable(lazy(() => import("@/pages/home/idea/list-idea-page")));
 
 const studentRoutes = {
   path: ROUTES.STUDENT.ROOT,
