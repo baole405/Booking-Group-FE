@@ -1,8 +1,8 @@
 import z from "zod";
+import { StatusJoinGroupSchema } from "./common/status-join-group.schema";
 import { StatusGroupSchema, TypeGroupSchema } from "./common/type-group.schema";
 import { SemesterSchema } from "./semester.schema";
 import { UserSchema } from "./user.schema";
-import { StatusJoinGroupSchema } from "./common/status-join-group.schema";
 
 export interface UseGroupParams {
   page?: number;
@@ -12,6 +12,7 @@ export interface UseGroupParams {
   q?: string;
   type?: string | null;
   status?: string | null;
+  semesterId?: number | null;
 }
 
 export const GroupSchema = z.object({
@@ -28,7 +29,6 @@ export const UpdateInformationGroupSchema = z.object({
   title: z.string().min(1, "Tiêu đề không được để trống"),
   description: z.string().optional(),
 });
-
 
 export const JoinGroupScema = z.object({
   id: z.number(),

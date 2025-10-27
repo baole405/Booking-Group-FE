@@ -1,4 +1,4 @@
-import { ArrowLeft, Lightbulb, Loader2, Users } from "lucide-react";
+import { ArrowLeft, Lightbulb, Loader2, Plus, Users } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { useGroupHook } from "@/hooks/use-group";
@@ -6,10 +6,10 @@ import { useIdeaHook } from "@/hooks/use-idea";
 import type { TIdea } from "@/schema/ideas.schema";
 import type { TUser } from "@/schema/user.schema";
 
+import { AddMemberDialog } from "@/components/dialog/AddMemberDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 
 // ───────────────────── Helper Functions ─────────────────────
 const statusClass = (status?: string) => {
@@ -96,7 +96,10 @@ export default function GroupDetail() {
                 <div className="mt-4 flex flex-wrap items-center gap-2">
                   {group.semester && (
                     <Badge variant="secondary" className="text-sm">
-                      📚 {group.semester.name}
+                      <span role="img" aria-label="semester" className="mr-1">
+                        📚
+                      </span>
+                      {group.semester.name}
                     </Badge>
                   )}
                   {group.type && (
@@ -117,15 +120,8 @@ export default function GroupDetail() {
 
         {/* 2-Column Layout: Left (Goals + Ideas) | Right (Members) */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          {/* LEFT COLUMN: Goals + Ideas */}
+          {/* LEFT COLUMN: Ideas only (goals/description already shown in header) */}
           <div className="space-y-6 lg:col-span-2">
-            {/* Goals Section */}
-            <Card className="p-6">
-              <h2 className="mb-2 text-lg font-semibold">Mục tiêu của nhóm</h2>
-              <Separator className="mb-4" />
-              <p className="text-foreground/80 text-sm leading-relaxed">{group.description || "Chưa có mô tả."}</p>
-            </Card>
-
             {/* Ideas Section */}
             <Card className="p-6">
               <div className="mb-4 flex items-center gap-2 border-b pb-4">
@@ -176,9 +172,16 @@ export default function GroupDetail() {
           {/* RIGHT COLUMN: Members */}
           <div className="lg:col-span-1">
             <Card className="p-6">
-              <div className="mb-4 flex items-center gap-2 border-b pb-4">
-                <Users className="h-6 w-6 text-blue-600" />
-                <h2 className="text-xl font-semibold">Thành viên ({members.length}/6)</h2>
+              <div className="mb-4 flex items-center justify-between border-b pb-4">
+                <div className="flex items-center gap-2">
+                  <Users className="h-6 w-6 text-blue-600" />
+                  <h2 className="text-xl font-semibold">Thành viên ({members.length}/6)</h2>
+                </div>
+                <AddMemberDialog groupId={groupId} groupName={group.title}>
+                  <Button variant="ghost" size="icon" className="rounded-full">
+                    <Plus className="h-5 w-5" />
+                  </Button>
+                </AddMemberDialog>
               </div>
 
               {/* Loading Members */}

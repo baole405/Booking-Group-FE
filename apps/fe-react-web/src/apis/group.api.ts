@@ -4,8 +4,31 @@ import type { TUser } from "@/schema/user.schema";
 import type { BaseResponse, PaginationResponse, StatusResponse } from "@/types/response.type";
 import { API_SUFFIX } from "./util.api";
 
+// Build safe query params: remove null/undefined and temporarily drop unsupported filters
+const buildGroupListParams = (params?: UseGroupParams) => {
+  if (!params) return undefined;
+  const cleaned: Record<string, unknown> = {};
+  const { page, size, sort, dir, q, type, status } = params;
+
+  if (page !== undefined && page !== null) cleaned.page = page;
+  if (size !== undefined && size !== null) cleaned.size = size;
+  if (sort) cleaned.sort = sort;
+  if (dir) cleaned.dir = dir;
+  if (q !== undefined && q !== null) cleaned.q = q; // search by title
+  if (type !== undefined && type !== null) cleaned.type = type;
+  if (status !== undefined && status !== null) cleaned.status = status;
+
+  // Semester filter: only add when it is a finite number.
+  const semId = (params as UseGroupParams).semesterId;
+  if (typeof semId === "number" && Number.isFinite(semId)) {
+    cleaned.semesterId = semId;
+  }
+
+  return cleaned;
+};
+
 const getGroupList = async (params?: UseGroupParams) =>
-  await apiRequest.get<BaseResponse<PaginationResponse<TGroup>>>(API_SUFFIX.GROUP_API, { params });
+  await apiRequest.get<BaseResponse<PaginationResponse<TGroup>>>(API_SUFFIX.GROUP_API, { params: buildGroupListParams(params) });
 const getGroup = async (id: number) => await apiRequest.get<BaseResponse<TGroup>>(API_SUFFIX.GROUP_API + `/${id}`);
 const updateGroup = async (id: number, data: TGroup) => await apiRequest.put<BaseResponse<TGroup>>(API_SUFFIX.GROUP_API + `/${id}`, data);
 const createGroup = async (data: TGroup) => await apiRequest.post<BaseResponse<TGroup>>(API_SUFFIX.GROUP_API, data);
@@ -20,13 +43,17 @@ const getGroupLeader = async (groupId: number) => await apiRequest.get<BaseRespo
 const transferLeader = async (newLeaderId: number) => await apiRequest.patch<StatusResponse>(API_SUFFIX.TRANSFER_LEADER_API + `/${newLeaderId}`);
 const getPendingJoinRequests = async (groupId: number) =>
   await apiRequest.get<BaseResponse<TJoinGroup[]>>(API_SUFFIX.JOIN_GROUP_API + `/${groupId}/pending`);
+
+// Moderator add a specific user into a specific group
+// Assumption: backend supports POST /joins/{groupId}?userId={userId}
+// If backend later changes to /groups/members, adjust this method only.
+const addMemberToGroupByModerator = async (groupId: number, userId: number) =>
+  await apiRequest.post<StatusResponse>(`${API_SUFFIX.GROUP_API}/${groupId}/members`, userId);
 const finalizeGroup = async () => await apiRequest.patch<StatusResponse>(API_SUFFIX.DONE_GROUP_API);
 const changeGroupType = async () => await apiRequest.patch<StatusResponse>(API_SUFFIX.CHANGE_TYPE_GROUP_API);
 const getMyJoinRequests = async () => await apiRequest.get<BaseResponse<TJoinGroup[]>>(API_SUFFIX.MY_JOIN_GROUP_API);
 const choiceVote = async (voteId: number, choiceValue: "YES" | "NO") =>
-  await apiRequest.post<StatusResponse>(
-    `${API_SUFFIX.VOTE_API}/${voteId}/choice?choiceValue=${choiceValue}`
-  );
+  await apiRequest.post<StatusResponse>(`${API_SUFFIX.VOTE_API}/${voteId}/choice?choiceValue=${choiceValue}`);
 
 const getVotesByVoteId = async (voteId: number) => await apiRequest.get<BaseResponse<TVoteChoice[]>>(API_SUFFIX.VOTE_API + `/${voteId}/choices`);
 const getVoteByGroupId = async (groupId: number) => await apiRequest.get<BaseResponse<TVoteByGroup[]>>(API_SUFFIX.VOTE_BY_GROUP_API + `/${groupId}`);
@@ -55,4 +82,5 @@ export const groupApi = {
   getVotesByVoteId,
   getVoteByGroupId,
   createGroupWithSemester,
+  addMemberToGroupByModerator,
 };

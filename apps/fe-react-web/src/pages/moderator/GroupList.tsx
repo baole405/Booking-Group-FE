@@ -3,8 +3,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useDebounce } from "@/hooks/use-debounce";
 import { useGroupHook } from "@/hooks/use-group";
+import { useSemesterHook } from "@/hooks/use-semester";
 import type { TGroup } from "@/schema/group.schema";
 import { Eye, Plus, Search } from "lucide-react";
 import { useState } from "react";
@@ -45,11 +48,15 @@ const getTypeLabel = (type: string) => {
 export default function GroupList() {
   const navigate = useNavigate();
   const { useGroupList } = useGroupHook();
+  const { useSemesterList } = useSemesterHook();
 
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedSemester, setSelectedSemester] = useState<string | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const itemsPerPage = 10;
+
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   // 🟣 Gọi API danh sách nhóm
   const {
@@ -61,10 +68,14 @@ export default function GroupList() {
     size: itemsPerPage,
     sort: "id",
     dir: "asc",
-    q: searchTerm,
+    q: debouncedSearchTerm,
+    semesterId: selectedSemester ? Number(selectedSemester) : null,
     type: null,
     status: null,
   });
+
+  const { data: semesterResponse } = useSemesterList();
+  const semesters = semesterResponse?.data?.data ?? [];
 
   const groupData = groupResponse?.data?.data;
   const groups: TGroup[] = Array.isArray(groupData?.content) ? groupData.content : [];
@@ -74,27 +85,55 @@ export default function GroupList() {
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="mx-auto max-w-7xl space-y-6">
         {/* Header & Filter */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-gray-400" />
-              <Input
-                placeholder="Tìm kiếm nhóm..."
-                className="w-56 pl-9"
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
+        <div className="mb-2 rounded-lg bg-white p-6 shadow-sm">
+          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+            <h1 className="text-2xl font-bold text-gray-900">Danh sách nhóm sinh viên</h1>
+
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-gray-400" />
+                <Input
+                  placeholder="Tìm kiếm nhóm..."
+                  className="w-56 pl-9"
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                />
+              </div>
+
+              {/* Semester Filter */}
+              <Select
+                onValueChange={(value) => {
+                  // "all" là giá trị đặc biệt để xóa bộ lọc
+                  setSelectedSemester(value === "all" ? null : value);
                   setCurrentPage(1);
                 }}
-              />
+                value={selectedSemester ?? "all"}
+              >
+                <SelectTrigger className="w-56">
+                  <SelectValue placeholder="Lọc theo học kỳ" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả học kỳ</SelectItem>
+                  {semesters
+                    .filter((semester) => semester.id)
+                    .map((semester) => (
+                      <SelectItem key={semester.id} value={String(semester.id)}>
+                        {semester.name}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
             </div>
-          </div>
 
-          {/* Create button */}
-          <Button size="sm" onClick={() => setIsCreateModalOpen(true)}>
-            <Plus className="mr-1 size-4" /> Tạo nhóm
-          </Button>
+            {/* Create button */}
+            <Button size="sm" onClick={() => setIsCreateModalOpen(true)}>
+              <Plus className="mr-1 size-4" /> Tạo nhóm
+            </Button>
+          </div>
         </div>
 
         {/* Table */}

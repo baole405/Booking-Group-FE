@@ -13,11 +13,12 @@ export const useGroupHook = () => {
       status = params.status || null,
       type = params.type || null,
       q = params.q || "",
+      semesterId = params.semesterId || null,
     } = params;
 
     return useQuery({
-      queryKey: ["groupList", { page, size, sort, dir, status, type, q }],
-      queryFn: () => groupApi.getGroupList({ page, size, sort, dir, status, type, q }),
+      queryKey: ["groupList", { page, size, sort, dir, status, type, q, semesterId }],
+      queryFn: () => groupApi.getGroupList({ page, size, sort, dir, status, type, q, semesterId }),
       staleTime: 1000 * 60 * 5,
       gcTime: 1000 * 60 * 10,
       refetchOnWindowFocus: false,
@@ -254,6 +255,22 @@ export const useGroupHook = () => {
     });
   };
 
+  // 🔹 Moderator adds a user (who has no group) into a given group
+  const useAddMemberToGroup = () => {
+    const qc = useQueryClient();
+    return useMutation({
+      mutationFn: ({ groupId, userId }: { groupId: number; userId: number }) => groupApi.addMemberToGroupByModerator(groupId, userId),
+      onSuccess: async (_res, variables) => {
+        // Invalidate relevant caches so UI updates
+        await Promise.allSettled([
+          qc.invalidateQueries({ queryKey: ["groupMembers", variables.groupId] }),
+          qc.invalidateQueries({ queryKey: ["groupList"] }),
+          qc.invalidateQueries({ queryKey: ["usersNoGroup"] }),
+        ]);
+      },
+    });
+  };
+
   return {
     useGroupList,
     useGroupById,
@@ -273,5 +290,6 @@ export const useGroupHook = () => {
     useVotesByVoteId,
     useVoteByGroupId,
     useCreateGroupWithSemester,
+    useAddMemberToGroup,
   };
 };
