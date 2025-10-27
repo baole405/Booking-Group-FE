@@ -1,5 +1,6 @@
 // src/pages/forum/forum-page.tsx
 import { useState, useMemo } from "react";
+import { useSelector } from "react-redux";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2, Plus } from "lucide-react";
@@ -14,26 +15,90 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import ForumCard from "./components/forum-card";
 import { usePostHook } from "@/hooks/use-post";
+import { useGroupHook } from "@/hooks/use-group";
 import { toast } from "sonner";
 import type { TTypePost } from "@/schema/common/type-post.schema";
 import type { TPost } from "@/schema/post.schema";
+import type { RootState } from "@/redux/store";
 
 export default function ForumPage() {
   const { useGetAllPosts, useCreatePost } = usePostHook();
+  const { useMyGroup, useGetGroupLeader } = useGroupHook();
   const { data, isPending, error, refetch } = useGetAllPosts();
+  const { data: myGroupData } = useMyGroup();
   const createPost = useCreatePost();
 
-  const posts = data?.data?.data ?? [];
+  // Lấy thông tin user từ Redux
+  const userRole = useSelector((state: RootState) => state.user.role);
+  const currentEmail = useSelector((state: RootState) => state.user.user?.email);
+
+  const posts = useMemo(() => data?.data?.data ?? [], [data]);
+  const myGroup = myGroupData?.data?.data;
+
+  // Lấy thông tin leader nếu có group
+  const { data: leaderData } = useGetGroupLeader(myGroup?.id || 0);
+  const leader = leaderData?.data?.data;
 
   // Trạng thái cho dialog
   const [open, setOpen] = useState(false);
   const [content, setContent] = useState("");
-  const [type, setType] = useState<"FIND_GROUP" | "FIND_MEMBER" | "">("");
 
   // Trạng thái cho filter và search
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterType, setFilterType] = useState<"ALL" | "FIND_GROUP" | "FIND_MEMBER">("ALL");
+  const [filterType, setFilterType] = useState<"ALL" | "FIND_GROUP" | "FIND_MEMBER" | "SHARING">("ALL");
   const [sortOrder, setSortOrder] = useState<"DESC" | "ASC">("DESC"); // DESC = mới nhất trước
+
+  // Logic xác định loại bài đăng và khả năng đăng bài
+  const getPostConfig = () => {
+    // Nếu là giảng viên -> type SHARING
+    if (userRole === "LECTURER") {
+      return {
+        canPost: true,
+        postType: "SHARING" as TTypePost,
+        buttonText: "Chia sẻ"
+      };
+    }
+
+    // Nếu là student
+    if (userRole === "STUDENT") {
+      // Nếu chưa có nhóm -> type FIND_GROUP
+      if (!myGroup) {
+        return {
+          canPost: true,
+          postType: "FIND_GROUP" as TTypePost,
+          buttonText: "Tìm nhóm"
+        };
+      }
+
+      // Kiểm tra xem user có phải leader không
+      const isLeader = leader?.email === currentEmail;
+
+      // Nếu có nhóm và là leader -> type FIND_MEMBER
+      if (isLeader) {
+        return {
+          canPost: true,
+          postType: "FIND_MEMBER" as TTypePost,
+          buttonText: "Tìm thành viên"
+        };
+      }
+
+      // Nếu có nhóm nhưng không phải leader -> không được đăng bài
+      return {
+        canPost: false,
+        postType: null,
+        buttonText: ""
+      };
+    }
+
+    // Default - không được đăng bài
+    return {
+      canPost: false,
+      postType: null,
+      buttonText: ""
+    };
+  };
+
+  const postConfig = getPostConfig();
 
   // Xử lý filter, search và sort
   const filteredAndSortedPosts = useMemo(() => {
@@ -66,17 +131,16 @@ export default function ForumPage() {
   }, [posts, filterType, searchTerm, sortOrder]);
 
   const handleSubmit = async () => {
-    if (!content || !type) {
+    if (!content || !postConfig.postType) {
       toast.error("Vui lòng nhập đầy đủ thông tin.");
       return;
     }
 
     try {
-      await createPost.mutateAsync({ content, postType: type });
+      await createPost.mutateAsync({ content, postType: postConfig.postType });
       toast.success("Đã tạo bài đăng thành công!");
       setOpen(false);
       setContent("");
-      setType("");
       refetch();
     } catch (err) {
       console.error(err);
@@ -96,9 +160,11 @@ export default function ForumPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
           <h1 className="text-xl font-semibold text-primary">Bài đăng diễn đàn</h1>
 
-          <Button onClick={() => setOpen(true)} className="gap-2">
-            <Plus className="h-4 w-4" /> Tạo bài đăng
-          </Button>
+          {postConfig.canPost && (
+            <Button onClick={() => setOpen(true)} className="gap-2">
+              <Plus className="h-4 w-4" /> {postConfig.buttonText}
+            </Button>
+          )}
         </div>
 
         {/* Filter và Search Controls */}
@@ -122,6 +188,7 @@ export default function ForumPage() {
                 <SelectItem value="ALL">Tất cả</SelectItem>
                 <SelectItem value="FIND_GROUP">Tìm nhóm</SelectItem>
                 <SelectItem value="FIND_MEMBER">Tìm thành viên</SelectItem>
+                <SelectItem value="SHARING">Chia sẻ</SelectItem>
               </SelectContent>
             </Select>
 
@@ -180,19 +247,18 @@ export default function ForumPage() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Tạo bài đăng mới</DialogTitle>
+            <DialogTitle>{postConfig.buttonText}</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4 mt-2">
-            <Select value={type} onValueChange={(v) => setType(v as TTypePost)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Chọn loại bài đăng" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="FIND_GROUP">Tìm nhóm</SelectItem>
-                <SelectItem value="FIND_MEMBER">Tìm thành viên</SelectItem>
-              </SelectContent>
-            </Select>
+            {/* Hiển thị thông tin loại bài đăng */}
+            <div className="text-sm text-muted-foreground">
+              Loại bài đăng: <span className="font-medium">
+                {postConfig.postType === "FIND_GROUP" && "Tìm nhóm"}
+                {postConfig.postType === "FIND_MEMBER" && "Tìm thành viên"}
+                {postConfig.postType === "SHARING" && "Chia sẻ"}
+              </span>
+            </div>
 
             <Textarea
               value={content}
@@ -214,7 +280,7 @@ export default function ForumPage() {
                   Đang tạo...
                 </>
               ) : (
-                "Đăng bài"
+                postConfig.buttonText
               )}
             </Button>
           </DialogFooter>

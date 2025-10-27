@@ -56,9 +56,13 @@ export const ROUTES = {
   LECTURER: {
     ROOT: "/lecturer",
     GROUPS: "/lecturer/groups",
-    FORUMS: "/lecturer/forums",
-    PROFILE: "/lecturer/profile",
+    GROUP_DETAIL: "/lecturer/groups/:id",
+    FORUMS: "/lecturer/forum",
     IDEAS: "/lecturer/ideas",
     FORUM_DETAIL: "/lecturer/forum/:id",
+    IDEAS_DETAIL: "/lecturer/ideas/:id",
+    MY_PROFILE: "/lecturer/myprofile",
+    PROFILE: "/lecturer/profile/:id",
+    CHECKPOINT_REQUESTS: "/lecturer/checkpoint-requests",
   },
 };

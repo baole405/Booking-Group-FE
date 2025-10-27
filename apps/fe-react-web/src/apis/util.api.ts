@@ -39,4 +39,7 @@ export const API_SUFFIX = {
   POST_API: "/posts",                     // Lấy bài viết theo group
 
   COMMENT_API: "/comments",                 // Lấy bình luận theo bài viết
+
+  TEACHER_CHECKPOINT_API: "/teacher-checkpoints", // Checkpoint của giảng viên
+
 };

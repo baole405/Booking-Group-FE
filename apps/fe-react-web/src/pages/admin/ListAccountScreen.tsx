@@ -1,8 +1,14 @@
+import { AdminErrorState, AdminFilterBar, AdminLayout, AdminLoadingState, AdminTableContainer } from "@/components/layout/AdminLayout";
 import { UserDetailDialog } from "@/components/dialog/UserDetailDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { useUserHook } from "@/hooks/use-user";
 import type { TUser } from "@/schema/user.schema";
+import { Eye, RefreshCw, Search, Users } from "lucide-react";
 import { useState } from "react";
 
 export default function ListAccountScreen() {
@@ -39,123 +45,175 @@ export default function ListAccountScreen() {
       : (rawContent as unknown as TUser[]);
   const totalPages = userListResponse?.data?.totalPages ?? 1;
 
-  // Handle pagination button clicks
-  const handlePreviousPage = () => {
-    setPage((prevPage) => Math.max(prevPage - 1, 1));
-  };
-
-  const handleNextPage = () => {
-    setPage((prevPage) => Math.min(prevPage + 1, totalPages));
-  };
-
   const handleUserClick = (id: number) => {
-    setSelectedUserId(id); // Set the selected user ID
+    setSelectedUserId(id);
   };
 
   const handleDialogClose = () => {
     setSelectedUserId(null);
-    refetch(); // Refetch the list when the dialog is closed to see updated data
+    refetch();
+  };
+
+  const getRoleLabel = (role: string) => {
+    const map: Record<string, string> = {
+      STUDENT: "Sinh viên",
+      LECTURER: "Giảng viên",
+      MODERATOR: "Điều hành viên",
+      ADMIN: "Quản trị viên",
+    };
+    return map[role] || role;
+  };
+
+  const getStatusColor = (isActive: boolean) => {
+    return isActive
+      ? "bg-green-100 text-green-800 border-green-200"
+      : "bg-red-100 text-red-800 border-red-200";
   };
 
   return (
-    <div className="rounded bg-white p-6 shadow">
-      {/* Filter and Search Section */}
-      <div className="mb-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <input
-          className="w-full rounded border px-3 py-2 md:w-64"
-          placeholder="Tìm kiếm tài khoản..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        <div className="flex gap-2">
-          <select className="rounded border px-2 py-2" value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
-            <option value="">Tất cả vai trò</option>
-            <option value="STUDENT">Sinh viên</option>
-            <option value="LECTURER">Giảng viên</option>
-            <option value="MODERATOR">Moderator</option>
-            <option value="ADMIN">Admin</option>
-          </select>
-          <select className="rounded border px-2 py-2" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-            <option value="">Tất cả trạng thái</option>
-            <option value="active">Đang hoạt động</option>
-            <option value="inactive">Ngưng hoạt động</option>
-          </select>
-          <Button size="sm" onClick={() => refetch()} disabled={loading}>
-            Tải lại
-          </Button>
-        </div>
-      </div>
-
-      {/* Loading Indicator */}
-      {loading && (
-        <div className="py-8 text-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900"></div>
-          <p className="mt-2">Đang tải dữ liệu...</p>
-        </div>
-      )}
-
-      {/* Error Handling */}
-      {error && (
-        <div className="mb-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-red-700">
-          <p className="font-bold">Lỗi</p>
-          <p>{error.message}</p>
-          <Button size="sm" variant="outline" onClick={() => refetch()} className="mt-2">
-            Thử lại
-          </Button>
-        </div>
-      )}
-
-      {/* No Data */}
-      {!loading && !error && (!users || users.length === 0) && <div className="py-8 text-center text-gray-500">Không có dữ liệu người dùng</div>}
-
-      {/* Users Table */}
-      {!loading && !error && users && users.length > 0 && (
-        <div className="overflow-x-auto">
-          <table className="min-w-full border text-sm">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="border px-4 py-2">Mã SV</th>
-                <th className="border px-4 py-2">Họ tên</th>
-                <th className="border px-4 py-2">Email</th>
-                <th className="border px-4 py-2">Vai trò</th>
-                <th className="border px-4 py-2">Trạng thái</th>
-                <th className="border px-4 py-2">Hành động</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((userItem: TUser) => (
-                <tr key={userItem.id} className="text-center hover:bg-gray-50">
-                  <td className="border px-4 py-2">{userItem.studentCode || "-"}</td>
-                  <td className="border px-4 py-2">{userItem.fullName}</td>
-                  <td className="border px-4 py-2">{userItem.email}</td>
-                  <td className="border px-4 py-2">{userItem.role}</td>
-                  <td className="border px-4 py-2">
-                    <Badge variant={userItem.isActive ? "default" : "destructive"}>{userItem.isActive ? "Active" : "Inactive"}</Badge>
-                  </td>
-                  <td className="border px-4 py-2">
-                    <Button size="sm" variant="outline" onClick={() => handleUserClick(userItem.id)}>
-                      Xem
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* Pagination */}
-      <div className="mt-4 flex items-center justify-center gap-2">
-        <Button size="sm" variant="outline" onClick={handlePreviousPage} disabled={page === 1}>
-          Trang trước
+    <AdminLayout
+      title="Quản lý tài khoản"
+      description="Quản lý thông tin tài khoản người dùng trong hệ thống"
+      headerActions={
+        <Button size="sm" onClick={() => refetch()} disabled={loading}>
+          <RefreshCw className={`mr-1 h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+          Tải lại
         </Button>
-        <span className="mx-2">
-          {page}/{totalPages}
-        </span>
-        <Button size="sm" variant="outline" onClick={handleNextPage} disabled={page === totalPages}>
-          Trang sau
-        </Button>
-      </div>
+      }
+    >
+      {/* Filter Section */}
+      <AdminFilterBar>
+        <div className="flex flex-1 items-center space-x-4">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Input
+              placeholder="Tìm kiếm tài khoản..."
+              className="pl-9"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+
+          <Select value={roleFilter || "all"} onValueChange={(value) => setRoleFilter(value === "all" ? "" : value)}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Vai trò" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả vai trò</SelectItem>
+              <SelectItem value="STUDENT">Sinh viên</SelectItem>
+              <SelectItem value="LECTURER">Giảng viên</SelectItem>
+              <SelectItem value="MODERATOR">Điều hành viên</SelectItem>
+              <SelectItem value="ADMIN">Quản trị viên</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={statusFilter || "all"} onValueChange={(value) => setStatusFilter(value === "all" ? "" : value)}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Trạng thái" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả trạng thái</SelectItem>
+              <SelectItem value="active">Đang hoạt động</SelectItem>
+              <SelectItem value="inactive">Ngưng hoạt động</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </AdminFilterBar>
+
+      {/* Content */}
+      <AdminTableContainer>
+        {loading && <AdminLoadingState />}
+
+        {error && (
+          <AdminErrorState
+            title="Lỗi tải dữ liệu"
+            message={error.message}
+            onRetry={() => refetch()}
+          />
+        )}
+
+        {!loading && !error && (!users || users.length === 0) && (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <Users className="h-12 w-12 text-gray-400 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900">Không có dữ liệu</h3>
+            <p className="mt-1 text-sm text-gray-500">Không tìm thấy tài khoản nào phù hợp với bộ lọc</p>
+          </div>
+        )}
+
+        {!loading && !error && users && users.length > 0 && (
+          <>
+            <Table>
+              <TableHeader className="bg-gray-50/50">
+                <TableRow>
+                  <TableHead className="w-12 text-center">#</TableHead>
+                  <TableHead>Mã SV</TableHead>
+                  <TableHead>Họ tên</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Vai trò</TableHead>
+                  <TableHead>Trạng thái</TableHead>
+                  <TableHead className="text-center w-24">Thao tác</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {users.map((userItem: TUser, index) => (
+                  <TableRow key={userItem.id} className="hover:bg-gray-50/50">
+                    <TableCell className="text-center text-sm text-gray-500">
+                      {(page - 1) * 10 + index + 1}
+                    </TableCell>
+                    <TableCell className="font-mono text-sm">
+                      {userItem.studentCode || "-"}
+                    </TableCell>
+                    <TableCell className="font-medium">{userItem.fullName}</TableCell>
+                    <TableCell className="text-sm text-gray-600">{userItem.email}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="font-medium">
+                        {getRoleLabel(userItem.role)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={getStatusColor(userItem.isActive)}>
+                        {userItem.isActive ? "Hoạt động" : "Tạm khóa"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Button size="sm" variant="outline" onClick={() => handleUserClick(userItem.id)}>
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+
+            {/* Pagination */}
+            <div className="border-t bg-gray-50/50 px-6 py-4">
+              <div className="flex items-center justify-center">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        onClick={page === 1 ? undefined : () => setPage(prev => Math.max(prev - 1, 1))}
+                        aria-disabled={page === 1}
+                        className={page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                    <span className="px-4 py-2 text-sm text-gray-600">
+                      Trang {page} / {totalPages}
+                    </span>
+                    <PaginationItem>
+                      <PaginationNext
+                        onClick={page >= totalPages ? undefined : () => setPage(prev => Math.min(prev + 1, totalPages))}
+                        aria-disabled={page >= totalPages}
+                        className={page >= totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            </div>
+          </>
+        )}
+      </AdminTableContainer>
 
       {/* User Detail Modal */}
       {selectedUserId && (
@@ -166,6 +224,6 @@ export default function ListAccountScreen() {
           currentUserRole={user?.role}
         />
       )}
-    </div>
+    </AdminLayout>
   );
 }

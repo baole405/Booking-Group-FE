@@ -1,3 +1,15 @@
+import { useSelector } from "react-redux";
+import { MoreVertical, Eye } from "lucide-react";
+import type { RootState } from "@/redux/store";
+import { useRoleNavigate } from "@/hooks/useRoleNavigate";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+
 type MemberCardProps = {
   user: {
     id: number;
@@ -13,6 +25,14 @@ type MemberCardProps = {
 };
 
 export function MemberCard({ user, isThisUserTheLeader = false }: MemberCardProps) {
+  const userRole = useSelector((state: RootState) => state.user.role);
+  const isLecturer = userRole === "LECTURER";
+  const roleNavigate = useRoleNavigate();
+
+  const handleViewProfile = () => {
+    roleNavigate(`/profile/${user.id}`);
+  };
+
   return (
     <div className="rounded-lg border bg-muted/20 p-3 transition-all hover:bg-muted/40 hover:shadow-sm">
       <div className="flex items-center gap-3">
@@ -32,6 +52,26 @@ export function MemberCard({ user, isThisUserTheLeader = false }: MemberCardProp
             {user.major?.name?.trim() || "—"}
           </div>
         </div>
+
+        {/* Menu dropdown - hiển thị cho cả STUDENT và LECTURER */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 hover:bg-muted/60"
+            >
+              <MoreVertical className="h-4 w-4" />
+              <span className="sr-only">Mở menu</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem onClick={handleViewProfile} className="cursor-pointer">
+              <Eye className="mr-2 h-4 w-4" />
+              {isLecturer ? "Xem chi tiết sinh viên" : "Xem thông tin thành viên"}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   );

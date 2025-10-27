@@ -1,4 +1,4 @@
-// import HeaderLecture from "@/components/layout/header/header-lecture";
+import HeaderLecture from "@/components/layout/header/header-lecture";
 import HeaderMain from "@/components/layout/header/header-main";
 import { SiteHeader } from "@/components/layout/header/site-header";
 import { AppSidebar } from "@/components/layout/sidebar/app-sidebar";
@@ -29,6 +29,19 @@ const RoleBasedLayout = () => {
       );
 
     case "LECTURER":
+      return (
+        <div className="flex min-h-screen flex-col">
+          <header className="bg-background fixed top-0 right-0 left-0 z-50 border-b">
+            <HeaderLecture />
+          </header>
+
+          <main className="flex-1 pt-[64px]">
+            {/* pt (padding-top) = chiều cao header để tránh nội dung bị che */}
+            <Outlet />
+          </main>
+        </div>
+      );
+
     case "STUDENT":
       return (
         <div className="flex min-h-screen flex-col">

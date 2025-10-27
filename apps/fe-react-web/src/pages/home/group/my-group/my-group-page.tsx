@@ -1,4 +1,4 @@
-import { useMemo, useEffect } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
@@ -6,9 +6,18 @@ import { toast } from "sonner";
 
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 import { useGroupHook } from "@/hooks/use-group";
 import { useUserHook } from "@/hooks/use-user";
+import { useTeacherCheckpointsHook } from "@/hooks/use-teacher-checkpoints";
 import type { TUser } from "@/schema/user.schema";
 import type { TVoteByGroup, TVoteChoice } from "@/schema/group.schema";
 
@@ -39,6 +48,10 @@ export default function MyGroupPage() {
   const { search } = useLocation();
   const qc = useQueryClient();
 
+  // State cho dialog chọn giáo viên
+  const [showTeacherDialog, setShowTeacherDialog] = useState(false);
+  const [selectedTeacherId, setSelectedTeacherId] = useState<number | null>(null);
+
   const {
     useGroupMembers,
     useMyGroup,
@@ -54,6 +67,11 @@ export default function MyGroupPage() {
     useVotesByVoteId,
     useChoiceVote,
   } = useGroupHook();
+
+  // Teacher checkpoint hooks
+  const { useTeacherList, useRequestTeacherCheckpoint, useMyRequestTeacherCheckpoint } = useTeacherCheckpointsHook();
+  const { data: teacherListRes, isPending: isTeacherListPending } = useTeacherList();
+  const { mutateAsync: requestTeacherAsync, isPending: isRequestingTeacher } = useRequestTeacherCheckpoint();
 
   // current user (để check hasVoted)
   const { useMyProfile } = useUserHook();
@@ -74,6 +92,22 @@ export default function MyGroupPage() {
   const { data: groupRes, isPending: isGroupPending, error: groupError } = useMyGroup();
   const group = groupRes?.data?.data ?? null;
   const groupId = group?.id ?? 0;
+
+  // teacher checkpoint request status
+  const {
+    currentRequest: myTeacherRequest,
+    hasActiveRequest,
+    canSendNewRequest,
+    isPending: isRequestPending,
+    isApproved: isRequestApproved,
+    isRejected: isRequestRejected
+  } = useMyRequestTeacherCheckpoint(groupId);
+
+  // Tính toán thông tin giáo viên chấm checkpoint (chỉ từ approved request)
+  const approvedTeacher = isRequestApproved ? myTeacherRequest?.teacher : null;
+  const hasCheckpointTeacher = !!approvedTeacher;
+
+
 
   // members
   const {
@@ -187,6 +221,16 @@ export default function MyGroupPage() {
                 Trạng thái: {String(group.status)}
               </Badge>
             )}
+            {/* Hiển thị thông tin giáo viên chấm checkpoint (chỉ từ approved request) */}
+            {approvedTeacher ? (
+              <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                GV chấm: {approvedTeacher.fullName}
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="bg-gray-50 text-gray-600 border-gray-200">
+                Chưa có GV chấm
+              </Badge>
+            )}
           </div>
         </div>
       </div>
@@ -195,11 +239,8 @@ export default function MyGroupPage() {
     isGroupPending,
     groupError,
     groupId,
-    group?.id,
-    group?.title,
-    group?.semester,
-    group?.type,
-    group?.status,
+    group,
+    approvedTeacher,
   ]);
 
   if (isGroupPending || !groupId || !group) {
@@ -221,6 +262,18 @@ export default function MyGroupPage() {
   const memberCount = members.length;
 
   const isLeader = leader?.email === currentEmail;
+  const isGroupLocked = String(group?.status).toUpperCase() === "LOCKED";
+
+  // Debug submit idea
+  console.log("Debug submit idea:", {
+    isRequestApproved,
+    approvedTeacher: approvedTeacher?.fullName,
+    hasCheckpointTeacher,
+    isLeader,
+    currentEmail,
+    leaderEmail: leader?.email,
+    groupStatus: group?.status
+  });
 
   // minimal group to child
   const minimalGroup: GroupMinimal = {
@@ -304,6 +357,33 @@ export default function MyGroupPage() {
     }
   };
 
+  // Teacher checkpoint handlers
+  const handleSelectTeacher = async () => {
+    if (!selectedTeacherId) {
+      toast.error("Vui lòng chọn một giáo viên!");
+      return;
+    }
+
+    // Kiểm tra xem có thể gửi request mới không
+    if (!canSendNewRequest) {
+      toast.error("Nhóm đã có yêu cầu đang chờ xử lý hoặc đã được chấp nhận!");
+      return;
+    }
+
+    try {
+      await requestTeacherAsync(selectedTeacherId);
+      toast.success("Đã gửi yêu cầu chọn giáo viên chấm checkpoint!");
+      setShowTeacherDialog(false);
+      setSelectedTeacherId(null);
+      // Refresh group data and teacher request data
+      await qc.invalidateQueries({ queryKey: ["myGroup"] });
+      await qc.invalidateQueries({ queryKey: ["myRequestTeacherCheckpoint", groupId] });
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "Không thể gửi yêu cầu, vui lòng thử lại!";
+      toast.error(msg);
+    }
+  };
+
   // chọn ứng viên (vote) → cập nhật query ?voteId=
   const selectVote = (id: number) => {
     const params = new URLSearchParams(search);
@@ -327,6 +407,71 @@ export default function MyGroupPage() {
         onLeave={handleLeave}
         onViewProfile={(id) => navigate(`/student/profile/${id}`)}
       />
+
+      {/* Phần chọn giáo viên chấm - hiển thị theo trạng thái request */}
+      {isGroupLocked && isLeader && !hasCheckpointTeacher && (
+        <Card className="p-4">
+          <div className="mb-2">
+            <h3 className="text-lg font-semibold">Giáo viên chấm checkpoint</h3>
+
+            {/* Hiển thị theo trạng thái request */}
+            {isRequestPending && (
+              <div className="space-y-2">
+                <p className="text-sm text-blue-600">
+                  Đã gửi yêu cầu đến GV {myTeacherRequest?.teacher?.fullName}.
+                  Đang chờ phê duyệt...
+                </p>
+                <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200">
+                  Đang chờ xác nhận
+                </Badge>
+              </div>
+            )}
+
+            {isRequestApproved && (
+              <div className="space-y-2">
+                <p className="text-sm text-green-600">
+                  GV {myTeacherRequest?.teacher?.fullName} đã chấp nhận làm giáo viên chấm checkpoint cho nhóm.
+                </p>
+                <Badge variant="default" className="bg-green-50 text-green-700 border-green-200">
+                  Đã chấp nhận
+                </Badge>
+              </div>
+            )}
+
+            {isRequestRejected && (
+              <div className="space-y-2">
+                <p className="text-sm text-red-600">
+                  Yêu cầu đến GV {myTeacherRequest?.teacher?.fullName} đã bị từ chối.
+                </p>
+                {myTeacherRequest?.message && (
+                  <p className="text-sm text-muted-foreground">
+                    Lý do: {myTeacherRequest.message}
+                  </p>
+                )}
+                <Badge variant="destructive" className="bg-red-50 text-red-700 border-red-200">
+                  Đã từ chối
+                </Badge>
+              </div>
+            )}
+
+            {!hasActiveRequest && (
+              <p className="text-sm text-muted-foreground">
+                Nhóm đã hoàn tất, vui lòng chọn giáo viên để chấm checkpoint.
+              </p>
+            )}
+          </div>
+
+          {/* Chỉ hiện button chọn khi có thể gửi request mới */}
+          {canSendNewRequest && (
+            <Button
+              onClick={() => setShowTeacherDialog(true)}
+              className="w-full"
+            >
+              {isRequestRejected ? "Chọn giáo viên khác" : "Chọn giáo viên chấm"}
+            </Button>
+          )}
+        </Card>
+      )}
 
       <Card className="p-4">
         <div className="mb-2 flex items-center justify-between">
@@ -388,12 +533,72 @@ export default function MyGroupPage() {
         group={minimalGroup}
         aside={membersAside}
         isLeader={isLeader}
+        hasCheckpointTeacher={hasCheckpointTeacher}
         memberCount={memberCount}
         isChangingType={isChangingType}
         isFinalizing={isFinalizing}
         onChangeType={handleChangeType}
         onFinalize={handleFinalize}
       />
+
+      {/* Dialog chọn giáo viên */}
+      <Dialog open={showTeacherDialog} onOpenChange={setShowTeacherDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Chọn giáo viên chấm checkpoint</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {isTeacherListPending ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin" />
+                <span className="ml-2">Đang tải danh sách giáo viên...</span>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {teacherListRes?.data?.data?.map((teacher: TUser) => (
+                  <button
+                    key={teacher.id}
+                    onClick={() => setSelectedTeacherId(teacher.id)}
+                    className={`w-full p-3 text-left rounded-lg border transition-colors ${selectedTeacherId === teacher.id
+                      ? "border-blue-500 bg-blue-50"
+                      : "border-gray-200 hover:bg-gray-50"
+                      }`}
+                  >
+                    <div className="font-medium">{teacher.fullName}</div>
+                    <div className="text-sm text-gray-600">{teacher.email}</div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowTeacherDialog(false);
+                setSelectedTeacherId(null);
+              }}
+            >
+              Hủy
+            </Button>
+            <Button
+              onClick={handleSelectTeacher}
+              disabled={!selectedTeacherId || isRequestingTeacher}
+            >
+              {isRequestingTeacher ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Đang gửi...
+                </>
+              ) : (
+                "Chọn giáo viên"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

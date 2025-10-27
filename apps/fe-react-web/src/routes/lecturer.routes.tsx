@@ -10,26 +10,29 @@ import { ErrorBoundary } from "react-error-boundary";
 
 const Loadable =
   <P extends object>(Component: React.ComponentType<P>) =>
-  (props: P) => {
-    return (
-      <QueryErrorResetBoundary>
-        {({ reset }) => (
-          <ErrorBoundary onReset={reset} FallbackComponent={ErrorFallback}>
-            <Suspense fallback={<LoadingScreen />}>
-              <Component {...props} />
-            </Suspense>
-          </ErrorBoundary>
-        )}
-      </QueryErrorResetBoundary>
-    );
-  };
+    (props: P) => {
+      return (
+        <QueryErrorResetBoundary>
+          {({ reset }) => (
+            <ErrorBoundary onReset={reset} FallbackComponent={ErrorFallback}>
+              <Suspense fallback={<LoadingScreen />}>
+                <Component {...props} />
+              </Suspense>
+            </ErrorBoundary>
+          )}
+        </QueryErrorResetBoundary>
+      );
+    };
 
 // -------- Lazy pages --------
 const GroupPage = Loadable(lazy(() => import("@/pages/home/group/list-group/list-group-page")));
 const ForumPage = Loadable(lazy(() => import("@/pages/home/forum/forum-page")));
 const UserProfile = Loadable(lazy(() => import("@/pages/home/user/user-profile")));
 const ForumDetail = Loadable(lazy(() => import("@/pages/home/forum/forum-detail")));
-
+const GroupDetailPage = Loadable(lazy(() => import("@/pages/home/group/group-detail/group-detail")));
+const IdeaListPage = Loadable(lazy(() => import("@/pages/home/idea/list-idea-page")));
+const MyProfile = Loadable(lazy(() => import("@/pages/home/user/my-profile")));
+const CheckpointRequestsPage = Loadable(lazy(() => import("@/pages/lecturer/checkpoint-requests/checkpoint-requests-page")));
 const lecturerRoutes = {
   path: ROUTES.LECTURER.ROOT,
   element: (
@@ -40,10 +43,14 @@ const lecturerRoutes = {
   children: [
     { index: true, element: <GroupPage /> },
     { path: ROUTES.LECTURER.GROUPS, element: <GroupPage /> },
+    { path: ROUTES.LECTURER.GROUP_DETAIL, element: <GroupDetailPage /> },
     { path: ROUTES.LECTURER.FORUMS, element: <ForumPage /> },
     { path: ROUTES.LECTURER.FORUM_DETAIL, element: <ForumDetail /> },
     { path: ROUTES.LECTURER.PROFILE, element: <UserProfile /> },
-    { path: ROUTES.LECTURER.IDEAS, element: <GroupPage /> },
+    { path: ROUTES.LECTURER.IDEAS, element: <IdeaListPage /> },
+    { path: ROUTES.LECTURER.MY_PROFILE, element: <MyProfile /> },
+    { path: ROUTES.LECTURER.CHECKPOINT_REQUESTS, element: <CheckpointRequestsPage /> },
+
     // thêm các trang dành cho giảng viên ở đây
   ],
 };

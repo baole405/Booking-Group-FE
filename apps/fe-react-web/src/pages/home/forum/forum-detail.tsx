@@ -1,7 +1,9 @@
 import { useMemo, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { Loader2, CalendarDays, Pencil, Edit3, Trash2 } from "lucide-react";
+
+import { useRoleNavigate } from "@/hooks/useRoleNavigate";
 
 import { usePostHook } from "@/hooks/use-post";
 import { useCommentHook } from "@/hooks/use-comment";
@@ -15,7 +17,7 @@ import type { RootState } from "@/redux/store";
 export default function ForumDetail() {
   const { id } = useParams();
   const postId = Number(id);
-  const navigate = useNavigate();
+  const roleNavigate = useRoleNavigate();
 
   // Lấy email hiện tại từ Redux (sửa selector nếu cấu trúc khác)
   const currentEmail = useSelector((s: RootState) => s.user.user?.email) ?? "";
@@ -119,7 +121,7 @@ export default function ForumDetail() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen text-destructive">
         <p className="text-lg font-medium mb-2">Không thể tải bài đăng.</p>
-        <Button variant="outline" onClick={() => navigate(-1)}>
+        <Button variant="outline" onClick={() => window.history.back()}>
           ← Quay lại
         </Button>
       </div>
@@ -148,7 +150,7 @@ export default function ForumDetail() {
             </div>
             <h2
               className={`text-xl font-semibold text-primary ${isFindGroup && post.userResponse?.id ? "cursor-pointer hover:underline transition-colors" : ""}`}
-              onClick={() => isFindGroup && post.userResponse?.id && navigate(`/student/profile/${post.userResponse.id}`)}
+              onClick={() => isFindGroup && post.userResponse?.id && roleNavigate(`/profile/${post.userResponse.id}`)}
             >
               {isFindGroup
                 ? post.userResponse?.fullName ?? "Người dùng ẩn danh"
@@ -163,7 +165,7 @@ export default function ForumDetail() {
 
           {canUpdatePost && (
             <Button
-              onClick={() => navigate(`/student/forum/edit/${postId}`)}
+              onClick={() => roleNavigate(`/forum/${postId}/edit`)}
               className="gap-2"
               variant="secondary"
             >
@@ -274,13 +276,13 @@ export default function ForumDetail() {
                           }
                           alt={author?.fullName || "User"}
                           className="h-8 w-8 rounded-full object-cover flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
-                          onClick={() => author?.id && navigate(`/student/profile/${author.id}`)}
+                          onClick={() => author?.id && roleNavigate(`/profile/${author.id}`)}
                         />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-2 mb-1">
                             <span
                               className="text-sm font-medium truncate cursor-pointer hover:text-primary hover:underline transition-colors"
-                              onClick={() => author?.id && navigate(`/student/profile/${author.id}`)}
+                              onClick={() => author?.id && roleNavigate(`/profile/${author.id}`)}
                             >
                               {author?.fullName || "Ẩn danh"}
                             </span>
@@ -371,7 +373,7 @@ export default function ForumDetail() {
 
         {/* Back */}
         <div className="pt-4">
-          <Button variant="outline" onClick={() => navigate(-1)}>
+          <Button variant="outline" onClick={() => window.history.back()}>
             ← Quay lại danh sách
           </Button>
         </div>
