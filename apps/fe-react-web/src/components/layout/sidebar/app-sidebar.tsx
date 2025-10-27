@@ -36,6 +36,11 @@ const menuData = {
       url: ROUTES.ADMIN.STUDENTS,
       icon: UsersIcon,
     },
+    {
+      title: "Chuyên ngành",
+      url: ROUTES.ADMIN.MAJORS,
+      icon: UsersIcon,
+    },
   ],
   MODERATOR: [
     {

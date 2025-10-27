@@ -1,5 +1,5 @@
 import { majorApi } from "@/apis/major.api";
-import type { TMajor } from "@/schema/major.schema";
+import type { TCreateMajor, TUpdateMajor } from "@/schema/major.schema";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
 export const useMajorHook = () => {
@@ -17,17 +17,17 @@ export const useMajorHook = () => {
 
   const useCreateMajor = () =>
     useMutation({
-      mutationFn: (data: TMajor) => majorApi.createMajor(data),
+      mutationFn: (data: TCreateMajor) => majorApi.createMajor(data),
     });
 
-  const useUpdateMajor = (id: number) =>
+  const useUpdateMajor = () =>
     useMutation({
-      mutationFn: (data: TMajor) => majorApi.updateMajor(id, data),
+      mutationFn: ({ id, data }: { id: number; data: TUpdateMajor }) => majorApi.updateMajor(id, data),
     });
 
-  const useDeleteMajor = (id: number) =>
+  const useDeleteMajor = () =>
     useMutation({
-      mutationFn: () => majorApi.deleteMajor(id),
+      mutationFn: (id: number) => majorApi.deleteMajor(id),
     });
 
   return {
