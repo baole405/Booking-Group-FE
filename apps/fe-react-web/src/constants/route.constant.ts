@@ -65,4 +65,7 @@ export const ROUTES = {
     PROFILE: "/lecturer/profile/:id",
     CHECKPOINT_REQUESTS: "/lecturer/checkpoint-requests",
   },
+
+  // Utility / internal routes
+  TEST: "/test",
 };
