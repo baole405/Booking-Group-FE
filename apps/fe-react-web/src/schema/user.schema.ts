@@ -10,7 +10,7 @@ export interface GetUserListParams {
   // Optional alias used by some callers
   search?: string;
   majorCode?: number;
-  isActive?: boolean;
+  active?: boolean;
   sort?: string;
   dir?: string;
 }
