@@ -8,7 +8,13 @@ export const getCloudflareImageUrl = (imageId: string): string => {
   if (imageId.startsWith("http")) return imageId;
 
   const baseUrl = envConfig.VITE_CLOUDFLARE_R2_URL ?? "https://your-r2-bucket.r2.dev";
-  return `${baseUrl.replace(/\/+$/, "")}/${imageId}`;
+  let normalizedBaseUrl = baseUrl;
+
+  while (normalizedBaseUrl.endsWith("/") && normalizedBaseUrl.length > 1) {
+    normalizedBaseUrl = normalizedBaseUrl.slice(0, -1);
+  }
+
+  return `${normalizedBaseUrl}/${imageId}`;
 };
 
 /**
