@@ -1,11 +1,11 @@
-import { AdminErrorState, AdminFilterBar, AdminLayout, AdminLoadingState, AdminTableContainer } from "@/components/layout/AdminLayout";
 import { UserDetailDialog } from "@/components/dialog/UserDetailDialog";
+import { AdminErrorState, AdminFilterBar, AdminLayout, AdminLoadingState, AdminTableContainer } from "@/components/layout/AdminLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { useUserHook } from "@/hooks/use-user";
 import type { TUser } from "@/schema/user.schema";
 import { Eye, RefreshCw, Search, Users } from "lucide-react";
@@ -34,7 +34,7 @@ export default function ListAccountScreen() {
     size: 10,
     role: (roleFilter as TUser["role"]) || undefined,
     q: search,
-    isActive: statusFilter ? statusFilter === "active" : undefined,
+    active: statusFilter === "" ? undefined : statusFilter === "active",
   });
 
   // Safely handle user data
@@ -65,9 +65,7 @@ export default function ListAccountScreen() {
   };
 
   const getStatusColor = (isActive: boolean) => {
-    return isActive
-      ? "bg-green-100 text-green-800 border-green-200"
-      : "bg-red-100 text-red-800 border-red-200";
+    return isActive ? "bg-green-100 text-green-800 border-green-200" : "bg-red-100 text-red-800 border-red-200";
   };
 
   return (
@@ -84,14 +82,9 @@ export default function ListAccountScreen() {
       {/* Filter Section */}
       <AdminFilterBar>
         <div className="flex flex-1 items-center space-x-4">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-            <Input
-              placeholder="Tìm kiếm tài khoản..."
-              className="pl-9"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+          <div className="relative max-w-sm flex-1">
+            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Input placeholder="Tìm kiếm tài khoản..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
 
           <Select value={roleFilter || "all"} onValueChange={(value) => setRoleFilter(value === "all" ? "" : value)}>
@@ -124,17 +117,11 @@ export default function ListAccountScreen() {
       <AdminTableContainer>
         {loading && <AdminLoadingState />}
 
-        {error && (
-          <AdminErrorState
-            title="Lỗi tải dữ liệu"
-            message={error.message}
-            onRetry={() => refetch()}
-          />
-        )}
+        {error && <AdminErrorState title="Lỗi tải dữ liệu" message={error.message} onRetry={() => refetch()} />}
 
         {!loading && !error && (!users || users.length === 0) && (
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <Users className="h-12 w-12 text-gray-400 mb-4" />
+            <Users className="mb-4 h-12 w-12 text-gray-400" />
             <h3 className="text-lg font-medium text-gray-900">Không có dữ liệu</h3>
             <p className="mt-1 text-sm text-gray-500">Không tìm thấy tài khoản nào phù hợp với bộ lọc</p>
           </div>
@@ -151,18 +138,14 @@ export default function ListAccountScreen() {
                   <TableHead>Email</TableHead>
                   <TableHead>Vai trò</TableHead>
                   <TableHead>Trạng thái</TableHead>
-                  <TableHead className="text-center w-24">Thao tác</TableHead>
+                  <TableHead className="w-24 text-center">Thao tác</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {users.map((userItem: TUser, index) => (
                   <TableRow key={userItem.id} className="hover:bg-gray-50/50">
-                    <TableCell className="text-center text-sm text-gray-500">
-                      {(page - 1) * 10 + index + 1}
-                    </TableCell>
-                    <TableCell className="font-mono text-sm">
-                      {userItem.studentCode || "-"}
-                    </TableCell>
+                    <TableCell className="text-center text-sm text-gray-500">{(page - 1) * 10 + index + 1}</TableCell>
+                    <TableCell className="font-mono text-sm">{userItem.studentCode || "-"}</TableCell>
                     <TableCell className="font-medium">{userItem.fullName}</TableCell>
                     <TableCell className="text-sm text-gray-600">{userItem.email}</TableCell>
                     <TableCell>
@@ -171,9 +154,7 @@ export default function ListAccountScreen() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge className={getStatusColor(userItem.isActive)}>
-                        {userItem.isActive ? "Hoạt động" : "Tạm khóa"}
-                      </Badge>
+                      <Badge className={getStatusColor(userItem.isActive)}>{userItem.isActive ? "Hoạt động" : "Ngưng hoạt động"}</Badge>
                     </TableCell>
                     <TableCell className="text-center">
                       <Button size="sm" variant="outline" onClick={() => handleUserClick(userItem.id)}>
@@ -192,7 +173,7 @@ export default function ListAccountScreen() {
                   <PaginationContent>
                     <PaginationItem>
                       <PaginationPrevious
-                        onClick={page === 1 ? undefined : () => setPage(prev => Math.max(prev - 1, 1))}
+                        onClick={page === 1 ? undefined : () => setPage((prev) => Math.max(prev - 1, 1))}
                         aria-disabled={page === 1}
                         className={page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
                       />
@@ -202,7 +183,7 @@ export default function ListAccountScreen() {
                     </span>
                     <PaginationItem>
                       <PaginationNext
-                        onClick={page >= totalPages ? undefined : () => setPage(prev => Math.min(prev + 1, totalPages))}
+                        onClick={page >= totalPages ? undefined : () => setPage((prev) => Math.min(prev + 1, totalPages))}
                         aria-disabled={page >= totalPages}
                         className={page >= totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
                       />

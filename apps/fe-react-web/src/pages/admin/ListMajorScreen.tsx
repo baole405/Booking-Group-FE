@@ -1,6 +1,6 @@
-import { AdminErrorState, AdminFilterBar, AdminLayout, AdminLoadingState, AdminTableContainer } from "@/components/layout/AdminLayout";
 import { CreateMajorDialog } from "@/components/dialog/CreateMajorDialog";
 import { MajorDetailDialog } from "@/components/dialog/MajorDetailDialog";
+import { AdminErrorState, AdminFilterBar, AdminLayout, AdminLoadingState, AdminTableContainer } from "@/components/layout/AdminLayout";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,9 +14,9 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { useMajorHook } from "@/hooks/use-major";
 import type { TMajor } from "@/schema/major.schema";
 import { useQueryClient } from "@tanstack/react-query";
@@ -84,9 +84,7 @@ export default function ListMajorScreen() {
   };
 
   const getStatusColor = (isActive: boolean) => {
-    return isActive
-      ? "bg-green-100 text-green-800 border-green-200"
-      : "bg-red-100 text-red-800 border-red-200";
+    return isActive ? "bg-green-100 text-green-800 border-green-200" : "bg-red-100 text-red-800 border-red-200";
   };
 
   return (
@@ -106,8 +104,8 @@ export default function ListMajorScreen() {
       {/* Filter Section */}
       <AdminFilterBar>
         <div className="flex flex-1 items-center space-x-4">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          <div className="relative max-w-sm flex-1">
+            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <Input
               placeholder="Tìm kiếm ngành học..."
               className="pl-9"
@@ -119,10 +117,13 @@ export default function ListMajorScreen() {
             />
           </div>
 
-          <Select value={statusFilter} onValueChange={(value: "all" | "active" | "inactive") => {
-            setStatusFilter(value);
-            setPage(1);
-          }}>
+          <Select
+            value={statusFilter}
+            onValueChange={(value: "all" | "active" | "inactive") => {
+              setStatusFilter(value);
+              setPage(1);
+            }}
+          >
             <SelectTrigger className="w-48">
               <SelectValue placeholder="Trạng thái" />
             </SelectTrigger>
@@ -139,17 +140,11 @@ export default function ListMajorScreen() {
       <AdminTableContainer>
         {isLoading && <AdminLoadingState />}
 
-        {error && (
-          <AdminErrorState
-            title="Lỗi tải dữ liệu"
-            message={error.message}
-            onRetry={() => refetch()}
-          />
-        )}
+        {error && <AdminErrorState title="Lỗi tải dữ liệu" message={error.message} onRetry={() => refetch()} />}
 
         {!isLoading && !error && paginatedMajors.length === 0 && (
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <GraduationCap className="h-12 w-12 text-gray-400 mb-4" />
+            <GraduationCap className="mb-4 h-12 w-12 text-gray-400" />
             <h3 className="text-lg font-medium text-gray-900">Không có dữ liệu</h3>
             <p className="mt-1 text-sm text-gray-500">Không tìm thấy ngành học nào phù hợp với bộ lọc</p>
             <CreateMajorDialog />
@@ -170,21 +165,22 @@ export default function ListMajorScreen() {
               <TableBody>
                 {paginatedMajors.map((major) => (
                   <TableRow key={major.id} className="hover:bg-gray-50/50">
-                    <TableCell className="text-center font-mono text-sm text-gray-500">
-                      {major.id}
-                    </TableCell>
+                    <TableCell className="text-center font-mono text-sm text-gray-500">{major.id}</TableCell>
                     <TableCell className="font-medium">{major.name}</TableCell>
                     <TableCell className="text-center">
-                      <Badge className={getStatusColor(major.active)}>
-                        {major.active ? "Hoạt động" : "Tạm khóa"}
-                      </Badge>
+                      <Badge className={getStatusColor(major.active)}>{major.active ? "Hoạt động" : "Ngưng hoạt động"}</Badge>
                     </TableCell>
                     <TableCell className="text-center">
                       <div className="flex items-center justify-center gap-2">
                         <Button size="sm" variant="outline" onClick={() => handleDetailClick(major)}>
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button size="sm" variant="outline" onClick={() => handleDeleteClick(major)} className="text-red-600 hover:text-red-700 hover:bg-red-50">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleDeleteClick(major)}
+                          className="text-red-600 hover:bg-red-50 hover:text-red-700"
+                        >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
@@ -202,7 +198,7 @@ export default function ListMajorScreen() {
                     <PaginationContent>
                       <PaginationItem>
                         <PaginationPrevious
-                          onClick={page === 1 ? undefined : () => setPage(prev => Math.max(prev - 1, 1))}
+                          onClick={page === 1 ? undefined : () => setPage((prev) => Math.max(prev - 1, 1))}
                           aria-disabled={page === 1}
                           className={page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
                         />
@@ -212,7 +208,7 @@ export default function ListMajorScreen() {
                       </span>
                       <PaginationItem>
                         <PaginationNext
-                          onClick={page >= totalPages ? undefined : () => setPage(prev => Math.min(prev + 1, totalPages))}
+                          onClick={page >= totalPages ? undefined : () => setPage((prev) => Math.min(prev + 1, totalPages))}
                           aria-disabled={page >= totalPages}
                           className={page >= totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
                         />
@@ -243,8 +239,6 @@ export default function ListMajorScreen() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-
 
       {/* Major Detail Dialog */}
       <MajorDetailDialog major={selectedMajor} open={isDetailOpen} onOpenChange={setIsDetailOpen} onUpdateSuccess={refetch} />
