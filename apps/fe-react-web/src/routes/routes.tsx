@@ -28,6 +28,7 @@ const Loadable =
   };
 const LoginPage = Loadable(lazy(() => import("@/pages/auth/login")));
 const Logout = Loadable(lazy(() => import("@/pages/auth/logout")));
+const UploadTestPage = Loadable(lazy(() => import("@/pages/test/upload-test")));
 
 export default function MainRoutes() {
   return useRoutes([
@@ -45,6 +46,7 @@ export default function MainRoutes() {
     studentRoutes,
     lecturerRoutes,
     moderatorRoutes,
+    { path: ROUTES.TEST, element: <UploadTestPage /> },
     { path: "*", element: <Navigate to={ROUTES.HOME} replace /> },
     { path: "404", element: <LoginPage /> },
   ]);
