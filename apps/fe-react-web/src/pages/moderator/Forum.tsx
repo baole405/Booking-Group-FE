@@ -2,15 +2,18 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { usePostHook } from "@/hooks/use-post.tsx";
+import type { RootState } from "@/redux/store";
 import type { TPost } from "@/schema/post.schema";
-import { Calendar, Loader2, MessageSquare, Plus, Search, User, Users } from "lucide-react";
-import { useState } from "react";
+import { Calendar, Loader2, MessageSquare, MoreVertical, Plus, Search, User, Users } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 
 // ───────────────────── Helper Functions ─────────────────────
 const getTypeLabel = (type: string) => {
@@ -33,9 +36,13 @@ const getTypeBadgeColor = (type: string) => {
 };
 
 export default function Forum() {
-  const { useGetAllPosts, useGetPostsByType, useDeletePost, useCreatePost } = usePostHook();
+  const { useGetAllPosts, useGetPostsByType, useDeletePost, useCreatePost, useUpdatePost, useGetPostById } = usePostHook();
   const deletePostMutation = useDeletePost();
   const createPostMutation = useCreatePost();
+  const updatePostMutation = useUpdatePost();
+
+  const userId = useSelector((s: RootState) => s.user.userId);
+  const currentEmail = useSelector((s: RootState) => s.user.user?.email);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<string>("ALL");
@@ -43,6 +50,12 @@ export default function Forum() {
   const [selectedPost, setSelectedPost] = useState<TPost | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+
+  // Edit form state
+  const [editingPostId, setEditingPostId] = useState<number | null>(null);
+  const [editPostType, setEditPostType] = useState<"FIND_GROUP" | "FIND_MEMBER">("FIND_GROUP");
+  const [editPostContent, setEditPostContent] = useState("");
 
   // Form state for creating post
   const [newPostContent, setNewPostContent] = useState("");
@@ -52,6 +65,17 @@ export default function Forum() {
   const { data: allPostsRes, isPending: isAllPending, error: allError, refetch: refetchAll } = useGetAllPosts();
   const { data: findGroupRes, isPending: isGroupPending, error: groupError, refetch: refetchGroup } = useGetPostsByType("FIND_GROUP");
   const { data: findMemberRes, isPending: isMemberPending, error: memberError, refetch: refetchMember } = useGetPostsByType("FIND_MEMBER");
+
+  // Fetch latest detail when opening edit
+  const { data: editDetailRes } = useGetPostById(editingPostId ?? 0);
+
+  useEffect(() => {
+    const detail = editDetailRes?.data?.data;
+    if (detail && isEditOpen) {
+      setEditPostType((detail.type as "FIND_GROUP" | "FIND_MEMBER") ?? "FIND_GROUP");
+      setEditPostContent(detail.content ?? "");
+    }
+  }, [editDetailRes, isEditOpen]);
 
   // Select appropriate data based on filter type
   let postsRes, isPending, error;
@@ -143,6 +167,41 @@ export default function Forum() {
       const errorResponse = error as { response?: { data?: { message?: string } } };
       console.error("Error response:", errorResponse?.response?.data);
       alert(`Có lỗi xảy ra khi tạo bài viết! ${errorResponse?.response?.data?.message || ""}`);
+    }
+  };
+
+  const openEditPost = (post: TPost) => {
+    // Guard: only owner can edit (by id or email fallback)
+    const isOwner =
+      (post.userResponse?.id != null && userId != null && post.userResponse.id === userId) ||
+      (!!post.userResponse?.email && !!currentEmail && post.userResponse.email === currentEmail);
+    if (!isOwner) return;
+    setEditingPostId(post.id);
+    setIsEditOpen(true);
+    // prefill from current card while waiting for GET detail
+    setEditPostType((post.type as "FIND_GROUP" | "FIND_MEMBER") ?? "FIND_GROUP");
+    setEditPostContent(post.content ?? "");
+  };
+
+  const handleUpdatePost = async () => {
+    if (!editingPostId) return;
+    if (!editPostContent.trim()) {
+      alert("Vui lòng nhập nội dung bài viết!");
+      return;
+    }
+    try {
+      await updatePostMutation.mutateAsync({ id: editingPostId, data: { postType: editPostType, content: editPostContent.trim() } });
+      setIsEditOpen(false);
+      setEditingPostId(null);
+      // Refetch all lists to reflect updates
+      refetchAll();
+      refetchGroup();
+      refetchMember();
+      alert("Cập nhật bài viết thành công!");
+    } catch (error: unknown) {
+      console.error("Update error:", error);
+      const err = error as { response?: { data?: { message?: string } } };
+      alert(`Có lỗi xảy ra khi cập nhật bài viết! ${err?.response?.data?.message || ""}`);
     }
   };
 
@@ -285,7 +344,30 @@ export default function Forum() {
         ) : (
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
             {filteredPosts.map((post) => (
-              <Card key={post.id} className="flex h-full flex-col transition-shadow hover:shadow-md">
+              <Card key={post.id} className="relative flex h-full flex-col transition-shadow hover:shadow-md">
+                {/* Owner actions: show 3-dots; disabled look if post deleted */}
+                {(post.userResponse?.id === userId || post.userResponse?.email === currentEmail) && (
+                  <div className="absolute top-2 right-2 z-10">
+                    {post.active === false ? (
+                      <Button variant="ghost" size="icon" className="h-8 w-8 cursor-not-allowed opacity-50" disabled>
+                        <MoreVertical className="h-4 w-4" />
+                        <span className="sr-only">Menu bị vô hiệu</span>
+                      </Button>
+                    ) : (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreVertical className="h-4 w-4" />
+                            <span className="sr-only">Mở menu</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-40">
+                          <DropdownMenuItem onClick={() => openEditPost(post)}>Cập nhật</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                  </div>
+                )}
                 <CardHeader className="p-3 pb-2">
                   <div className="mb-2 flex items-center gap-2">
                     {/* User Avatar */}
@@ -455,6 +537,21 @@ export default function Forum() {
                   <Button variant="outline" onClick={() => setIsDetailOpen(false)}>
                     Đóng
                   </Button>
+
+                  {/* Owner-only: Edit button; disabled if post is deleted */}
+                  {(selectedPost.userResponse?.id === userId || selectedPost.userResponse?.email === currentEmail) && (
+                    <Button
+                      className="text-sm"
+                      disabled={selectedPost.active === false}
+                      onClick={() => {
+                        openEditPost(selectedPost);
+                        setIsDetailOpen(false);
+                      }}
+                    >
+                      Cập nhật
+                    </Button>
+                  )}
+
                   <Button
                     variant="destructive"
                     className="text-sm"
@@ -470,6 +567,73 @@ export default function Forum() {
                 </div>
               </>
             )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Post Dialog */}
+        <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold">Cập nhật bài viết</DialogTitle>
+              <DialogDescription>Chỉnh sửa nội dung và loại bài viết của bạn</DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 py-4">
+              {/* Post Type */}
+              <div className="space-y-2">
+                <Label htmlFor="editPostType" className="text-sm font-medium">
+                  Loại bài viết
+                </Label>
+                <Select value={editPostType} onValueChange={(value: "FIND_GROUP" | "FIND_MEMBER") => setEditPostType(value)}>
+                  <SelectTrigger id="editPostType">
+                    <SelectValue placeholder="Chọn loại bài viết" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="FIND_GROUP">Tìm nhóm</SelectItem>
+                    <SelectItem value="FIND_MEMBER">Tìm thành viên</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Post Content */}
+              <div className="space-y-2">
+                <Label htmlFor="editPostContent" className="text-sm font-medium">
+                  Nội dung bài viết
+                </Label>
+                <Textarea
+                  id="editPostContent"
+                  placeholder="Nhập nội dung bài viết (tối đa 500 ký tự)..."
+                  value={editPostContent}
+                  onChange={(e) => setEditPostContent(e.target.value)}
+                  className="min-h-[200px] resize-none"
+                  maxLength={500}
+                />
+                <p className="text-right text-xs text-gray-500">{editPostContent.length}/500 ký tự</p>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex justify-end gap-2 border-t pt-4">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsEditOpen(false);
+                  setEditingPostId(null);
+                }}
+              >
+                Hủy
+              </Button>
+              <Button onClick={handleUpdatePost} disabled={updatePostMutation.isPending || !editPostContent.trim()}>
+                {updatePostMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Đang cập nhật...
+                  </>
+                ) : (
+                  "Lưu thay đổi"
+                )}
+              </Button>
+            </div>
           </DialogContent>
         </Dialog>
 

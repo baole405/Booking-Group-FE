@@ -1,5 +1,5 @@
 import type { RootState } from "@/redux/store";
-import { ArrowUpCircleIcon, BarChartIcon, ClipboardListIcon, DatabaseIcon, FolderIcon, LayoutDashboardIcon, ListIcon, UsersIcon } from "lucide-react";
+import { ArrowUpCircleIcon, ClipboardListIcon, DatabaseIcon, LayoutDashboardIcon, ListIcon, UsersIcon } from "lucide-react";
 import * as React from "react";
 import { useSelector } from "react-redux";
 
@@ -20,21 +20,6 @@ const menuData = {
       title: "Kỳ học",
       url: ROUTES.ADMIN.SEMESTERS,
       icon: ListIcon,
-    },
-    {
-      title: "Giảng viên",
-      url: ROUTES.ADMIN.LECTURERS,
-      icon: BarChartIcon,
-    },
-    {
-      title: "Projects",
-      url: ROUTES.ADMIN.PROJECTS,
-      icon: FolderIcon,
-    },
-    {
-      title: "Sinh viên",
-      url: ROUTES.ADMIN.STUDENTS,
-      icon: UsersIcon,
     },
     {
       title: "Chuyên ngành",

@@ -9,6 +9,7 @@ const envSchema = z.object({
   VITE_FIREBASE_MESSAGING_SENDER_ID: z.string(),
   VITE_FIREBASE_APP_ID: z.string(),
   VITE_FIREBASE_MEASUREMENT_ID: z.string(),
+  VITE_CLOUDFLARE_R2_URL: z.string().url().optional(),
 });
 
 const parsedEnv = envSchema.safeParse(import.meta.env);

@@ -1,12 +1,12 @@
-import { AdminErrorState, AdminFilterBar, AdminLayout, AdminLoadingState, AdminTableContainer } from "@/components/layout/AdminLayout";
 import { CreateSemesterDialog } from "@/components/dialog/CreateSemesterDialog";
 import { SemesterDetailDialog } from "@/components/dialog/SemesterDetailDialog";
+import { AdminErrorState, AdminFilterBar, AdminLayout, AdminLoadingState, AdminTableContainer } from "@/components/layout/AdminLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { useSemesterHook } from "@/hooks/use-semester";
 import type { TSemester } from "@/schema/semester.schema";
 import { Calendar, Eye, RefreshCw, Search } from "lucide-react";
@@ -47,9 +47,7 @@ export default function ListSemesterScreen() {
   };
 
   const getStatusColor = (isActive: boolean) => {
-    return isActive
-      ? "bg-green-100 text-green-800 border-green-200"
-      : "bg-red-100 text-red-800 border-red-200";
+    return isActive ? "bg-green-100 text-green-800 border-green-200" : "bg-red-100 text-red-800 border-red-200";
   };
 
   return (
@@ -69,8 +67,8 @@ export default function ListSemesterScreen() {
       {/* Filter Section */}
       <AdminFilterBar>
         <div className="flex flex-1 items-center space-x-4">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          <div className="relative max-w-sm flex-1">
+            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <Input
               placeholder="Tìm kiếm học kỳ..."
               className="pl-9"
@@ -82,10 +80,13 @@ export default function ListSemesterScreen() {
             />
           </div>
 
-          <Select value={statusFilter} onValueChange={(value: "all" | "active" | "inactive") => {
-            setStatusFilter(value);
-            setPage(1);
-          }}>
+          <Select
+            value={statusFilter}
+            onValueChange={(value: "all" | "active" | "inactive") => {
+              setStatusFilter(value);
+              setPage(1);
+            }}
+          >
             <SelectTrigger className="w-48">
               <SelectValue placeholder="Trạng thái" />
             </SelectTrigger>
@@ -102,17 +103,11 @@ export default function ListSemesterScreen() {
       <AdminTableContainer>
         {isLoading && <AdminLoadingState />}
 
-        {error && (
-          <AdminErrorState
-            title="Lỗi tải dữ liệu"
-            message={error.message}
-            onRetry={() => refetch()}
-          />
-        )}
+        {error && <AdminErrorState title="Lỗi tải dữ liệu" message={error.message} onRetry={() => refetch()} />}
 
         {!isLoading && !error && paginatedSemesters.length === 0 && (
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <Calendar className="h-12 w-12 text-gray-400 mb-4" />
+            <Calendar className="mb-4 h-12 w-12 text-gray-400" />
             <h3 className="text-lg font-medium text-gray-900">Không có dữ liệu</h3>
             <p className="mt-1 text-sm text-gray-500">Không tìm thấy học kỳ nào phù hợp với bộ lọc</p>
             <div className="mt-4">
@@ -135,14 +130,10 @@ export default function ListSemesterScreen() {
               <TableBody>
                 {paginatedSemesters.map((semester) => (
                   <TableRow key={semester.id} className="hover:bg-gray-50/50">
-                    <TableCell className="text-center font-mono text-sm text-gray-500">
-                      {semester.id}
-                    </TableCell>
+                    <TableCell className="text-center font-mono text-sm text-gray-500">{semester.id}</TableCell>
                     <TableCell className="font-medium">{semester.name}</TableCell>
                     <TableCell className="text-center">
-                      <Badge className={getStatusColor(semester.active)}>
-                        {semester.active ? "Hoạt động" : "Tạm khóa"}
-                      </Badge>
+                      <Badge className={getStatusColor(semester.active)}>{semester.active ? "Hoạt động" : "Ngưng hoạt động"}</Badge>
                     </TableCell>
                     <TableCell className="text-center">
                       <Button size="sm" variant="outline" onClick={() => handleDetailClick(semester)}>
@@ -162,7 +153,7 @@ export default function ListSemesterScreen() {
                     <PaginationContent>
                       <PaginationItem>
                         <PaginationPrevious
-                          onClick={page === 1 ? undefined : () => setPage(prev => Math.max(prev - 1, 1))}
+                          onClick={page === 1 ? undefined : () => setPage((prev) => Math.max(prev - 1, 1))}
                           aria-disabled={page === 1}
                           className={page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
                         />
@@ -172,7 +163,7 @@ export default function ListSemesterScreen() {
                       </span>
                       <PaginationItem>
                         <PaginationNext
-                          onClick={page >= totalPages ? undefined : () => setPage(prev => Math.min(prev + 1, totalPages))}
+                          onClick={page >= totalPages ? undefined : () => setPage((prev) => Math.min(prev + 1, totalPages))}
                           aria-disabled={page >= totalPages}
                           className={page >= totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
                         />

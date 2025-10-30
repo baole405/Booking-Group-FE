@@ -23,24 +23,30 @@ export const useUserHook = () => {
     const role = params.role ?? null;
     const q = params.q ?? params.search ?? undefined;
     const majorCode = params.majorCode ?? null;
-    const isActive = params.isActive ?? null;
+    const active = params.active ?? null;
     const sort = params.sort ?? "id";
     const dir = params.dir ?? "asc";
+
+    const queryParams = {
+      page: page,
+      size: size,
+      role: role ? role : undefined,
+      q: q,
+      majorCode: majorCode ? majorCode : undefined,
+      active: active !== null ? active : undefined,
+      sort: sort,
+      dir: dir,
+    };
+
+    console.log("🔍 UserList Query Params:", queryParams);
+
     return useQuery({
-      queryKey: ["userList", { page, size, role, q, majorCode, isActive, sort, dir }],
-      queryFn: async () =>
-        (
-          await userApi.getUserList({
-            page: page,
-            size: size,
-            role: role ? role : undefined,
-            q: q,
-            majorCode: majorCode ? majorCode : undefined,
-            isActive: isActive ? isActive : undefined,
-            sort: sort,
-            dir: dir,
-          })
-        ).data,
+      queryKey: ["userList", { page, size, role, q, majorCode, active, sort, dir }],
+      queryFn: async () => {
+        const response = await userApi.getUserList(queryParams);
+        console.log("📦 UserList Response:", response.data);
+        return response.data;
+      },
     });
   };
   const useUpdateStatus = (id: number) =>

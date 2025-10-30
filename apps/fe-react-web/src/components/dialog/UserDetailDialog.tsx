@@ -45,18 +45,18 @@ export function UserDetailDialog({ userId, open, onOpenChange, currentUserRole }
   const form = useForm<TUpdateUserSchema>({
     resolver: zodResolver(UpdateUserSchema),
     defaultValues: {
-      avatarUrl: "",
-      cvUrl: "",
-      major: undefined,
+      avatarUrl: null,
+      cvUrl: null,
+      majorId: null,
     },
   });
 
   useEffect(() => {
     if (userData) {
       form.reset({
-        avatarUrl: userData.avatarUrl ?? "",
-        cvUrl: userData.cvUrl ?? "",
-        major: userData.major ?? undefined,
+        avatarUrl: userData.avatarUrl ?? null,
+        cvUrl: userData.cvUrl ?? null,
+        majorId: userData.major?.id ?? null,
       });
     }
     if (!open) {
@@ -111,51 +111,116 @@ export function UserDetailDialog({ userId, open, onOpenChange, currentUserRole }
   };
 
   const handleMajorChange = (value: string) => {
-    const selectedMajor = majors.find((m) => m.code === value);
+    const selectedMajor = majors.find((m) => m.id.toString() === value);
     if (selectedMajor) {
-      form.setValue("major", selectedMajor);
+      form.setValue("majorId", selectedMajor.id);
+    } else if (value === "none") {
+      form.setValue("majorId", null);
     }
   };
 
   const renderViewMode = () => (
-    <div className="grid gap-4 py-4">
-      <p>
-        <strong>Mã SV:</strong> {userData?.studentCode || "N/A"}
-      </p>
-      <p>
-        <strong>Họ tên:</strong> {userData?.fullName}
-      </p>
-      <p>
-        <strong>Email:</strong> {userData?.email}
-      </p>
-      <p>
-        <strong>Chuyên ngành:</strong> {userData?.major?.name || "N/A"}
-      </p>
-      <p>
-        <strong>Vai trò:</strong> {userData?.role}
-      </p>
-      <p>
-        <strong>Trạng thái:</strong>{" "}
-        <Badge variant={userData?.isActive ? "default" : "destructive"}>{userData?.isActive ? "Active" : "Inactive"}</Badge>
-      </p>
-      <p>
-        <strong>Avatar:</strong>{" "}
-        <a href={userData?.avatarUrl || "#"} target="_blank" rel="noopener noreferrer" className="text-blue-500">
-          Link
-        </a>
-      </p>
-      <p>
-        <strong>CV:</strong>{" "}
-        <a href={userData?.cvUrl || "#"} target="_blank" rel="noopener noreferrer" className="text-blue-500">
-          Link
-        </a>
-      </p>
+    <div className="grid gap-6 py-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <p className="text-sm font-medium text-gray-500">Mã SV</p>
+          <p className="mt-1 text-sm text-gray-900">{userData?.studentCode || "Chưa có"}</p>
+        </div>
+        <div>
+          <p className="text-sm font-medium text-gray-500">Vai trò</p>
+          <p className="mt-1">
+            <Badge variant="outline">{userData?.role}</Badge>
+          </p>
+        </div>
+      </div>
+
+      <div>
+        <p className="text-sm font-medium text-gray-500">Họ tên</p>
+        <p className="mt-1 text-sm text-gray-900">{userData?.fullName}</p>
+      </div>
+
+      <div>
+        <p className="text-sm font-medium text-gray-500">Email</p>
+        <p className="mt-1 text-sm text-gray-900">{userData?.email}</p>
+      </div>
+
+      <div>
+        <p className="text-sm font-medium text-gray-500">Chuyên ngành</p>
+        <p className="mt-1 text-sm text-gray-900">{userData?.major?.name || "Chưa có"}</p>
+      </div>
+
+      <div>
+        <p className="text-sm font-medium text-gray-500">Trạng thái</p>
+        <p className="mt-1">
+          <Badge className={userData?.isActive ? "border-green-200 bg-green-100 text-green-800" : "border-red-200 bg-red-100 text-red-800"}>
+            {userData?.isActive ? "Hoạt động" : "Tạm khóa"}
+          </Badge>
+        </p>
+      </div>
+
+      {userData?.avatarUrl && (
+        <div>
+          <p className="text-sm font-medium text-gray-500">Avatar URL</p>
+          <a
+            href={userData.avatarUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-1 text-sm break-all text-blue-600 hover:text-blue-800 hover:underline"
+          >
+            {userData.avatarUrl}
+          </a>
+        </div>
+      )}
+
+      {userData?.cvUrl && (
+        <div>
+          <p className="text-sm font-medium text-gray-500">CV URL</p>
+          <a
+            href={userData.cvUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-1 text-sm break-all text-blue-600 hover:text-blue-800 hover:underline"
+          >
+            {userData.cvUrl}
+          </a>
+        </div>
+      )}
     </div>
   );
 
   const renderEditMode = () => (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 py-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-6 py-4">
+        <FormField
+          control={form.control}
+          name="majorId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Chuyên ngành</FormLabel>
+              <Select onValueChange={handleMajorChange} value={field.value?.toString() || "none"}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Chọn chuyên ngành" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent className="max-h-[300px]">
+                  <SelectItem value="none">-- Chưa chọn --</SelectItem>
+                  {majors.length === 0 ? (
+                    <div className="p-2 text-center text-sm text-gray-500">Không có chuyên ngành</div>
+                  ) : (
+                    majors.map((major) => (
+                      <SelectItem key={major.id} value={major.id.toString()}>
+                        {major.name}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <FormField
           control={form.control}
           name="avatarUrl"
@@ -163,12 +228,13 @@ export function UserDetailDialog({ userId, open, onOpenChange, currentUserRole }
             <FormItem>
               <FormLabel>Avatar URL</FormLabel>
               <FormControl>
-                <Input placeholder="https://example.com/avatar.png" {...field} />
+                <Input placeholder="https://example.com/avatar.png" {...field} value={field.value || ""} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
+
         <FormField
           control={form.control}
           name="cvUrl"
@@ -176,32 +242,8 @@ export function UserDetailDialog({ userId, open, onOpenChange, currentUserRole }
             <FormItem>
               <FormLabel>CV URL</FormLabel>
               <FormControl>
-                <Input placeholder="https://example.com/cv.pdf" {...field} />
+                <Input placeholder="https://example.com/cv.pdf" {...field} value={field.value || ""} />
               </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="major"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Chuyên ngành</FormLabel>
-              <Select onValueChange={handleMajorChange} value={field.value?.code}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Chọn chuyên ngành" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {majors.map((major) => (
-                    <SelectItem key={major.code} value={major.code}>
-                      {major.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
               <FormMessage />
             </FormItem>
           )}
@@ -224,14 +266,17 @@ export function UserDetailDialog({ userId, open, onOpenChange, currentUserRole }
 
   const getStatusButtonText = () => {
     if (statusUpdating) return "Đang cập nhật...";
-    const nextStatus = userData?.isActive ? "Inactive" : "Active";
-    return `Chuyển sang ${nextStatus}`;
+    return userData?.isActive ? "Khóa tài khoản" : "Mở khóa tài khoản";
   };
 
   const getToggleRoleButtonText = () => {
     if (isTogglingRole) return "Đang đổi...";
     const nextRole = userData?.role === "LECTURER" ? "MODERATOR" : "LECTURER";
-    return `Chuyển sang ${nextRole}`;
+    const roleMap: Record<string, string> = {
+      LECTURER: "Giảng viên",
+      MODERATOR: "Điều hành viên",
+    };
+    return `Chuyển sang ${roleMap[nextRole]}`;
   };
 
   const showToggleRoleButton = currentUserRole === "ADMIN" && (userData?.role === "LECTURER" || userData?.role === "MODERATOR");
