@@ -28,7 +28,8 @@ export const useGroupMessages = (groupId: number | null, page = 1, size = 50) =>
       }
     },
     enabled: !!groupId,
-    refetchInterval: false, // Tắt auto-refresh vì backend đang lỗi 500
+    refetchInterval: 5000, // ✅ Auto refresh mỗi 5 giây để có real-time
+    refetchIntervalInBackground: false, // Chỉ refresh khi tab đang active
     staleTime: 3000,
     retry: 1, // Chỉ retry 1 lần
   });
