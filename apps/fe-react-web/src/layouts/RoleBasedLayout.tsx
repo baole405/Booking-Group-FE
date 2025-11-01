@@ -1,3 +1,4 @@
+import ChatWidget from "@/components/chat/ChatWidget";
 import HeaderLecture from "@/components/layout/header/header-lecture";
 import HeaderMain from "@/components/layout/header/header-main";
 import { SiteHeader } from "@/components/layout/header/site-header";
@@ -53,6 +54,9 @@ const RoleBasedLayout = () => {
             {/* pt (padding-top) = chiều cao header để tránh nội dung bị che */}
             <Outlet />
           </main>
+
+          {/* Chat Widget - floating bubble */}
+          <ChatWidget />
         </div>
       );
 

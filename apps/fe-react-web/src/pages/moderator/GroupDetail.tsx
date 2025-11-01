@@ -1,4 +1,4 @@
-import { ArrowLeft, Lightbulb, Loader2, Plus, Users } from "lucide-react";
+import { ArrowLeft, Lightbulb, Loader2, Plus, UserPlus, Users } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { useGroupHook } from "@/hooks/use-group";
@@ -7,6 +7,7 @@ import type { TIdea } from "@/schema/ideas.schema";
 import type { TUser } from "@/schema/user.schema";
 
 import { AddMemberDialog } from "@/components/dialog/AddMemberDialog";
+import { AssignTeacherDialog } from "@/components/dialog/AssignTeacherDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -111,9 +112,18 @@ export default function GroupDetail() {
                 </div>
               </div>
 
-              <Badge variant="secondary" className="text-lg font-semibold">
-                ID: #{group.id}
-              </Badge>
+              <div className="flex flex-col items-end gap-2">
+                <Badge variant="secondary" className="text-lg font-semibold">
+                  ID: #{group.id}
+                </Badge>
+                {/* Assign Teacher Button */}
+                <AssignTeacherDialog groupId={groupId} groupName={group.title} currentGroupStatus={group.status}>
+                  <Button variant="outline" size="sm">
+                    <UserPlus className="mr-2 h-4 w-4" />
+                    Yêu cầu giảng viên
+                  </Button>
+                </AssignTeacherDialog>
+              </div>
             </div>
           </div>
         </div>

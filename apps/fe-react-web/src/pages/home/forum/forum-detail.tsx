@@ -1,17 +1,17 @@
+import { CalendarDays, Edit3, Loader2, Pencil, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { Loader2, CalendarDays, Pencil, Edit3, Trash2 } from "lucide-react";
+import { useParams } from "react-router-dom";
 
 import { useRoleNavigate } from "@/hooks/useRoleNavigate";
 
-import { usePostHook } from "@/hooks/use-post";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
 import { useCommentHook } from "@/hooks/use-comment";
 import { useGroupHook } from "@/hooks/use-group";
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
+import { usePostHook } from "@/hooks/use-post";
 import type { RootState } from "@/redux/store";
 
 export default function ForumDetail() {
@@ -30,11 +30,7 @@ export default function ForumDetail() {
 
   // Comments theo post
   const { useGetCommentsByPost, useCreateComment, useUpdateComment, useDeleteComment } = useCommentHook();
-  const {
-    data: cmtRes,
-    isPending: isCmtPending,
-    error: cmtError,
-  } = useGetCommentsByPost(postId);
+  const { data: cmtRes, isPending: isCmtPending, error: cmtError } = useGetCommentsByPost(postId);
   const comments = cmtRes?.data?.data ?? [];
 
   // Group hook để lấy leader
@@ -59,10 +55,7 @@ export default function ForumDetail() {
   const isFindMember = post?.type === "FIND_MEMBER";
 
   // Chủ bài viết (FIND_GROUP) - check email trực tiếp
-  const isOwnerOfFindGroup = useMemo(
-    () => !!currentEmail && !!user?.email && user.email === currentEmail,
-    [currentEmail, user?.email]
-  );
+  const isOwnerOfFindGroup = useMemo(() => !!currentEmail && !!user?.email && user.email === currentEmail, [currentEmail, user?.email]);
 
   // Leader của group (FIND_MEMBER) - lấy từ useGetGroupLeader
   const isLeaderOfGroup = useMemo(() => {
@@ -71,22 +64,16 @@ export default function ForumDetail() {
     return leader.email === currentEmail;
   }, [currentEmail, leaderData]);
 
-  const canUpdatePost =
-    (isFindGroup && isOwnerOfFindGroup) ||
-    (isFindMember && isLeaderOfGroup);
+  const canUpdatePost = (isFindGroup && isOwnerOfFindGroup) || (isFindMember && isLeaderOfGroup);
 
   // Quyền update/delete comment - chỉ chủ comment mới được
-  const canModifyComment = (commentUserEmail: string) =>
-    !!currentEmail && commentUserEmail === currentEmail;
+  const canModifyComment = (commentUserEmail: string) => !!currentEmail && commentUserEmail === currentEmail;
 
   // Submit comment
   const handleCreateComment = (e: React.FormEvent) => {
     e.preventDefault();
     if (!content.trim()) return;
-    createComment(
-      { postId, content: content.trim() },
-      { onSuccess: () => setContent("") }
-    );
+    createComment({ postId, content: content.trim() }, { onSuccess: () => setContent("") });
   };
 
   // Handle update comment
@@ -97,8 +84,8 @@ export default function ForumDetail() {
         onSuccess: () => {
           setEditingCommentId(null);
           setEditContent("");
-        }
-      }
+        },
+      },
     );
   };
 
@@ -112,15 +99,15 @@ export default function ForumDetail() {
   // UI states
   if (isPending)
     return (
-      <div className="flex items-center justify-center min-h-screen text-muted-foreground">
+      <div className="text-muted-foreground flex min-h-screen items-center justify-center">
         <Loader2 className="mr-2 h-6 w-6 animate-spin" /> Đang tải bài viết...
       </div>
     );
 
   if (error || !post)
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen text-destructive">
-        <p className="text-lg font-medium mb-2">Không thể tải bài đăng.</p>
+      <div className="text-destructive flex min-h-screen flex-col items-center justify-center">
+        <p className="mb-2 text-lg font-medium">Không thể tải bài đăng.</p>
         <Button variant="outline" onClick={() => window.history.back()}>
           ← Quay lại
         </Button>
@@ -135,7 +122,7 @@ export default function ForumDetail() {
         aria-hidden="true"
       />
 
-      <div className="mx-auto max-w-7xl p-6 space-y-6">
+      <div className="mx-auto max-w-7xl space-y-6 p-6">
         {/* Header với thông tin cơ bản */}
         <div className="flex items-start justify-between border-b pb-4">
           <div className="space-y-2">
@@ -143,32 +130,24 @@ export default function ForumDetail() {
               <Badge variant={isFindGroup ? "default" : "secondary"} className="text-xs">
                 {isFindGroup ? "Tìm nhóm" : "Tìm thành viên"}
               </Badge>
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <div className="text-muted-foreground flex items-center gap-1 text-xs">
                 <CalendarDays size={14} />
                 {createdAt?.toLocaleDateString("vi-VN")}
               </div>
             </div>
             <h2
-              className={`text-xl font-semibold text-primary ${isFindGroup && post.userResponse?.id ? "cursor-pointer hover:underline transition-colors" : ""}`}
+              className={`text-primary text-xl font-semibold ${isFindGroup && post.userResponse?.id ? "cursor-pointer transition-colors hover:underline" : ""}`}
               onClick={() => isFindGroup && post.userResponse?.id && roleNavigate(`/profile/${post.userResponse.id}`)}
             >
-              {isFindGroup
-                ? post.userResponse?.fullName ?? "Người dùng ẩn danh"
-                : post.groupResponse?.title ?? "Nhóm chưa đặt tên"}
+              {isFindGroup ? (post.userResponse?.fullName ?? "Người dùng ẩn danh") : (post.groupResponse?.title ?? "Nhóm chưa đặt tên")}
             </h2>
-            <p className="text-sm text-muted-foreground">
-              {isFindGroup
-                ? post.userResponse?.major?.name ?? "Không rõ ngành"
-                : post.groupResponse?.semester?.name ?? "Không rõ kỳ học"}
+            <p className="text-muted-foreground text-sm">
+              {isFindGroup ? (post.userResponse?.major?.name ?? "Không rõ ngành") : (post.groupResponse?.semester?.name ?? "Không rõ kỳ học")}
             </p>
           </div>
 
           {canUpdatePost && (
-            <Button
-              onClick={() => roleNavigate(`/forum/${postId}/edit`)}
-              className="gap-2"
-              variant="secondary"
-            >
+            <Button onClick={() => roleNavigate(`/forum/${postId}/edit`)} className="gap-2" variant="secondary">
               <Pencil className="h-4 w-4" />
               Cập nhật
             </Button>
@@ -176,20 +155,16 @@ export default function ForumDetail() {
         </div>
 
         {/* Layout chính với grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Cột trái: Thông tin post */}
-          <div className="lg:col-span-2 space-y-4">
+          <div className="space-y-4 lg:col-span-2">
             {/* Nội dung bài đăng */}
             <Card className="border shadow-sm">
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg font-semibold text-primary">
-                  Nội dung bài đăng
-                </CardTitle>
+                <CardTitle className="text-primary text-lg font-semibold">Nội dung bài đăng</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm leading-relaxed text-foreground/90 whitespace-pre-wrap">
-                  {post.content ?? "Không có nội dung."}
-                </p>
+                <p className="text-foreground/90 text-sm leading-relaxed whitespace-pre-wrap">{post.content ?? "Không có nội dung."}</p>
               </CardContent>
             </Card>
 
@@ -197,33 +172,31 @@ export default function ForumDetail() {
             {isFindMember && post.groupResponse && (
               <Card className="border shadow-sm">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-base font-semibold text-primary/90">
-                    Thông tin nhóm
-                  </CardTitle>
+                  <CardTitle className="text-primary/90 text-base font-semibold">Thông tin nhóm</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <span className="font-medium text-muted-foreground">Tên nhóm:</span>
+                      <span className="text-muted-foreground font-medium">Tên nhóm:</span>
                       <p className="font-medium">{post.groupResponse.title ?? "Không rõ"}</p>
                     </div>
                     <div>
-                      <span className="font-medium text-muted-foreground">Trạng thái:</span>
+                      <span className="text-muted-foreground font-medium">Trạng thái:</span>
                       <p className="font-medium">{post.groupResponse.status ?? "Không rõ"}</p>
                     </div>
                     <div>
-                      <span className="font-medium text-muted-foreground">Loại:</span>
+                      <span className="text-muted-foreground font-medium">Loại:</span>
                       <p className="font-medium">{post.groupResponse.type ?? "Không rõ"}</p>
                     </div>
                     <div>
-                      <span className="font-medium text-muted-foreground">Kỳ học:</span>
+                      <span className="text-muted-foreground font-medium">Kỳ học:</span>
                       <p className="font-medium">{post.groupResponse.semester?.name ?? "Không rõ"}</p>
                     </div>
                   </div>
                   {post.groupResponse.description && (
                     <div>
-                      <span className="font-medium text-muted-foreground text-sm">Mô tả:</span>
-                      <p className="text-sm mt-1 leading-relaxed">{post.groupResponse.description}</p>
+                      <span className="text-muted-foreground text-sm font-medium">Mô tả:</span>
+                      <p className="mt-1 text-sm leading-relaxed">{post.groupResponse.description}</p>
                     </div>
                   )}
                 </CardContent>
@@ -233,29 +206,21 @@ export default function ForumDetail() {
 
           {/* Cột phải: Bình luận */}
           <div className="lg:col-span-1">
-            <Card className="border shadow-sm sticky top-6">
+            <Card className="sticky top-6 border shadow-sm">
               <CardHeader className="pb-3">
-                <CardTitle className="text-base font-semibold text-primary/90">
-                  Bình luận ({isCmtPending ? "…" : comments.length})
-                </CardTitle>
+                <CardTitle className="text-primary/90 text-base font-semibold">Bình luận ({isCmtPending ? "…" : comments.length})</CardTitle>
               </CardHeader>
 
-              <CardContent className="space-y-4 max-h-96 overflow-y-auto">
+              <CardContent className="max-h-96 space-y-4 overflow-y-auto">
                 {/* List comments */}
                 {isCmtPending && (
-                  <div className="flex items-center text-muted-foreground">
+                  <div className="text-muted-foreground flex items-center">
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Đang tải bình luận…
                   </div>
                 )}
-                {cmtError && (
-                  <p className="text-sm text-destructive">Không thể tải bình luận.</p>
-                )}
-                {!isCmtPending && !cmtError && comments.length === 0 && (
-                  <p className="text-sm text-muted-foreground">
-                    Chưa có bình luận nào.
-                  </p>
-                )}
+                {cmtError && <p className="text-destructive text-sm">Không thể tải bình luận.</p>}
+                {!isCmtPending && !cmtError && comments.length === 0 && <p className="text-muted-foreground text-sm">Chưa có bình luận nào.</p>}
 
                 {!isCmtPending &&
                   !cmtError &&
@@ -265,59 +230,50 @@ export default function ForumDetail() {
                     const canEdit = canModifyComment(author?.email);
 
                     return (
-                      <div
-                        key={c.id}
-                        className="group flex gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
-                      >
+                      <div key={c.id} className="group bg-card hover:bg-accent/50 flex gap-3 rounded-lg border p-3 transition-colors">
                         <img
-                          src={
-                            author?.avatarUrl ||
-                            "https://ui-avatars.com/api/?name=U&background=eee"
-                          }
+                          src={author?.avatarUrl || "https://ui-avatars.com/api/?name=U&background=eee"}
                           alt={author?.fullName || "User"}
-                          className="h-8 w-8 rounded-full object-cover flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                          className="h-8 w-8 flex-shrink-0 cursor-pointer rounded-full object-cover transition-opacity hover:opacity-80"
                           onClick={() => author?.id && roleNavigate(`/profile/${author.id}`)}
                         />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between gap-2 mb-1">
+                        <div className="min-w-0 flex-1">
+                          <div className="mb-1 flex items-center justify-between gap-2">
                             <span
-                              className="text-sm font-medium truncate cursor-pointer hover:text-primary hover:underline transition-colors"
+                              className="hover:text-primary cursor-pointer truncate text-sm font-medium transition-colors hover:underline"
                               onClick={() => author?.id && roleNavigate(`/profile/${author.id}`)}
                             >
                               {author?.fullName || "Ẩn danh"}
                             </span>
-                            {canEdit && (
-                              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-6 w-6 p-0"
-                                  onClick={() => {
-                                    setEditingCommentId(c.id);
-                                    setEditContent(c.content);
-                                  }}
-                                >
-                                  <Edit3 className="h-3 w-3" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-6 w-6 p-0 text-destructive hover:text-destructive"
-                                  onClick={() => handleDeleteComment(c.id)}
-                                >
-                                  <Trash2 className="h-3 w-3" />
-                                </Button>
-                              </div>
-                            )}
+                            <div className="flex items-center gap-1">
+                              {canEdit && (
+                                <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 w-6 p-0"
+                                    onClick={() => {
+                                      setEditingCommentId(c.id);
+                                      setEditContent(c.content);
+                                    }}
+                                  >
+                                    <Edit3 className="h-3 w-3" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-destructive hover:text-destructive h-6 w-6 p-0"
+                                    onClick={() => handleDeleteComment(c.id)}
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
                           </div>
                           {editingCommentId === c.id ? (
                             <div className="space-y-2">
-                              <Textarea
-                                value={editContent}
-                                onChange={(e) => setEditContent(e.target.value)}
-                                rows={2}
-                                className="text-sm"
-                              />
+                              <Textarea value={editContent} onChange={(e) => setEditContent(e.target.value)} rows={2} className="text-sm" />
                               <div className="flex gap-2">
                                 <Button
                                   size="sm"
@@ -328,21 +284,15 @@ export default function ForumDetail() {
                                 >
                                   Lưu
                                 </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => setEditingCommentId(null)}
-                                >
+                                <Button size="sm" variant="outline" onClick={() => setEditingCommentId(null)}>
                                   Hủy
                                 </Button>
                               </div>
                             </div>
                           ) : (
                             <>
-                              <p className="text-sm text-foreground/90 leading-relaxed">{c.content}</p>
-                              <span className="text-xs text-muted-foreground">
-                                {when.toLocaleString("vi-VN")}
-                              </span>
+                              <p className="text-foreground/90 text-sm leading-relaxed">{c.content}</p>
+                              <span className="text-muted-foreground text-xs">{when.toLocaleString("vi-VN")}</span>
                             </>
                           )}
                         </div>

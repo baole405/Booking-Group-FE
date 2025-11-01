@@ -22,7 +22,9 @@ export const ROUTES = {
     MY_GROUP: "/student/mygroup",
     MY_PROFILE: "/student/myprofile",
     JOIN_REQUESTS: "/student/joinrequests",
+    INVITE_MANAGEMENT: "/student/invites",
     IDEA_LIST: "/student/ideas",
+    GROUP_CHAT: "/student/group-chat",
   },
 
   // Admin Routes
@@ -64,8 +66,10 @@ export const ROUTES = {
     MY_PROFILE: "/lecturer/myprofile",
     PROFILE: "/lecturer/profile/:id",
     CHECKPOINT_REQUESTS: "/lecturer/checkpoint-requests",
+    IDEA_REVIEW: "/lecturer/idea-review",
   },
 
   // Utility / internal routes
   TEST: "/test",
+  CHAT_API_TEST: "/test/chat-api",
 };
