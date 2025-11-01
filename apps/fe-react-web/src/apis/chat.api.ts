@@ -12,9 +12,16 @@ const sendMessage = async (data: TCreateMessage) => await apiRequest.post<BaseRe
 
 // Sửa tin nhắn (request body là string trực tiếp, không phải object)
 const updateMessage = async (messageId: number, content: string) =>
-  await apiRequest.put<BaseResponse<TMessage>>(`${API_SUFFIX.CHAT_API}/messages/${messageId}`, content, {
-    headers: { "Content-Type": "text/plain" },
-  });
+  await apiRequest.put<BaseResponse<TMessage>>(
+    `${API_SUFFIX.CHAT_API}/messages/${messageId}`,
+    content, // Gửi string thô, không JSON.stringify
+    {
+      headers: {
+        "Content-Type": "text/plain",
+      },
+      transformRequest: [(data) => data], // Bỏ qua transform mặc định của Axios
+    },
+  );
 
 // Xóa tin nhắn
 const deleteMessage = async (messageId: number) => await apiRequest.delete<BaseResponse<null>>(`${API_SUFFIX.CHAT_API}/messages/${messageId}`);
