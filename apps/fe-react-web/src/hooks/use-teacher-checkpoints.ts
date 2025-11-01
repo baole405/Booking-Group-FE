@@ -1,5 +1,5 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
 import { teacher_checkpoints } from "@/apis/teacher-checkpoints.api";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
 export const useTeacherCheckpointsHook = () => {
   /** Lấy danh sách giảng viên có thể chọn */
@@ -14,6 +14,18 @@ export const useTeacherCheckpointsHook = () => {
     useQuery({
       queryKey: ["pendingRequests"],
       queryFn: () => teacher_checkpoints.getPendingRequests(),
+      select: (data) => {
+        // Deduplicate requests by id
+        if (!data?.data?.data) return data;
+        const uniqueRequests = Array.from(new Map(data.data.data.map((request) => [request.id, request])).values());
+        return {
+          ...data,
+          data: {
+            ...data.data,
+            data: uniqueRequests,
+          },
+        };
+      },
     });
 
   /** Lấy danh sách nhóm chưa đăng ký giảng viên */
@@ -21,6 +33,18 @@ export const useTeacherCheckpointsHook = () => {
     useQuery({
       queryKey: ["unregisteredGroups"],
       queryFn: () => teacher_checkpoints.getUnregisteredGroups(),
+      select: (data) => {
+        // Deduplicate groups by id
+        if (!data?.data?.data) return data;
+        const uniqueGroups = Array.from(new Map(data.data.data.map((group) => [group.id, group])).values());
+        return {
+          ...data,
+          data: {
+            ...data.data,
+            data: uniqueGroups,
+          },
+        };
+      },
     });
 
   /** Lấy danh sách nhóm bị từ chối */
@@ -28,6 +52,18 @@ export const useTeacherCheckpointsHook = () => {
     useQuery({
       queryKey: ["rejectedGroups"],
       queryFn: () => teacher_checkpoints.getRejectedGroups(),
+      select: (data) => {
+        // Deduplicate groups by id
+        if (!data?.data?.data) return data;
+        const uniqueGroups = Array.from(new Map(data.data.data.map((group) => [group.id, group])).values());
+        return {
+          ...data,
+          data: {
+            ...data.data,
+            data: uniqueGroups,
+          },
+        };
+      },
     });
 
   /** Lấy danh sách nhóm được chấp nhận */
@@ -35,6 +71,18 @@ export const useTeacherCheckpointsHook = () => {
     useQuery({
       queryKey: ["approvedGroups"],
       queryFn: () => teacher_checkpoints.getApprovedGroups(),
+      select: (data) => {
+        // Deduplicate groups by id
+        if (!data?.data?.data) return data;
+        const uniqueGroups = Array.from(new Map(data.data.data.map((group) => [group.id, group])).values());
+        return {
+          ...data,
+          data: {
+            ...data.data,
+            data: uniqueGroups,
+          },
+        };
+      },
     });
 
   /** Gửi yêu cầu chọn giảng viên */
@@ -46,15 +94,20 @@ export const useTeacherCheckpointsHook = () => {
   /** Cập nhật trạng thái yêu cầu (chấp nhận/từ chối) */
   const useUpdateTeacherCheckpointStatus = () =>
     useMutation({
-      mutationFn: ({ id, isAccepted }: { id: number; isAccepted: boolean }) =>
-        teacher_checkpoints.updateTeacherCheckpointStatus(id, isAccepted),
+      mutationFn: ({ id, isAccepted }: { id: number; isAccepted: boolean }) => teacher_checkpoints.updateTeacherCheckpointStatus(id, isAccepted),
+    });
+
+  /** Moderator gán trực tiếp giảng viên vào nhóm (không cần teacher accept) */
+  const useAssignTeacherToGroup = () =>
+    useMutation({
+      mutationFn: ({ groupId, teacherId }: { groupId: number; teacherId: number }) => teacher_checkpoints.assignTeacherToGroup(groupId, teacherId),
     });
 
   /** Lấy yêu cầu giảng viên chấm của nhóm hiện tại */
-  const useMyRequestTeacherCheckpoint = (groupId: number) => {
+  const useMyRequestTeacherCheckpoint = (groupId: number | null) => {
     const query = useQuery({
       queryKey: ["myRequestTeacherCheckpoint", groupId],
-      queryFn: () => teacher_checkpoints.myRequestTeacherCheckpoint(groupId),
+      queryFn: () => teacher_checkpoints.myRequestTeacherCheckpoint(groupId as number),
       enabled: !!groupId, // Chỉ gọi API khi có groupId
       retry: (failureCount, error) => {
         // Không retry nếu là 404 (không có request)
@@ -90,5 +143,6 @@ export const useTeacherCheckpointsHook = () => {
     useRequestTeacherCheckpoint,
     useUpdateTeacherCheckpointStatus,
     useMyRequestTeacherCheckpoint,
+    useAssignTeacherToGroup,
   };
 };

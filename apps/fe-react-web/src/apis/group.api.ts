@@ -41,6 +41,7 @@ const getUserGroupId = async (id: number) => await apiRequest.get<BaseResponse<T
 const removeUserFromGroup = async (userId: number) => await apiRequest.delete<StatusResponse>(API_SUFFIX.GROUP_MEMBER_API + `/${userId}`);
 const getGroupLeader = async (groupId: number) => await apiRequest.get<BaseResponse<TUser>>(API_SUFFIX.GROUP_API + `/${groupId}/leader`);
 const transferLeader = async (newLeaderId: number) => await apiRequest.patch<StatusResponse>(API_SUFFIX.TRANSFER_LEADER_API + `/${newLeaderId}`);
+const getGroupByUserId = async (userId: number) => await apiRequest.get<BaseResponse<TGroup>>(API_SUFFIX.GROUP_API + `/user/${userId}`);
 const getPendingJoinRequests = async (groupId: number) =>
   await apiRequest.get<BaseResponse<TJoinGroup[]>>(API_SUFFIX.JOIN_GROUP_API + `/${groupId}/pending`);
 
@@ -74,6 +75,7 @@ export const groupApi = {
   removeUserFromGroup,
   getGroupLeader,
   transferLeader,
+  getGroupByUserId,
   getPendingJoinRequests,
   finalizeGroup,
   changeGroupType,

@@ -2,18 +2,16 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Textarea } from "@/components/ui/textarea";
+import { useCommentHook } from "@/hooks/use-comment.tsx";
 import { usePostHook } from "@/hooks/use-post.tsx";
-import type { RootState } from "@/redux/store";
+import type { TComment } from "@/schema/comment.schema";
 import type { TPost } from "@/schema/post.schema";
-import { Calendar, Loader2, MessageSquare, MoreVertical, Plus, Search, User, Users } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { Calendar, Loader2, MessageSquare, Search, Trash2, User, Users } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 // ───────────────────── Helper Functions ─────────────────────
 const getTypeLabel = (type: string) => {
@@ -36,46 +34,24 @@ const getTypeBadgeColor = (type: string) => {
 };
 
 export default function Forum() {
-  const { useGetAllPosts, useGetPostsByType, useDeletePost, useCreatePost, useUpdatePost, useGetPostById } = usePostHook();
+  const { useGetAllPosts, useGetPostsByType, useDeletePost } = usePostHook();
+  const { useGetCommentsByPost, useDeleteComment } = useCommentHook();
   const deletePostMutation = useDeletePost();
-  const createPostMutation = useCreatePost();
-  const updatePostMutation = useUpdatePost();
-
-  const userId = useSelector((s: RootState) => s.user.userId);
-  const currentEmail = useSelector((s: RootState) => s.user.user?.email);
+  const deleteCommentMutation = useDeleteComment();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<string>("ALL");
   const [filterStatus, setFilterStatus] = useState<string>("ACTIVE");
   const [selectedPost, setSelectedPost] = useState<TPost | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [isEditOpen, setIsEditOpen] = useState(false);
-
-  // Edit form state
-  const [editingPostId, setEditingPostId] = useState<number | null>(null);
-  const [editPostType, setEditPostType] = useState<"FIND_GROUP" | "FIND_MEMBER">("FIND_GROUP");
-  const [editPostContent, setEditPostContent] = useState("");
-
-  // Form state for creating post
-  const [newPostContent, setNewPostContent] = useState("");
-  const [newPostType, setNewPostType] = useState<"FIND_GROUP" | "FIND_MEMBER">("FIND_GROUP");
 
   // Fetch posts based on filter type
   const { data: allPostsRes, isPending: isAllPending, error: allError, refetch: refetchAll } = useGetAllPosts();
   const { data: findGroupRes, isPending: isGroupPending, error: groupError, refetch: refetchGroup } = useGetPostsByType("FIND_GROUP");
   const { data: findMemberRes, isPending: isMemberPending, error: memberError, refetch: refetchMember } = useGetPostsByType("FIND_MEMBER");
 
-  // Fetch latest detail when opening edit
-  const { data: editDetailRes } = useGetPostById(editingPostId ?? 0);
-
-  useEffect(() => {
-    const detail = editDetailRes?.data?.data;
-    if (detail && isEditOpen) {
-      setEditPostType((detail.type as "FIND_GROUP" | "FIND_MEMBER") ?? "FIND_GROUP");
-      setEditPostContent(detail.content ?? "");
-    }
-  }, [editDetailRes, isEditOpen]);
+  // Fetch comments for selected post
+  const { data: commentsRes, isPending: isCommentsPending } = useGetCommentsByPost(selectedPost?.id ?? 0);
 
   // Select appropriate data based on filter type
   let postsRes, isPending, error;
@@ -94,9 +70,14 @@ export default function Forum() {
   }
 
   // ───────────────────── Process Data ─────────────────────
-  const posts: TPost[] = postsRes?.data?.data ?? [];
+  const posts: TPost[] = Array.isArray(postsRes?.data?.data) ? postsRes.data.data : [];
 
   const filteredPosts = posts.filter((post) => {
+    // Validation: Ensure post exists
+    if (!post || !post.id) {
+      return false;
+    }
+
     // Filter by status (active/deleted)
     if (filterStatus === "ACTIVE" && post.active === false) {
       return false;
@@ -106,13 +87,16 @@ export default function Forum() {
     }
 
     // Filter by search term (content, user name, group title)
-    if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase();
-      const matchContent = post.content?.toLowerCase().includes(searchLower);
-      const matchUserName = post.userResponse?.fullName?.toLowerCase().includes(searchLower);
-      const matchGroupTitle = post.groupResponse?.title?.toLowerCase().includes(searchLower);
+    if (searchTerm && searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase().trim();
 
-      return matchContent || matchUserName || matchGroupTitle;
+      // Safe navigation for optional fields
+      const matchContent = post.content?.toLowerCase().includes(searchLower) ?? false;
+      const matchUserName = post.userResponse?.fullName?.toLowerCase().includes(searchLower) ?? false;
+      const matchGroupTitle = post.groupResponse?.title?.toLowerCase().includes(searchLower) ?? false;
+      const matchStudentCode = post.userResponse?.studentCode?.toLowerCase().includes(searchLower) ?? false;
+
+      return matchContent || matchUserName || matchGroupTitle || matchStudentCode;
     }
 
     return true;
@@ -120,88 +104,95 @@ export default function Forum() {
 
   // ───────────────────── Handlers ─────────────────────
   const handleDeletePost = async (postId: number) => {
-    if (!window.confirm("Bạn có chắc chắn muốn xóa bài viết này?")) {
+    // Validation: Check if postId is valid
+    if (!postId || postId <= 0) {
+      toast.error("ID bài viết không hợp lệ");
+      return;
+    }
+
+    // Confirmation
+    if (!window.confirm("Bạn có chắc chắn muốn xóa bài viết này? Hành động này không thể hoàn tác.")) {
       return;
     }
 
     try {
-      await deletePostMutation.mutateAsync(postId);
-      setIsDetailOpen(false);
-      // Refetch all APIs to update data
-      refetchAll();
-      refetchGroup();
-      refetchMember();
-      alert("Xóa bài viết thành công!");
-    } catch (error) {
+      const result = await deletePostMutation.mutateAsync(postId);
+
+      // Validation: Check response
+      if (result?.data?.status === 200) {
+        setIsDetailOpen(false);
+        // Refetch all APIs to update data
+        refetchAll();
+        refetchGroup();
+        refetchMember();
+        toast.success("Đã xóa bài viết thành công!");
+      } else {
+        toast.error(result?.data?.message || "Không thể xóa bài viết");
+      }
+    } catch (error: unknown) {
       console.error("Delete error:", error);
-      alert("Có lỗi xảy ra khi xóa bài viết!");
-    }
-  };
-
-  const handleCreatePost = async () => {
-    if (!newPostContent.trim()) {
-      alert("Vui lòng nhập nội dung bài viết!");
-      return;
-    }
-
-    try {
-      const payload = {
-        postType: newPostType,
-        content: newPostContent.trim(),
+      const axiosError = error as {
+        response?: {
+          data?: { message?: string };
+          status?: number;
+        };
+        message?: string;
       };
-      console.log("Creating post with payload:", payload);
 
-      await createPostMutation.mutateAsync(payload);
-      setIsCreateOpen(false);
-      setNewPostContent("");
-      setNewPostType("FIND_GROUP");
-      // Switch to deleted filter to show new post (since backend returns active: false)
-      setFilterStatus("DELETED");
-      // Refetch all APIs to update data
-      refetchAll();
-      refetchGroup();
-      refetchMember();
-      alert("Tạo bài viết thành công!");
-    } catch (error: unknown) {
-      console.error("Create error:", error);
-      const errorResponse = error as { response?: { data?: { message?: string } } };
-      console.error("Error response:", errorResponse?.response?.data);
-      alert(`Có lỗi xảy ra khi tạo bài viết! ${errorResponse?.response?.data?.message || ""}`);
+      // Specific error messages based on status
+      if (axiosError?.response?.status === 404) {
+        toast.error("Bài viết không tồn tại");
+      } else if (axiosError?.response?.status === 403) {
+        toast.error("Bạn không có quyền xóa bài viết này");
+      } else if (axiosError?.response?.status === 500) {
+        toast.error("Lỗi máy chủ. Vui lòng thử lại sau");
+      } else {
+        toast.error(axiosError?.response?.data?.message || axiosError?.message || "Có lỗi xảy ra khi xóa bài viết!");
+      }
     }
   };
 
-  const openEditPost = (post: TPost) => {
-    // Guard: only owner can edit (by id or email fallback)
-    const isOwner =
-      (post.userResponse?.id != null && userId != null && post.userResponse.id === userId) ||
-      (!!post.userResponse?.email && !!currentEmail && post.userResponse.email === currentEmail);
-    if (!isOwner) return;
-    setEditingPostId(post.id);
-    setIsEditOpen(true);
-    // prefill from current card while waiting for GET detail
-    setEditPostType((post.type as "FIND_GROUP" | "FIND_MEMBER") ?? "FIND_GROUP");
-    setEditPostContent(post.content ?? "");
-  };
-
-  const handleUpdatePost = async () => {
-    if (!editingPostId) return;
-    if (!editPostContent.trim()) {
-      alert("Vui lòng nhập nội dung bài viết!");
+  const handleDeleteComment = async (commentId: number) => {
+    // Validation: Check if commentId is valid
+    if (!commentId || commentId <= 0) {
+      toast.error("ID bình luận không hợp lệ");
       return;
     }
+
+    // Confirmation
+    if (!window.confirm("Bạn có chắc chắn muốn xóa bình luận này?")) {
+      return;
+    }
+
     try {
-      await updatePostMutation.mutateAsync({ id: editingPostId, data: { postType: editPostType, content: editPostContent.trim() } });
-      setIsEditOpen(false);
-      setEditingPostId(null);
-      // Refetch all lists to reflect updates
-      refetchAll();
-      refetchGroup();
-      refetchMember();
-      alert("Cập nhật bài viết thành công!");
+      const result = await deleteCommentMutation.mutateAsync(commentId);
+
+      // Validation: Check response
+      if (result?.data?.status === 200) {
+        toast.success("Đã xóa bình luận thành công!");
+      } else {
+        toast.error(result?.data?.message || "Không thể xóa bình luận");
+      }
     } catch (error: unknown) {
-      console.error("Update error:", error);
-      const err = error as { response?: { data?: { message?: string } } };
-      alert(`Có lỗi xảy ra khi cập nhật bài viết! ${err?.response?.data?.message || ""}`);
+      console.error("Delete comment error:", error);
+      const axiosError = error as {
+        response?: {
+          data?: { message?: string };
+          status?: number;
+        };
+        message?: string;
+      };
+
+      // Specific error messages based on status
+      if (axiosError?.response?.status === 404) {
+        toast.error("Bình luận không tồn tại");
+      } else if (axiosError?.response?.status === 403) {
+        toast.error("Bạn không có quyền xóa bình luận này");
+      } else if (axiosError?.response?.status === 500) {
+        toast.error("Lỗi máy chủ. Vui lòng thử lại sau");
+      } else {
+        toast.error(axiosError?.response?.data?.message || axiosError?.message || "Có lỗi xảy ra khi xóa bình luận!");
+      }
     }
   };
 
@@ -233,8 +224,12 @@ export default function Forum() {
         {/* Header with Search and Filter */}
         <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Diễn đàn</h1>
-            <p className="mt-1 text-xs text-gray-600">Quản lý các bài viết tìm nhóm và tìm thành viên</p>
+            <div className="mb-2 flex items-center gap-2">
+              <h1 className="text-2xl font-bold text-gray-900">
+                <span role="img" aria-label="Clipboard"></span> Quản lý diễn đàn
+              </h1>
+            </div>
+            <p className="text-xs text-gray-600">Kiểm duyệt và quản lý các bài viết tìm nhóm và tìm thành viên</p>
           </div>
 
           <div className="flex flex-col gap-2 md:flex-row md:items-center">
@@ -244,7 +239,16 @@ export default function Forum() {
               <Input
                 placeholder="Tìm kiếm..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  // Validation: Limit search term length
+                  if (value.length <= 100) {
+                    setSearchTerm(value);
+                  } else {
+                    toast.warning("Từ khóa tìm kiếm không được quá 100 ký tự");
+                  }
+                }}
+                maxLength={100}
                 className="h-8 w-full pl-8 text-sm md:w-[250px]"
               />
             </div>
@@ -272,12 +276,6 @@ export default function Forum() {
                 <SelectItem value="FIND_MEMBER">Tìm thành viên</SelectItem>
               </SelectContent>
             </Select>
-
-            {/* Create Post Button */}
-            <Button onClick={() => setIsCreateOpen(true)} className="h-8 gap-1 text-sm" size="sm">
-              <Plus className="h-4 w-4" />
-              Tạo bài viết
-            </Button>
           </div>
         </div>
 
@@ -345,29 +343,6 @@ export default function Forum() {
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
             {filteredPosts.map((post) => (
               <Card key={post.id} className="relative flex h-full flex-col transition-shadow hover:shadow-md">
-                {/* Owner actions: show 3-dots; disabled look if post deleted */}
-                {(post.userResponse?.id === userId || post.userResponse?.email === currentEmail) && (
-                  <div className="absolute top-2 right-2 z-10">
-                    {post.active === false ? (
-                      <Button variant="ghost" size="icon" className="h-8 w-8 cursor-not-allowed opacity-50" disabled>
-                        <MoreVertical className="h-4 w-4" />
-                        <span className="sr-only">Menu bị vô hiệu</span>
-                      </Button>
-                    ) : (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreVertical className="h-4 w-4" />
-                            <span className="sr-only">Mở menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-40">
-                          <DropdownMenuItem onClick={() => openEditPost(post)}>Cập nhật</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    )}
-                  </div>
-                )}
                 <CardHeader className="p-3 pb-2">
                   <div className="mb-2 flex items-center gap-2">
                     {/* User Avatar */}
@@ -395,7 +370,7 @@ export default function Forum() {
 
                 <CardContent className="flex flex-1 flex-col p-3 pt-0">
                   {/* Post Content */}
-                  <p className="line-clamp-3 flex-1 text-xs leading-relaxed text-gray-700">{post.content}</p>
+                  <p className="line-clamp-3 flex-1 text-xs leading-relaxed text-gray-700">{post.content || "(Không có nội dung)"}</p>
 
                   {/* Created Date */}
                   <p className="mt-2 text-[10px] text-gray-500">{post.createdAt ? new Date(post.createdAt).toLocaleDateString("vi-VN") : "N/A"}</p>
@@ -422,9 +397,15 @@ export default function Forum() {
                       size="sm"
                       className="h-8 w-full text-xs"
                       onClick={() => {
-                        setSelectedPost(post);
-                        setIsDetailOpen(true);
+                        // Validation: Check if post is valid
+                        if (post && post.id) {
+                          setSelectedPost(post);
+                          setIsDetailOpen(true);
+                        } else {
+                          toast.error("Bài viết không hợp lệ");
+                        }
                       }}
+                      disabled={!post || !post.id}
                     >
                       Xem
                     </Button>
@@ -432,12 +413,23 @@ export default function Forum() {
                       variant="outline"
                       size="sm"
                       className="h-8 w-full text-xs text-red-600 hover:bg-red-50"
-                      onClick={() => handleDeletePost(post.id)}
-                      disabled={deletePostMutation.isPending || post.active === false}
+                      onClick={() => {
+                        // Validation: Check if post can be deleted
+                        if (!post || !post.id) {
+                          toast.error("Bài viết không hợp lệ");
+                          return;
+                        }
+                        if (post.active === false) {
+                          toast.info("Bài viết đã được xóa trước đó");
+                          return;
+                        }
+                        handleDeletePost(post.id);
+                      }}
+                      disabled={deletePostMutation.isPending || !post || !post.id || post.active === false}
                     >
                       {(() => {
                         if (deletePostMutation.isPending) return "...";
-                        if (post.active === false) return "Đã xóa";
+                        if (!post || post.active === false) return "Đã xóa";
                         return "Xóa";
                       })()}
                     </Button>
@@ -486,7 +478,7 @@ export default function Forum() {
                   <div>
                     <h3 className="mb-2 font-semibold text-gray-900">Nội dung bài viết:</h3>
                     <Separator className="mb-3" />
-                    <p className="text-sm leading-relaxed whitespace-pre-wrap text-gray-700">{selectedPost.content}</p>
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap text-gray-700">{selectedPost.content || "(Không có nội dung)"}</p>
                   </div>
 
                   {/* Group Info */}
@@ -530,6 +522,78 @@ export default function Forum() {
                         : "N/A"}
                     </span>
                   </div>
+
+                  {/* Comments Section */}
+                  <div>
+                    <h3 className="mb-2 flex items-center gap-2 font-semibold text-gray-900">
+                      <MessageSquare className="h-5 w-5" />
+                      Bình luận ({commentsRes?.data?.data?.length || 0})
+                    </h3>
+                    <Separator className="mb-3" />
+
+                    {isCommentsPending && (
+                      <div className="text-muted-foreground flex items-center gap-2 py-4 text-sm">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Đang tải bình luận...
+                      </div>
+                    )}
+
+                    {!isCommentsPending && (!commentsRes?.data?.data || commentsRes.data.data.length === 0) && (
+                      <div className="rounded-lg border border-dashed bg-gray-50 p-6 text-center text-sm text-gray-500">Chưa có bình luận nào</div>
+                    )}
+
+                    {!isCommentsPending && commentsRes?.data?.data && commentsRes.data.data.length > 0 && (
+                      <div className="max-h-[300px] space-y-3 overflow-y-auto">
+                        {commentsRes.data.data.map((comment: TComment) => (
+                          <div key={comment.id} className="rounded-lg border bg-gray-50 p-3">
+                            <div className="mb-2 flex items-start justify-between">
+                              <div className="flex items-center gap-2">
+                                {comment.user?.avatarUrl ? (
+                                  <img src={comment.user.avatarUrl} alt={comment.user.fullName} className="h-6 w-6 rounded-full object-cover" />
+                                ) : (
+                                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500 text-xs font-bold text-white">
+                                    {comment.user?.fullName?.charAt(0).toUpperCase() || "U"}
+                                  </div>
+                                )}
+                                <div>
+                                  <p className="text-xs font-semibold text-gray-900">{comment.user?.fullName || "Unknown"}</p>
+                                  <p className="text-[10px] text-gray-500">
+                                    {comment.createdAt
+                                      ? new Date(comment.createdAt).toLocaleDateString("vi-VN", {
+                                          day: "numeric",
+                                          month: "short",
+                                          hour: "2-digit",
+                                          minute: "2-digit",
+                                        })
+                                      : "N/A"}
+                                  </p>
+                                </div>
+                              </div>
+                              {/* Delete comment button */}
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 text-red-600 hover:bg-red-50"
+                                onClick={() => {
+                                  // Validation: Check if comment is valid
+                                  if (!comment || !comment.id) {
+                                    toast.error("Bình luận không hợp lệ");
+                                    return;
+                                  }
+                                  handleDeleteComment(comment.id);
+                                }}
+                                disabled={deleteCommentMutation.isPending || !comment || !comment.id}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                                <span className="sr-only">Xóa bình luận</span>
+                              </Button>
+                            </div>
+                            <p className="text-xs whitespace-pre-wrap text-gray-700">{comment.content || "(Không có nội dung)"}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Actions */}
@@ -538,170 +602,32 @@ export default function Forum() {
                     Đóng
                   </Button>
 
-                  {/* Owner-only: Edit button; disabled if post is deleted */}
-                  {(selectedPost.userResponse?.id === userId || selectedPost.userResponse?.email === currentEmail) && (
-                    <Button
-                      className="text-sm"
-                      disabled={selectedPost.active === false}
-                      onClick={() => {
-                        openEditPost(selectedPost);
-                        setIsDetailOpen(false);
-                      }}
-                    >
-                      Cập nhật
-                    </Button>
-                  )}
-
                   <Button
                     variant="destructive"
                     className="text-sm"
-                    onClick={() => selectedPost && handleDeletePost(selectedPost.id)}
-                    disabled={deletePostMutation.isPending || selectedPost?.active === false}
+                    onClick={() => {
+                      // Validation: Check if selected post is valid
+                      if (!selectedPost || !selectedPost.id) {
+                        toast.error("Bài viết không hợp lệ");
+                        return;
+                      }
+                      if (selectedPost.active === false) {
+                        toast.info("Bài viết đã được xóa trước đó");
+                        return;
+                      }
+                      handleDeletePost(selectedPost.id);
+                    }}
+                    disabled={deletePostMutation.isPending || !selectedPost || selectedPost?.active === false}
                   >
                     {(() => {
                       if (deletePostMutation.isPending) return "Đang xóa...";
-                      if (selectedPost?.active === false) return "Đã xóa";
+                      if (!selectedPost || selectedPost?.active === false) return "Đã xóa";
                       return "Xóa bài viết";
                     })()}
                   </Button>
                 </div>
               </>
             )}
-          </DialogContent>
-        </Dialog>
-
-        {/* Edit Post Dialog */}
-        <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle className="text-xl font-bold">Cập nhật bài viết</DialogTitle>
-              <DialogDescription>Chỉnh sửa nội dung và loại bài viết của bạn</DialogDescription>
-            </DialogHeader>
-
-            <div className="space-y-4 py-4">
-              {/* Post Type */}
-              <div className="space-y-2">
-                <Label htmlFor="editPostType" className="text-sm font-medium">
-                  Loại bài viết
-                </Label>
-                <Select value={editPostType} onValueChange={(value: "FIND_GROUP" | "FIND_MEMBER") => setEditPostType(value)}>
-                  <SelectTrigger id="editPostType">
-                    <SelectValue placeholder="Chọn loại bài viết" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="FIND_GROUP">Tìm nhóm</SelectItem>
-                    <SelectItem value="FIND_MEMBER">Tìm thành viên</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Post Content */}
-              <div className="space-y-2">
-                <Label htmlFor="editPostContent" className="text-sm font-medium">
-                  Nội dung bài viết
-                </Label>
-                <Textarea
-                  id="editPostContent"
-                  placeholder="Nhập nội dung bài viết (tối đa 500 ký tự)..."
-                  value={editPostContent}
-                  onChange={(e) => setEditPostContent(e.target.value)}
-                  className="min-h-[200px] resize-none"
-                  maxLength={500}
-                />
-                <p className="text-right text-xs text-gray-500">{editPostContent.length}/500 ký tự</p>
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="flex justify-end gap-2 border-t pt-4">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setIsEditOpen(false);
-                  setEditingPostId(null);
-                }}
-              >
-                Hủy
-              </Button>
-              <Button onClick={handleUpdatePost} disabled={updatePostMutation.isPending || !editPostContent.trim()}>
-                {updatePostMutation.isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Đang cập nhật...
-                  </>
-                ) : (
-                  "Lưu thay đổi"
-                )}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        {/* Create Post Dialog */}
-        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle className="text-xl font-bold">Tạo bài viết mới</DialogTitle>
-              <DialogDescription>Tạo bài viết tìm nhóm hoặc tìm thành viên cho diễn đàn</DialogDescription>
-            </DialogHeader>
-
-            <div className="space-y-4 py-4">
-              {/* Post Type */}
-              <div className="space-y-2">
-                <Label htmlFor="postType" className="text-sm font-medium">
-                  Loại bài viết
-                </Label>
-                <Select value={newPostType} onValueChange={(value: "FIND_GROUP" | "FIND_MEMBER") => setNewPostType(value)}>
-                  <SelectTrigger id="postType">
-                    <SelectValue placeholder="Chọn loại bài viết" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="FIND_GROUP">Tìm nhóm</SelectItem>
-                    <SelectItem value="FIND_MEMBER">Tìm thành viên</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Post Content */}
-              <div className="space-y-2">
-                <Label htmlFor="postContent" className="text-sm font-medium">
-                  Nội dung bài viết
-                </Label>
-                <Textarea
-                  id="postContent"
-                  placeholder="Nhập nội dung bài viết (tối đa 500 ký tự)..."
-                  value={newPostContent}
-                  onChange={(e) => setNewPostContent(e.target.value)}
-                  className="min-h-[200px] resize-none"
-                  maxLength={500}
-                />
-                <p className="text-right text-xs text-gray-500">{newPostContent.length}/500 ký tự</p>
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="flex justify-end gap-2 border-t pt-4">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setIsCreateOpen(false);
-                  setNewPostContent("");
-                  setNewPostType("FIND_GROUP");
-                }}
-              >
-                Hủy
-              </Button>
-              <Button onClick={handleCreatePost} disabled={createPostMutation.isPending || !newPostContent.trim()}>
-                {createPostMutation.isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Đang tạo...
-                  </>
-                ) : (
-                  "Tạo bài viết"
-                )}
-              </Button>
-            </div>
           </DialogContent>
         </Dialog>
       </div>

@@ -1,10 +1,10 @@
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ROUTES } from "@/constants/route.constant";
+import { useTeacherCheckpointsHook } from "@/hooks/use-teacher-checkpoints";
 import { logout } from "@/redux/User/user-slice";
 import { useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
-import { useTeacherCheckpointsHook } from "@/hooks/use-teacher-checkpoints";
-import { ROUTES } from "@/constants/route.constant";
 
 const HeaderLecture = () => {
   const dispatch = useDispatch();
@@ -48,20 +48,22 @@ const HeaderLecture = () => {
           </Link>
 
           {/* 🔹 Yêu cầu chấm checkpoint + badge */}
-          <Link
-            to={ROUTES.LECTURER.CHECKPOINT_REQUESTS}
-            className="hover:text-foreground transition-colors relative inline-flex items-center gap-2"
-          >
+          <Link to={ROUTES.LECTURER.CHECKPOINT_REQUESTS} className="hover:text-foreground relative inline-flex items-center gap-2 transition-colors">
             Yêu cầu chấm
             {!isPending && pendingCount > 0 && (
               <Badge
                 variant="secondary"
-                className="px-1.5 py-0 text-[10px] leading-none rounded-full"
+                className="rounded-full px-1.5 py-0 text-[10px] leading-none"
                 aria-label={`${pendingCount} yêu cầu chấm checkpoint đang chờ`}
               >
                 {pendingCount}
               </Badge>
             )}
+          </Link>
+
+          {/* 🔹 Duyệt ý tưởng */}
+          <Link to={ROUTES.LECTURER.IDEA_REVIEW} className="hover:text-foreground transition-colors">
+            Duyệt ý tưởng
           </Link>
         </nav>
 

@@ -1,25 +1,19 @@
-import { useMemo, useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
+import { Loader2, MessageCircle } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { Card } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 import { useGroupHook } from "@/hooks/use-group";
-import { useUserHook } from "@/hooks/use-user";
 import { useTeacherCheckpointsHook } from "@/hooks/use-teacher-checkpoints";
-import type { TUser } from "@/schema/user.schema";
+import { useUserHook } from "@/hooks/use-user";
 import type { TVoteByGroup, TVoteChoice } from "@/schema/group.schema";
+import type { TUser } from "@/schema/user.schema";
 
 import GroupContent from "./components/group-content";
 import MembersAside from "./components/MembersAside";
@@ -91,7 +85,7 @@ export default function MyGroupPage() {
   // my group
   const { data: groupRes, isPending: isGroupPending, error: groupError } = useMyGroup();
   const group = groupRes?.data?.data ?? null;
-  const groupId = group?.id ?? 0;
+  const groupId = group?.id ?? null;
 
   // teacher checkpoint request status
   const {
@@ -100,21 +94,15 @@ export default function MyGroupPage() {
     canSendNewRequest,
     isPending: isRequestPending,
     isApproved: isRequestApproved,
-    isRejected: isRequestRejected
+    isRejected: isRequestRejected,
   } = useMyRequestTeacherCheckpoint(groupId);
 
   // Tính toán thông tin giáo viên chấm checkpoint (chỉ từ approved request)
   const approvedTeacher = isRequestApproved ? myTeacherRequest?.teacher : null;
   const hasCheckpointTeacher = !!approvedTeacher;
 
-
-
   // members
-  const {
-    data: groupMembersRes,
-    isPending: isGroupMembersPending,
-    refetch: refetchMembers,
-  } = useGroupMembers(groupId);
+  const { data: groupMembersRes, isPending: isGroupMembersPending, refetch: refetchMembers } = useGroupMembers(groupId);
 
   // leader
   const { data: leaderRes } = useGetGroupLeader(groupId);
@@ -124,51 +112,42 @@ export default function MyGroupPage() {
   const { data: voteRes, isPending: isVoteListPending, refetch: refetchVoteList } = useVoteByGroupId(groupId);
   const groupVotes: TVoteByGroup[] = useMemo(
     () => (Array.isArray(voteRes?.data?.data) ? (voteRes.data.data as TVoteByGroup[]) : []),
-    [voteRes?.data?.data]
+    [voteRes?.data?.data],
   );
 
   // chỉ hiển thị ứng viên có status OPEN
-  const openVotes = useMemo(
-    () => groupVotes.filter((v) => String(v.status).toUpperCase() === "OPEN"),
-    [groupVotes]
-  );
+  const openVotes = useMemo(() => groupVotes.filter((v) => String(v.status).toUpperCase() === "OPEN"), [groupVotes]);
 
   // chọn voteId: ưu tiên query ?voteId=..., nếu không có thì lấy open cuối
   const queryVoteId = Number(new URLSearchParams(search).get("voteId") || 0);
   const defaultOpen = openVotes.length ? openVotes[openVotes.length - 1] : null;
-  const voteId = queryVoteId || (defaultOpen?.id ?? 0);
+  const voteId = queryVoteId || (defaultOpen?.id ?? null);
 
   // choices theo voteId
-  const {
-    data: voteChoicesRes,
-    isPending: isVotesPending,
-    refetch: refetchVotes,
-  } = useVotesByVoteId(voteId);
+  const { data: voteChoicesRes, isPending: isVotesPending, refetch: refetchVotes } = useVotesByVoteId(voteId);
   const voteChoices: TVoteChoice[] = useMemo(
     () => (Array.isArray(voteChoicesRes?.data?.data) ? (voteChoicesRes.data.data as TVoteChoice[]) : []),
-    [voteChoicesRes?.data?.data]
+    [voteChoicesRes?.data?.data],
   );
 
   // tổng hợp YES/NO + info cho panel
-  const currentVote = voteId ? groupVotes.find((v) => v.id === voteId) ?? null : null;
+  const currentVote = voteId ? (groupVotes.find((v) => v.id === voteId) ?? null) : null;
   const yesCount = voteChoices.filter((c) => String(c?.choiceValue).toUpperCase() === "YES").length;
   const noCount = voteChoices.filter((c) => String(c?.choiceValue).toUpperCase() === "NO").length;
 
   const votesForPanel = currentVote
     ? [
-      {
-        id: currentVote.id,
-        title: currentVote.topic ?? `Vote #${currentVote.id}`,
-        description: "",
-        status: currentVote.status ?? "OPEN",
-        resultYes: yesCount,
-        resultNo: noCount,
-        candidate: currentVote.targetUser
-          ? { id: currentVote.targetUser.id, fullName: currentVote.targetUser.fullName }
-          : undefined,
-        hasVoted: voteChoices.some((c) => c?.user?.email === currentEmail),
-      },
-    ]
+        {
+          id: currentVote.id,
+          title: currentVote.topic ?? `Vote #${currentVote.id}`,
+          description: "",
+          status: currentVote.status ?? "OPEN",
+          resultYes: yesCount,
+          resultNo: noCount,
+          candidate: currentVote.targetUser ? { id: currentVote.targetUser.id, fullName: currentVote.targetUser.fullName } : undefined,
+          hasVoted: voteChoices.some((c) => c?.user?.email === currentEmail),
+        },
+      ]
     : [];
 
   // auto refetch
@@ -210,47 +189,35 @@ export default function MyGroupPage() {
             Nhóm #{group?.id} — {group?.title}
           </h1>
           <div className="mt-1 flex flex-wrap items-center gap-2 text-sm">
-            {group?.semester && (
-              <Badge variant="secondary">
-                Học kỳ: {group.semester?.name ?? group.semester?.id ?? String(group.semester)}
-              </Badge>
-            )}
+            {group?.semester && <Badge variant="secondary">Học kỳ: {group.semester?.name ?? group.semester?.id ?? String(group.semester)}</Badge>}
             {group?.type && <Badge variant="outline">Loại: {String(group.type)}</Badge>}
-            {group?.status && (
-              <Badge className={statusClass(String(group.status))}>
-                Trạng thái: {String(group.status)}
-              </Badge>
-            )}
+            {group?.status && <Badge className={statusClass(String(group.status))}>Trạng thái: {String(group.status)}</Badge>}
             {/* Hiển thị thông tin giáo viên chấm checkpoint (chỉ từ approved request) */}
             {approvedTeacher ? (
-              <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+              <Badge variant="outline" className="border-green-200 bg-green-50 text-green-700">
                 GV chấm: {approvedTeacher.fullName}
               </Badge>
             ) : (
-              <Badge variant="outline" className="bg-gray-50 text-gray-600 border-gray-200">
+              <Badge variant="outline" className="border-gray-200 bg-gray-50 text-gray-600">
                 Chưa có GV chấm
               </Badge>
             )}
           </div>
         </div>
+        <Button onClick={() => navigate("/student/group-chat")} className="flex items-center gap-2">
+          <MessageCircle className="h-4 w-4" />
+          Chat nhóm
+        </Button>
       </div>
     );
-  }, [
-    isGroupPending,
-    groupError,
-    groupId,
-    group,
-    approvedTeacher,
-  ]);
+  }, [isGroupPending, groupError, groupId, group, approvedTeacher, navigate]);
 
   if (isGroupPending || !groupId || !group) {
     return <div className="bg-background text-foreground flex min-h-screen flex-col">{header}</div>;
   }
 
   // members mapping
-  const rawList: TUser[] = Array.isArray(groupMembersRes?.data?.data)
-    ? groupMembersRes.data.data
-    : [];
+  const rawList: TUser[] = Array.isArray(groupMembersRes?.data?.data) ? groupMembersRes.data.data : [];
   const members = rawList.map((u) => ({
     id: u.id,
     fullName: u.fullName,
@@ -272,7 +239,7 @@ export default function MyGroupPage() {
     isLeader,
     currentEmail,
     leaderEmail: leader?.email,
-    groupStatus: group?.status
+    groupStatus: group?.status,
   });
 
   // minimal group to child
@@ -346,9 +313,7 @@ export default function MyGroupPage() {
     } catch (err: unknown) {
       let msg = "Không thể bỏ phiếu, thử lại sau.";
       if (typeof err === "object" && err !== null) {
-        const maybeResponse = (err as { response?: unknown }).response as
-          | { data?: { message?: unknown } }
-          | undefined;
+        const maybeResponse = (err as { response?: unknown }).response as { data?: { message?: unknown } } | undefined;
         const maybeMessage = maybeResponse?.data?.message;
         if (typeof maybeMessage === "string") msg = maybeMessage;
         else if (err instanceof Error && err.message) msg = err.message;
@@ -417,11 +382,8 @@ export default function MyGroupPage() {
             {/* Hiển thị theo trạng thái request */}
             {isRequestPending && (
               <div className="space-y-2">
-                <p className="text-sm text-blue-600">
-                  Đã gửi yêu cầu đến GV {myTeacherRequest?.teacher?.fullName}.
-                  Đang chờ phê duyệt...
-                </p>
-                <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200">
+                <p className="text-sm text-blue-600">Đã gửi yêu cầu đến GV {myTeacherRequest?.teacher?.fullName}. Đang chờ phê duyệt...</p>
+                <Badge variant="secondary" className="border-blue-200 bg-blue-50 text-blue-700">
                   Đang chờ xác nhận
                 </Badge>
               </div>
@@ -432,7 +394,7 @@ export default function MyGroupPage() {
                 <p className="text-sm text-green-600">
                   GV {myTeacherRequest?.teacher?.fullName} đã chấp nhận làm giáo viên chấm checkpoint cho nhóm.
                 </p>
-                <Badge variant="default" className="bg-green-50 text-green-700 border-green-200">
+                <Badge variant="default" className="border-green-200 bg-green-50 text-green-700">
                   Đã chấp nhận
                 </Badge>
               </div>
@@ -440,33 +402,20 @@ export default function MyGroupPage() {
 
             {isRequestRejected && (
               <div className="space-y-2">
-                <p className="text-sm text-red-600">
-                  Yêu cầu đến GV {myTeacherRequest?.teacher?.fullName} đã bị từ chối.
-                </p>
-                {myTeacherRequest?.message && (
-                  <p className="text-sm text-muted-foreground">
-                    Lý do: {myTeacherRequest.message}
-                  </p>
-                )}
-                <Badge variant="destructive" className="bg-red-50 text-red-700 border-red-200">
+                <p className="text-sm text-red-600">Yêu cầu đến GV {myTeacherRequest?.teacher?.fullName} đã bị từ chối.</p>
+                {myTeacherRequest?.message && <p className="text-muted-foreground text-sm">Lý do: {myTeacherRequest.message}</p>}
+                <Badge variant="destructive" className="border-red-200 bg-red-50 text-red-700">
                   Đã từ chối
                 </Badge>
               </div>
             )}
 
-            {!hasActiveRequest && (
-              <p className="text-sm text-muted-foreground">
-                Nhóm đã hoàn tất, vui lòng chọn giáo viên để chấm checkpoint.
-              </p>
-            )}
+            {!hasActiveRequest && <p className="text-muted-foreground text-sm">Nhóm đã hoàn tất, vui lòng chọn giáo viên để chấm checkpoint.</p>}
           </div>
 
           {/* Chỉ hiện button chọn khi có thể gửi request mới */}
           {canSendNewRequest && (
-            <Button
-              onClick={() => setShowTeacherDialog(true)}
-              className="w-full"
-            >
+            <Button onClick={() => setShowTeacherDialog(true)} className="w-full">
               {isRequestRejected ? "Chọn giáo viên khác" : "Chọn giáo viên chấm"}
             </Button>
           )}
@@ -480,9 +429,7 @@ export default function MyGroupPage() {
         </div>
 
         {!isVoteListPending && openVotes.length === 0 && (
-          <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-            Hiện không có ứng viên nào đang mở để bỏ phiếu.
-          </div>
+          <div className="text-muted-foreground rounded-lg border border-dashed p-4 text-sm">Hiện không có ứng viên nào đang mở để bỏ phiếu.</div>
         )}
 
         {!isVoteListPending && openVotes.length > 0 && (
@@ -493,14 +440,11 @@ export default function MyGroupPage() {
                 <button
                   key={v.id}
                   onClick={() => selectVote(v.id)}
-                  className={`w-full rounded-md border p-3 text-left transition-colors hover:bg-muted/40 ${active ? "ring-2 ring-amber-500/60" : ""
-                    }`}
+                  className={`hover:bg-muted/40 w-full rounded-md border p-3 text-left transition-colors ${active ? "ring-2 ring-amber-500/60" : ""}`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <div className="font-medium truncate">
-                        {v.targetUser?.fullName ?? `Vote #${v.id}`}
-                      </div>
+                      <div className="truncate font-medium">{v.targetUser?.fullName ?? `Vote #${v.id}`}</div>
                     </div>
                   </div>
                 </button>
@@ -512,12 +456,7 @@ export default function MyGroupPage() {
 
       {/* 🔸 PANEL BỎ PHIẾU CHO VOTE ĐANG CHỌN */}
       <Card className="p-4">
-        <VotesPanel
-          isLoading={isVotesPending || !voteId}
-          votes={votesForPanel}
-          onVote={handleVote}
-          isVoting={isVoting}
-        />
+        <VotesPanel isLoading={!!voteId && isVotesPending} votes={votesForPanel} onVote={handleVote} isVoting={isVoting} />
       </Card>
     </div>
   );
@@ -560,10 +499,9 @@ export default function MyGroupPage() {
                   <button
                     key={teacher.id}
                     onClick={() => setSelectedTeacherId(teacher.id)}
-                    className={`w-full p-3 text-left rounded-lg border transition-colors ${selectedTeacherId === teacher.id
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200 hover:bg-gray-50"
-                      }`}
+                    className={`w-full rounded-lg border p-3 text-left transition-colors ${
+                      selectedTeacherId === teacher.id ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:bg-gray-50"
+                    }`}
                   >
                     <div className="font-medium">{teacher.fullName}</div>
                     <div className="text-sm text-gray-600">{teacher.email}</div>
@@ -583,10 +521,7 @@ export default function MyGroupPage() {
             >
               Hủy
             </Button>
-            <Button
-              onClick={handleSelectTeacher}
-              disabled={!selectedTeacherId || isRequestingTeacher}
-            >
+            <Button onClick={handleSelectTeacher} disabled={!selectedTeacherId || isRequestingTeacher}>
               {isRequestingTeacher ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

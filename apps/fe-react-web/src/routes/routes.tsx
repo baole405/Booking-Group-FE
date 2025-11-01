@@ -29,6 +29,7 @@ const Loadable =
 const LoginPage = Loadable(lazy(() => import("@/pages/auth/login")));
 const Logout = Loadable(lazy(() => import("@/pages/auth/logout")));
 const UploadTestPage = Loadable(lazy(() => import("@/pages/test/upload-test")));
+const ChatApiTestPage = Loadable(lazy(() => import("@/pages/test/chat-api-test")));
 
 export default function MainRoutes() {
   return useRoutes([
@@ -47,6 +48,7 @@ export default function MainRoutes() {
     lecturerRoutes,
     moderatorRoutes,
     { path: ROUTES.TEST, element: <UploadTestPage /> },
+    { path: ROUTES.CHAT_API_TEST, element: <ChatApiTestPage /> },
     { path: "*", element: <Navigate to={ROUTES.HOME} replace /> },
     { path: "404", element: <LoginPage /> },
   ]);

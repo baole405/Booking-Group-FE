@@ -1,21 +1,39 @@
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useGroupHook } from "@/hooks/use-group";
+import { useInviteHook } from "@/hooks/use-invite";
 import { logout } from "@/redux/User/user-slice";
+import type { TJoinGroup } from "@/schema/group.schema";
+import type { TInvite } from "@/schema/invite.schema";
 import { useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
-import { useGroupHook } from "@/hooks/use-group";
 
 const HeaderMain = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // 🔹 Lấy danh sách yêu cầu đã gửi của tôi
+  // 🔹 Lấy danh sách yêu cầu tham gia đã gửi của tôi
   const { useGetMyJoinRequests } = useGroupHook();
   const { data, isPending } = useGetMyJoinRequests();
 
+  // 🔹 Lấy danh sách lời mời
+  const { useMyInvites } = useInviteHook();
+  const { data: invitesData, isPending: isInvitesPending } = useMyInvites({
+    receivedPage: 1,
+    receivedSize: 100,
+    sentPage: 1,
+    sentSize: 100,
+  });
+
   // data shape: { status, message, data: JoinRequest[] }
-  const requests: any[] = Array.isArray(data?.data?.data) ? data!.data!.data : [];
-  const pendingCount = requests.filter((r) => String(r?.status).toUpperCase() === "PENDING").length;
+  const requests: TJoinGroup[] = Array.isArray(data?.data?.data) ? data.data.data : [];
+  const pendingJoinCount = requests.filter((r) => String(r?.status).toUpperCase() === "PENDING").length;
+
+  // Lời mời nhận được chưa xử lý
+  const receivedInvites = invitesData?.data?.data?.received?.content || [];
+  const pendingInviteCount = receivedInvites.filter((inv: TInvite) => inv.status === "PENDING").length;
+
+  const totalPendingCount = pendingJoinCount + pendingInviteCount;
 
   const handleLogout = () => {
     dispatch(logout());
@@ -46,19 +64,16 @@ const HeaderMain = () => {
             Ý tưởng
           </Link>
 
-          {/* 🔹 Yêu cầu đã gửi + badge */}
-          <Link
-            to="/student/joinrequests"
-            className="hover:text-foreground transition-colors relative inline-flex items-center gap-2"
-          >
-            Yêu cầu đã gửi
-            {!isPending && pendingCount > 0 && (
+          {/* 🔹 Quản lý lời mời + badge */}
+          <Link to="/student/invites" className="hover:text-foreground relative inline-flex items-center gap-2 transition-colors">
+            Quản lý lời mời
+            {!isPending && !isInvitesPending && totalPendingCount > 0 && (
               <Badge
                 variant="secondary"
-                className="px-1.5 py-0 text-[10px] leading-none rounded-full"
-                aria-label={`${pendingCount} yêu cầu đang chờ`}
+                className="rounded-full px-1.5 py-0 text-[10px] leading-none"
+                aria-label={`${totalPendingCount} lời mời đang chờ`}
               >
-                {pendingCount}
+                {totalPendingCount}
               </Badge>
             )}
           </Link>

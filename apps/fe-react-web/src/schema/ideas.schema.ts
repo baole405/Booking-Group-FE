@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { TypeIdeasSchema } from "./common/type-ideas.schema";
 
-
 export const AuthorSchema = z.object({
   id: z.number(),
   fullName: z.string(),
@@ -23,6 +22,7 @@ export const IdeaSchema = z.object({
   status: TypeIdeasSchema,
   createdAt: z.string(),
   updatedAt: z.string(),
+  rejectionReason: z.string().optional().nullable(),
 });
 
 export const CreateIdeaSchema = z.object({
