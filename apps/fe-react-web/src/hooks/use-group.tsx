@@ -49,10 +49,10 @@ export const useGroupHook = () => {
     });
 
   // 🔹 Lấy danh sách thành viên trong một nhóm cụ thể
-  const useGroupMembers = (groupId: number) =>
+  const useGroupMembers = (groupId: number | null) =>
     useQuery({
       queryKey: ["groupMembers", groupId],
-      queryFn: () => groupApi.getUserGroupId(groupId),
+      queryFn: () => groupApi.getUserGroupId(groupId as number),
       enabled: !!groupId,
       retry: false,
     });
@@ -157,11 +157,20 @@ export const useGroupHook = () => {
     });
   };
 
-  const useGetGroupLeader = (groupId: number) => {
+  const useGetGroupLeader = (groupId: number | null) => {
     return useQuery({
       queryKey: ["groupLeader", groupId],
-      queryFn: () => groupApi.getGroupLeader(groupId),
+      queryFn: () => groupApi.getGroupLeader(groupId as number),
       enabled: !!groupId,
+      retry: false,
+    });
+  };
+
+  const useGroupByUserId = (userId: number) => {
+    return useQuery({
+      queryKey: ["groupByUserId", userId],
+      queryFn: () => groupApi.getGroupByUserId(userId),
+      enabled: !!userId,
       retry: false,
     });
   };
@@ -231,17 +240,17 @@ export const useGroupHook = () => {
     });
   };
 
-  const useVotesByVoteId = (voteId: number) =>
+  const useVotesByVoteId = (voteId: number | null) =>
     useQuery({
       queryKey: ["votesByVote", voteId],
-      queryFn: () => groupApi.getVotesByVoteId(voteId),
+      queryFn: () => groupApi.getVotesByVoteId(voteId as number),
       enabled: !!voteId,
       retry: false,
     });
-  const useVoteByGroupId = (groupId: number) =>
+  const useVoteByGroupId = (groupId: number | null) =>
     useQuery({
       queryKey: ["voteByGroup", groupId],
-      queryFn: () => groupApi.getVoteByGroupId(groupId),
+      queryFn: () => groupApi.getVoteByGroupId(groupId as number),
       enabled: !!groupId,
       retry: false,
     });
@@ -281,6 +290,7 @@ export const useGroupHook = () => {
     useUpdateGroupInfo,
     useRemoveUserFromGroup,
     useGetGroupLeader,
+    useGroupByUserId,
     useTransferLeader,
     useGetPendingJoinRequests,
     useFinalizeGroup,

@@ -10,19 +10,19 @@ import { ErrorBoundary } from "react-error-boundary";
 
 const Loadable =
   <P extends object>(Component: React.ComponentType<P>) =>
-    (props: P) => {
-      return (
-        <QueryErrorResetBoundary>
-          {({ reset }) => (
-            <ErrorBoundary onReset={reset} FallbackComponent={ErrorFallback}>
-              <Suspense fallback={<LoadingScreen />}>
-                <Component {...props} />
-              </Suspense>
-            </ErrorBoundary>
-          )}
-        </QueryErrorResetBoundary>
-      );
-    };
+  (props: P) => {
+    return (
+      <QueryErrorResetBoundary>
+        {({ reset }) => (
+          <ErrorBoundary onReset={reset} FallbackComponent={ErrorFallback}>
+            <Suspense fallback={<LoadingScreen />}>
+              <Component {...props} />
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </QueryErrorResetBoundary>
+    );
+  };
 
 // -------- Lazy pages --------
 const GroupPage = Loadable(lazy(() => import("@/pages/home/group/list-group/list-group-page")));
@@ -32,9 +32,11 @@ const GroupDetailPage = Loadable(lazy(() => import("@/pages/home/group/group-det
 const MyGroupPage = Loadable(lazy(() => import("@/pages/home/group/my-group/my-group-page")));
 const MyProfile = Loadable(lazy(() => import("@/pages/home/user/my-profile")));
 const JoinRequestsPage = Loadable(lazy(() => import("@/pages/home/group/join-request/join-requests")));
+const InviteManagementPage = Loadable(lazy(() => import("@/pages/home/group/invite-management/invite-management")));
 const ForumDetail = Loadable(lazy(() => import("@/pages/home/forum/forum-detail")));
 const ForumEdit = Loadable(lazy(() => import("@/pages/home/forum/forum-edit")));
 const IdeaListPage = Loadable(lazy(() => import("@/pages/home/idea/list-idea-page")));
+const GroupChatPage = Loadable(lazy(() => import("@/pages/home/group/group-chat/group-chat")));
 
 const studentRoutes = {
   path: ROUTES.STUDENT.ROOT,
@@ -54,7 +56,9 @@ const studentRoutes = {
     { path: ROUTES.STUDENT.MY_GROUP, element: <MyGroupPage /> },
     { path: ROUTES.STUDENT.GROUP_DETAIL, element: <GroupDetailPage /> },
     { path: ROUTES.STUDENT.JOIN_REQUESTS, element: <JoinRequestsPage /> },
-    { path: ROUTES.STUDENT.IDEA_LIST, element: <IdeaListPage /> }
+    { path: ROUTES.STUDENT.INVITE_MANAGEMENT, element: <InviteManagementPage /> },
+    { path: ROUTES.STUDENT.IDEA_LIST, element: <IdeaListPage /> },
+    { path: ROUTES.STUDENT.GROUP_CHAT, element: <GroupChatPage /> },
   ],
 };
 

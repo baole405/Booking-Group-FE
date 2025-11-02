@@ -70,11 +70,12 @@ const userSlice = createSlice({
 
       // Decode role + userId
       let role: TRole | null = null;
-      let userId: string | number | null = null;
+      let userId: number = 0;
       try {
         const decoded = jwtDecode<DecodedToken>(userData.token);
         role = decoded.role ?? null;
-        userId = decoded.sub ?? 0;
+        // Ensure userId is always a number
+        userId = typeof decoded.sub === "number" ? decoded.sub : Number(decoded.sub) || 0;
       } catch {
         role = null;
         userId = 0;
@@ -111,7 +112,8 @@ const userSlice = createSlice({
       try {
         const decoded = jwtDecode<DecodedToken>(userData.token);
         role = decoded.role ?? null;
-        userId = decoded.sub ?? 0;
+        // Ensure userId is always a number
+        userId = typeof decoded.sub === "number" ? decoded.sub : Number(decoded.sub) || 0;
       } catch {
         role = null;
         userId = 0;

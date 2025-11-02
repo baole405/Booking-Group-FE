@@ -10,19 +10,19 @@ import { ErrorBoundary } from "react-error-boundary";
 
 const Loadable =
   <P extends object>(Component: React.ComponentType<P>) =>
-    (props: P) => {
-      return (
-        <QueryErrorResetBoundary>
-          {({ reset }) => (
-            <ErrorBoundary onReset={reset} FallbackComponent={ErrorFallback}>
-              <Suspense fallback={<LoadingScreen />}>
-                <Component {...props} />
-              </Suspense>
-            </ErrorBoundary>
-          )}
-        </QueryErrorResetBoundary>
-      );
-    };
+  (props: P) => {
+    return (
+      <QueryErrorResetBoundary>
+        {({ reset }) => (
+          <ErrorBoundary onReset={reset} FallbackComponent={ErrorFallback}>
+            <Suspense fallback={<LoadingScreen />}>
+              <Component {...props} />
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </QueryErrorResetBoundary>
+    );
+  };
 
 // -------- Lazy pages --------
 const GroupPage = Loadable(lazy(() => import("@/pages/home/group/list-group/list-group-page")));
@@ -33,6 +33,7 @@ const GroupDetailPage = Loadable(lazy(() => import("@/pages/home/group/group-det
 const IdeaListPage = Loadable(lazy(() => import("@/pages/home/idea/list-idea-page")));
 const MyProfile = Loadable(lazy(() => import("@/pages/home/user/my-profile")));
 const CheckpointRequestsPage = Loadable(lazy(() => import("@/pages/lecturer/checkpoint-requests/checkpoint-requests-page")));
+const IdeaReviewPage = Loadable(lazy(() => import("@/pages/lecturer/idea-review/idea-review-page")));
 const lecturerRoutes = {
   path: ROUTES.LECTURER.ROOT,
   element: (
@@ -50,6 +51,7 @@ const lecturerRoutes = {
     { path: ROUTES.LECTURER.IDEAS, element: <IdeaListPage /> },
     { path: ROUTES.LECTURER.MY_PROFILE, element: <MyProfile /> },
     { path: ROUTES.LECTURER.CHECKPOINT_REQUESTS, element: <CheckpointRequestsPage /> },
+    { path: ROUTES.LECTURER.IDEA_REVIEW, element: <IdeaReviewPage /> },
 
     // thêm các trang dành cho giảng viên ở đây
   ],

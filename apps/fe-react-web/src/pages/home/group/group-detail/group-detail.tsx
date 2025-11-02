@@ -1,37 +1,30 @@
-import { useMemo, useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
-import { Loader2, Users } from "lucide-react";
-import { toast } from "sonner";
 import type { RootState } from "@/redux/store";
+import { Loader2, Users } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useSelector } from "react-redux";
+import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
 
 import { useGroupHook } from "@/hooks/use-group";
-import type { TJoinGroup } from "@/schema/group.schema";
+import { useTeacherCheckpointsHook } from "@/hooks/use-teacher-checkpoints";
+import type { TGroup, TJoinGroup } from "@/schema/group.schema";
+import type { TCheckPointsRequest } from "@/schema/teacher-checkpoints.schema";
 import type { TUser } from "@/schema/user.schema";
 
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   AlertDialog,
+  AlertDialogAction,
   AlertDialogContent,
+  AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogFooter,
-  AlertDialogAction,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
-import { MemberCard } from "./components/member-card";
 import GroupContent from "./components/group-content";
-
-// Type extension để handle checkpointTeacher
-interface GroupWithCheckpointTeacher {
-  checkpointTeacher?: {
-    id: number;
-    fullName: string;
-    email: string;
-  } | null;
-}
+import { MemberCard } from "./components/member-card";
 
 // ───────────────────── Constants ─────────────────────
 const MEMBER_THRESHOLD = 6;
@@ -59,14 +52,9 @@ export default function GroupDetail() {
   const isStudent = userRole === "STUDENT";
   const isLecturer = userRole === "LECTURER";
 
-  const {
-    useGroupMembers,
-    useGroupById,
-    useMyGroup,
-    useJoinGroup,
-    useGetMyJoinRequests,
-    useGetGroupLeader,
-  } = useGroupHook();
+  const { useGroupMembers, useGroupById, useMyGroup, useJoinGroup, useGetMyJoinRequests, useGetGroupLeader } = useGroupHook();
+
+  const { useMyRequestTeacherCheckpoint, useApprovedGroups } = useTeacherCheckpointsHook();
 
   // ───────────────────── Fetch Hooks ─────────────────────
   // STUDENT: lấy đầy đủ thông tin để tham gia nhóm
@@ -77,14 +65,52 @@ export default function GroupDetail() {
   const { data: groupRes, isPending: isGroupPending, error: groupError } = useGroupById(groupId);
   const group = groupRes?.data?.data ?? null;
 
-  const { data: groupMembersRes, isPending: isMembersPending, error: membersError } =
-    useGroupMembers(groupId);
+  // Lấy danh sách các nhóm đã được chấp nhận (có teacher info)
+  const { data: approvedGroupsRes } = useApprovedGroups();
+
+  const approvedGroups = useMemo(() => {
+    return approvedGroupsRes?.data?.data ?? [];
+  }, [approvedGroupsRes]);
+
+  // Tìm thông tin teacher từ approved groups
+  const groupWithTeacher = useMemo(() => {
+    if (!approvedGroups || approvedGroups.length === 0) return null;
+    // approvedGroups có thể là TGroup[] hoặc TCheckPointsRequest[]
+    // Cần check cả g.id và g.group?.id
+    const found = approvedGroups.find((g: TGroup | TCheckPointsRequest) => {
+      const checkpointItem = g as TCheckPointsRequest;
+      const groupItem = g as TGroup;
+      if (checkpointItem.group?.id === groupId) return true;
+      if (groupItem.id === groupId) return true;
+      return false;
+    });
+    return found;
+  }, [approvedGroups, groupId]);
+
+  // Extract teacher từ structure
+  const checkpointTeacher = useMemo(() => {
+    if (!groupWithTeacher) return null;
+    // Type guard: check if it's TCheckPointsRequest
+    if ("teacher" in groupWithTeacher && "group" in groupWithTeacher) {
+      const checkpointItem = groupWithTeacher as unknown as TCheckPointsRequest;
+      return checkpointItem.teacher;
+    }
+    return null;
+  }, [groupWithTeacher]);
+
+  // Fallback: thử lấy từ myRequest nếu đang xem nhóm của mình
+  const { currentRequest } = useMyRequestTeacherCheckpoint(groupId);
+  const myGroupTeacher = currentRequest?.status === "ACCEPTED" ? currentRequest?.teacher : null;
+
+  // Ưu tiên teacher từ approved groups, fallback về myRequest
+  const finalTeacher = checkpointTeacher || myGroupTeacher;
+
+  const { data: groupMembersRes, isPending: isMembersPending, error: membersError } = useGroupMembers(groupId);
 
   const { data: leaderRes } = useGetGroupLeader(groupId);
   const leader = leaderRes?.data?.data ?? null;
 
   const { data: myReqRes, isPending: isReqLoading, refetch: refetchReqs } = useGetMyJoinRequests();
-  const myRequests: TJoinGroup[] = isStudent ? (myReqRes?.data?.data ?? []) : [];
 
   const { mutateAsync: joinGroupAsync, isPending: isJoining } = useJoinGroup();
 
@@ -93,6 +119,10 @@ export default function GroupDetail() {
   const memberCount = members.length;
   const groupType = group?.type?.toUpperCase() ?? "";
   const isPublic = groupType === "PUBLIC";
+
+  const myRequests = useMemo(() => {
+    return isStudent ? (myReqRes?.data?.data ?? []) : [];
+  }, [isStudent, myReqRes]);
 
   // Điều kiện hiển thị nút tham gia - chỉ STUDENT được tham gia
   const canShowJoinButton =
@@ -104,13 +134,8 @@ export default function GroupDetail() {
     memberCount < MEMBER_THRESHOLD;
 
   const hasPendingRequest = useMemo(
-    () =>
-      !!myRequests.find(
-        (r) =>
-          Number(r.toGroup?.id) === groupId &&
-          String(r.status).toUpperCase() === "PENDING"
-      ),
-    [groupId, myRequests]
+    () => !!(myRequests as TJoinGroup[]).find((r) => Number(r.toGroup?.id) === groupId && String(r.status).toUpperCase() === "PENDING"),
+    [groupId, myRequests],
   );
 
   // ───────────────────── Auto Redirect - chỉ áp dụng cho STUDENT ─────────────────────
@@ -122,8 +147,7 @@ export default function GroupDetail() {
 
   // ───────────────────── UI: Action Button Meta ─────────────────────
   const actionMeta = useMemo(() => {
-    if (!canShowJoinButton)
-      return null;
+    if (!canShowJoinButton) return null;
 
     if (isReqLoading || hasPendingRequest) {
       return {
@@ -135,15 +159,15 @@ export default function GroupDetail() {
 
     return isPublic
       ? {
-        label: "Tham gia nhóm",
-        loadingLabel: "Đang tham gia...",
-        disabled: false,
-      }
+          label: "Tham gia nhóm",
+          loadingLabel: "Đang tham gia...",
+          disabled: false,
+        }
       : {
-        label: "Gửi yêu cầu tham gia",
-        loadingLabel: "Đang gửi yêu cầu...",
-        disabled: false,
-      };
+          label: "Gửi yêu cầu tham gia",
+          loadingLabel: "Đang gửi yêu cầu...",
+          disabled: false,
+        };
   }, [canShowJoinButton, isReqLoading, hasPendingRequest, isPublic]);
 
   // ───────────────────── Actions ─────────────────────
@@ -161,10 +185,9 @@ export default function GroupDetail() {
         setPopupRequested(true);
         await refetchReqs();
       }
-    } catch (err: any) {
-      const msg =
-        err?.response?.data?.message ??
-        (isPublic ? "Không thể tham gia nhóm." : "Không thể gửi yêu cầu.");
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
+      const msg = error?.response?.data?.message ?? (isPublic ? "Không thể tham gia nhóm." : "Không thể gửi yêu cầu.");
       toast.error(msg);
     }
   };
@@ -178,42 +201,30 @@ export default function GroupDetail() {
             Nhóm #{group?.id} — {group?.title}
           </h1>
           {isLecturer && (
-            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+            <Badge variant="outline" className="border-blue-200 bg-blue-50 text-blue-700">
               Xem với quyền Giảng viên
             </Badge>
           )}
         </div>
 
         <div className="mt-1 flex flex-wrap items-center gap-2 text-sm">
-          {group?.semester && (
-            <Badge variant="secondary">
-              Học kỳ: {group.semester?.name ?? group.semester?.id ?? "?"}
-            </Badge>
-          )}
+          {group?.semester && <Badge variant="secondary">Học kỳ: {group.semester?.name ?? group.semester?.id ?? "?"}</Badge>}
           {group?.type && <Badge variant="outline">Loại: {group.type}</Badge>}
-          {group?.status && (
-            <Badge className={statusClass(String(group.status))}>
-              Trạng thái: {String(group.status)}
-            </Badge>
-          )}
+          {group?.status && <Badge className={statusClass(String(group.status))}>Trạng thái: {String(group.status)}</Badge>}
           {/* Hiển thị thông tin giáo viên chấm checkpoint */}
-          {(group as GroupWithCheckpointTeacher)?.checkpointTeacher ? (
-            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-              GV chấm: {(group as GroupWithCheckpointTeacher).checkpointTeacher?.fullName}
+          {finalTeacher ? (
+            <Badge variant="outline" className="border-green-200 bg-green-50 text-green-700">
+              GV chấm: {finalTeacher.fullName}
             </Badge>
           ) : (
-            <Badge variant="outline" className="bg-gray-50 text-gray-600 border-gray-200">
+            <Badge variant="outline" className="border-gray-200 bg-gray-50 text-gray-600">
               Chưa có GV chấm
             </Badge>
           )}
         </div>
       </div>
 
-      {isStudent && hasPendingRequest && (
-        <span className="text-xs rounded-full bg-amber-100 text-amber-700 px-2 py-0.5">
-          Đã gửi yêu cầu
-        </span>
-      )}
+      {isStudent && hasPendingRequest && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-700">Đã gửi yêu cầu</span>}
     </div>
   );
 
@@ -229,11 +240,7 @@ export default function GroupDetail() {
         </div>
 
         {actionMeta && (
-          <Button
-            size="sm"
-            onClick={handleJoin}
-            disabled={isJoining || actionMeta.disabled}
-          >
+          <Button size="sm" onClick={handleJoin} disabled={isJoining || actionMeta.disabled}>
             {isJoining ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -247,42 +254,30 @@ export default function GroupDetail() {
       </div>
 
       {isStudent && hasPendingRequest && (
-        <p className="mb-2 text-xs text-muted-foreground">
-          Bạn đã gửi yêu cầu tham gia nhóm này. Vui lòng chờ xét duyệt.
-        </p>
+        <p className="text-muted-foreground mb-2 text-xs">Bạn đã gửi yêu cầu tham gia nhóm này. Vui lòng chờ xét duyệt.</p>
       )}
 
       {isLecturer && (
-        <p className="mb-2 text-xs text-blue-600 bg-blue-50 p-2 rounded border">
+        <p className="mb-2 rounded border bg-blue-50 p-2 text-xs text-blue-600">
           <strong>Chế độ xem Giảng viên:</strong> Bạn đang xem thông tin nhóm với quyền chỉ đọc.
         </p>
       )}
 
       {isMembersPending && (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="text-muted-foreground flex items-center gap-2 text-sm">
           <Loader2 className="h-4 w-4 animate-spin" /> Đang tải danh sách thành viên...
         </div>
       )}
 
-      {!isMembersPending && membersError && (
-        <div className="text-sm text-destructive">Không tải được danh sách thành viên.</div>
-      )}
+      {!isMembersPending && membersError && <div className="text-destructive text-sm">Không tải được danh sách thành viên.</div>}
 
-      {!isMembersPending && !membersError && !members.length && (
-        <div className="text-sm text-muted-foreground">Chưa có thành viên nào.</div>
-      )}
+      {!isMembersPending && !membersError && !members.length && <div className="text-muted-foreground text-sm">Chưa có thành viên nào.</div>}
 
       {!isMembersPending && !membersError && members.length > 0 && (
         <div className="grid grid-cols-1 gap-3">
           {members.map((m) => {
             const isThisUserTheLeader = m.email === leader?.email;
-            return (
-              <MemberCard
-                key={m.id}
-                user={m}
-                isThisUserTheLeader={isThisUserTheLeader}
-              />
-            );
+            return <MemberCard key={m.id} user={m} isThisUserTheLeader={isThisUserTheLeader} />;
           })}
         </div>
       )}
@@ -294,19 +289,17 @@ export default function GroupDetail() {
     <AlertDialog open={popupJoined} onOpenChange={setPopupJoined}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>🎉 Tham gia nhóm thành công!</AlertDialogTitle>
-          <p className="text-sm text-muted-foreground mt-1">
-            Bạn đã là thành viên của nhóm.
-          </p>
+          <AlertDialogTitle>
+            <span role="img" aria-label="celebration">
+              🎉
+            </span>{" "}
+            Tham gia nhóm thành công!
+          </AlertDialogTitle>
+          <p className="text-muted-foreground mt-1 text-sm">Bạn đã là thành viên của nhóm.</p>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogAction onClick={() => navigate("/student/mygroup", { replace: true })}>
-            Xem nhóm của tôi
-          </AlertDialogAction>
-          <AlertDialogAction
-            onClick={() => navigate("/groups", { replace: true })}
-            className="bg-muted text-foreground hover:bg-muted/80"
-          >
+          <AlertDialogAction onClick={() => navigate("/student/mygroup", { replace: true })}>Xem nhóm của tôi</AlertDialogAction>
+          <AlertDialogAction onClick={() => navigate("/groups", { replace: true })} className="bg-muted text-foreground hover:bg-muted/80">
             Xem nhóm khác
           </AlertDialogAction>
         </AlertDialogFooter>
@@ -319,18 +312,11 @@ export default function GroupDetail() {
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Đã gửi yêu cầu tham gia nhóm!</AlertDialogTitle>
-          <p className="text-sm text-muted-foreground mt-1">
-            Yêu cầu của bạn đang chờ xét duyệt.
-          </p>
+          <p className="text-muted-foreground mt-1 text-sm">Yêu cầu của bạn đang chờ xét duyệt.</p>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogAction onClick={() => navigate("/student/join-requests", { replace: true })}>
-            Xem yêu cầu đã gửi
-          </AlertDialogAction>
-          <AlertDialogAction
-            onClick={() => navigate("/groups", { replace: true })}
-            className="bg-muted text-foreground hover:bg-muted/80"
-          >
+          <AlertDialogAction onClick={() => navigate("/student/join-requests", { replace: true })}>Xem yêu cầu đã gửi</AlertDialogAction>
+          <AlertDialogAction onClick={() => navigate("/groups", { replace: true })} className="bg-muted text-foreground hover:bg-muted/80">
             Xem nhóm khác
           </AlertDialogAction>
         </AlertDialogFooter>
@@ -341,20 +327,15 @@ export default function GroupDetail() {
   // ───────────────────── Render ─────────────────────
   if (isGroupPending)
     return (
-      <div className="flex items-center justify-center min-h-screen text-muted-foreground">
+      <div className="text-muted-foreground flex min-h-screen items-center justify-center">
         <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Đang tải nhóm...
       </div>
     );
 
-  if (groupError || !group)
-    return (
-      <div className="flex items-center justify-center min-h-screen text-destructive">
-        Không tìm thấy nhóm.
-      </div>
-    );
+  if (groupError || !group) return <div className="text-destructive flex min-h-screen items-center justify-center">Không tìm thấy nhóm.</div>;
 
   const minimalGroup = {
-    id: group.id!,
+    id: group.id ?? 0,
     title: group.title,
     description: group.description ?? null,
   };

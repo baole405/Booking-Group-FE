@@ -1,11 +1,13 @@
 // src/pages/ideas/idea-list-page.tsx
-import { Loader2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import IdeaCard from "./components/idea-card"; // <- đường dẫn tới IdeaCard của bạn
 import { useIdeaHook } from "@/hooks/use-idea";
 import type { TTypeIdeas } from "@/schema/common/type-ideas.schema";
+import type { TIdea } from "@/schema/ideas.schema";
+import { Filter, Lightbulb, Loader2 } from "lucide-react";
+import { useMemo, useState } from "react";
+import IdeaCard from "./components/idea-card"; // <- đường dẫn tới IdeaCard của bạn
 
 export default function IdeaListPage() {
   const { useGetAllIdeas } = useIdeaHook();
@@ -15,7 +17,7 @@ export default function IdeaListPage() {
   // Tùy vào BaseResponse của bạn:
   // - AxiosResponse<BaseResponse<TIdea[]>> => data?.data?.data
   // - Nếu ideaApi.getAllIdeas() đã .then(res => res.data) thì chỉ cần data?.data
-  const ideas = useMemo(() => (data?.data?.data ?? []) as any[], [data]);
+  const ideas = useMemo(() => (data?.data?.data ?? []) as TIdea[], [data]);
 
   // State cho filter và search
   const [searchTerm, setSearchTerm] = useState("");
@@ -27,9 +29,18 @@ export default function IdeaListPage() {
   const filteredAndSortedIdeas = useMemo(() => {
     let filtered = [...ideas]; // Create a copy to avoid mutating original
 
+    // Filter chỉ hiển thị:
+    // - Ý tưởng của LECTURER (bất kể status)
+    // - Ý tưởng của STUDENT đã APPROVED
+    filtered = filtered.filter((idea: TIdea) => {
+      const isLecturer = idea.author?.role === "LECTURER";
+      const isApprovedStudent = idea.author?.role === "STUDENT" && idea.status === "APPROVED";
+      return isLecturer || isApprovedStudent;
+    });
+
     // Filter theo status
     if (filterStatus !== "ALL") {
-      filtered = filtered.filter((idea: any) => idea.status === filterStatus);
+      filtered = filtered.filter((idea: TIdea) => idea.status === filterStatus);
     }
 
     // Filter theo thời gian
@@ -52,7 +63,7 @@ export default function IdeaListPage() {
           break;
       }
 
-      filtered = filtered.filter((idea: any) => {
+      filtered = filtered.filter((idea: TIdea) => {
         const ideaDate = new Date(idea.createdAt);
         return ideaDate >= filterDate;
       });
@@ -61,16 +72,17 @@ export default function IdeaListPage() {
     // Search theo title, description, author name, group title
     if (searchTerm.trim()) {
       const term = searchTerm.toLowerCase().trim();
-      filtered = filtered.filter((idea: any) =>
-        idea.title?.toLowerCase().includes(term) ||
-        idea.description?.toLowerCase().includes(term) ||
-        idea.author?.fullName?.toLowerCase().includes(term) ||
-        idea.group?.title?.toLowerCase().includes(term)
+      filtered = filtered.filter(
+        (idea: TIdea) =>
+          idea.title?.toLowerCase().includes(term) ||
+          idea.description?.toLowerCase().includes(term) ||
+          idea.author?.fullName?.toLowerCase().includes(term) ||
+          idea.group?.title?.toLowerCase().includes(term),
       );
     }
 
     // Sort theo ngày tạo
-    filtered.sort((a: any, b: any) => {
+    filtered.sort((a: TIdea, b: TIdea) => {
       const dateA = new Date(a.createdAt).getTime();
       const dateB = new Date(b.createdAt).getTime();
       return sortOrder === "ASC" ? dateA - dateB : dateB - dateA;
@@ -78,6 +90,21 @@ export default function IdeaListPage() {
 
     return filtered;
   }, [ideas, searchTerm, filterStatus, sortOrder, dateRange]);
+
+  // Stats - chỉ tính trên ý tưởng được hiển thị (LECTURER + APPROVED STUDENT)
+  const stats = useMemo(() => {
+    const displayedIdeas = ideas.filter((idea: TIdea) => {
+      const isLecturer = idea.author?.role === "LECTURER";
+      const isApprovedStudent = idea.author?.role === "STUDENT" && idea.status === "APPROVED";
+      return isLecturer || isApprovedStudent;
+    });
+
+    const total = displayedIdeas.length;
+    const approved = displayedIdeas.filter((i: TIdea) => i.status === "APPROVED").length;
+    const proposed = displayedIdeas.filter((i: TIdea) => i.status === "PROPOSED").length;
+    const rejected = displayedIdeas.filter((i: TIdea) => i.status === "REJECTED").length;
+    return { total, approved, proposed, rejected };
+  }, [ideas]);
 
   const listSection = useMemo(() => {
     if (isPending) {
@@ -91,98 +118,126 @@ export default function IdeaListPage() {
       return <div className="text-destructive py-10 text-center">Đã xảy ra lỗi khi tải dữ liệu ý tưởng.</div>;
     }
     if (!filteredAndSortedIdeas.length) {
-      const hasFilters = searchTerm.trim() || filterStatus !== "ALL";
+      const hasFilters = searchTerm.trim() || filterStatus !== "ALL" || dateRange !== "ALL";
       return (
-        <div className="text-muted-foreground py-10 text-center">
-          {hasFilters ? "Không tìm thấy ý tưởng nào phù hợp với bộ lọc." : "Chưa có ý tưởng nào."}
-        </div>
+        <Card className="p-8 text-center">
+          <Lightbulb className="text-muted-foreground mx-auto mb-4 h-12 w-12" />
+          <p className="text-muted-foreground">{hasFilters ? "Không tìm thấy ý tưởng nào phù hợp với bộ lọc." : "Chưa có ý tưởng nào."}</p>
+        </Card>
       );
     }
 
     return (
-      <div className="flex flex-col gap-4">
-        <div className="text-sm text-muted-foreground">
-          Hiển thị {filteredAndSortedIdeas.length} ý tưởng
-        </div>
-        {filteredAndSortedIdeas.map((idea: any, index: number) => (
-          <div key={idea.id ?? index} className="w-full">
-            <IdeaCard idea={idea} />
-          </div>
+      <div className="space-y-4">
+        {filteredAndSortedIdeas.map((idea: TIdea, index: number) => (
+          <IdeaCard key={idea.id ?? index} idea={idea} />
         ))}
       </div>
     );
-  }, [isPending, error, filteredAndSortedIdeas, searchTerm, filterStatus]);
+  }, [isPending, error, filteredAndSortedIdeas, searchTerm, filterStatus, dateRange]);
 
   return (
-    <div className="bg-background text-foreground flex min-h-screen flex-col">
-      {/* Hiệu ứng nền (giữ style tương tự GroupPage nếu bạn thích) */}
+    <div className="bg-background text-foreground min-h-screen">
+      {/* Hiệu ứng nền */}
       <div
         className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_hsl(var(--primary)_/_12%)_0,_transparent_55%)]"
         aria-hidden="true"
       />
 
-      {/* Header với controls */}
-      <div className="mx-auto w-full max-w-6xl px-6 py-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-          <h1 className="text-xl font-semibold text-primary">Danh sách ý tưởng</h1>
+      {/* Header */}
+      <div className="from-primary/10 via-primary/5 to-background mx-auto w-full max-w-6xl border-b bg-gradient-to-r px-6 py-6 backdrop-blur">
+        <div className="mb-4 flex items-center gap-3">
+          <Lightbulb className="text-primary h-8 w-8" />
+          <div>
+            <h1 className="text-foreground text-2xl font-bold">Danh sách ý tưởng</h1>
+            <p className="text-muted-foreground text-sm">Khám phá và theo dõi các ý tưởng dự án</p>
+          </div>
         </div>
 
-        {/* Filter và Search Controls */}
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="flex-1">
-            <Input
-              type="text"
-              placeholder="Tìm ý tưởng theo tiêu đề, mô tả hoặc tác giả..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full"
-            />
+        {/* Stats Cards */}
+        {!isPending && (
+          <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+            <Card className="to-background border-blue-200 bg-gradient-to-br from-blue-50 p-3">
+              <div className="text-2xl font-bold text-blue-600">{stats.total}</div>
+              <div className="text-muted-foreground text-xs">Tổng số ý tưởng</div>
+            </Card>
+            <Card className="to-background border-green-200 bg-gradient-to-br from-green-50 p-3">
+              <div className="text-2xl font-bold text-green-600">{stats.approved}</div>
+              <div className="text-muted-foreground text-xs">Đã duyệt</div>
+            </Card>
+            <Card className="to-background border-orange-200 bg-gradient-to-br from-orange-50 p-3">
+              <div className="text-2xl font-bold text-orange-600">{stats.proposed}</div>
+              <div className="text-muted-foreground text-xs">Đang đề xuất</div>
+            </Card>
+            <Card className="to-background border-red-200 bg-gradient-to-br from-red-50 p-3">
+              <div className="text-2xl font-bold text-red-600">{stats.rejected}</div>
+              <div className="text-muted-foreground text-xs">Từ chối</div>
+            </Card>
           </div>
+        )}
+      </div>
 
-          <div className="flex gap-2">
-            <Select value={filterStatus} onValueChange={(v) => setFilterStatus(v as TTypeIdeas | "ALL")}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Trạng thái" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">Tất cả</SelectItem>
-                <SelectItem value="DRAFT">Bản nháp</SelectItem>
-                <SelectItem value="PENDING">Chờ duyệt</SelectItem>
-                <SelectItem value="APPROVED">Đã duyệt</SelectItem>
-                <SelectItem value="REJECTED">Từ chối</SelectItem>
-              </SelectContent>
-            </Select>
+      {/* Filter và Search Controls */}
+      <div className="bg-muted/30 mx-auto w-full max-w-6xl px-6 py-4">
+        <div className="mb-3 flex items-center gap-2">
+          <Filter className="text-muted-foreground h-4 w-4" />
+          <span className="text-muted-foreground text-sm font-medium">Bộ lọc và tìm kiếm</span>
+        </div>
 
-            <Select value={dateRange} onValueChange={(v) => setDateRange(v as "ALL" | "TODAY" | "WEEK" | "MONTH" | "YEAR")}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Thời gian" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">Tất cả</SelectItem>
-                <SelectItem value="TODAY">Hôm nay</SelectItem>
-                <SelectItem value="WEEK">Tuần này</SelectItem>
-                <SelectItem value="MONTH">Tháng này</SelectItem>
-                <SelectItem value="YEAR">Năm nay</SelectItem>
-              </SelectContent>
-            </Select>
+        <div className="grid gap-3 sm:grid-cols-[1fr_auto_auto_auto]">
+          <Input
+            type="text"
+            placeholder="Tìm kiếm theo tiêu đề, mô tả, tác giả..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full"
+          />
 
-            <Select value={sortOrder} onValueChange={(v) => setSortOrder(v as "DESC" | "ASC")}>
-              <SelectTrigger className="w-36">
-                <SelectValue placeholder="Sắp xếp" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="DESC">Mới nhất</SelectItem>
-                <SelectItem value="ASC">Cũ nhất</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <Select value={filterStatus} onValueChange={(v) => setFilterStatus(v as TTypeIdeas | "ALL")}>
+            <SelectTrigger className="w-full sm:w-40">
+              <SelectValue placeholder="Tất cả" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">Tất cả</SelectItem>
+              <SelectItem value="PROPOSED">Đề xuất</SelectItem>
+              <SelectItem value="PENDING">Chờ duyệt</SelectItem>
+              <SelectItem value="APPROVED">Đã duyệt</SelectItem>
+              <SelectItem value="REJECTED">Từ chối</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={dateRange} onValueChange={(v) => setDateRange(v as "ALL" | "TODAY" | "WEEK" | "MONTH" | "YEAR")}>
+            <SelectTrigger className="w-full sm:w-40">
+              <SelectValue placeholder="Tất cả" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">Tất cả</SelectItem>
+              <SelectItem value="TODAY">Hôm nay</SelectItem>
+              <SelectItem value="WEEK">Tuần này</SelectItem>
+              <SelectItem value="MONTH">Tháng này</SelectItem>
+              <SelectItem value="YEAR">Năm nay</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={sortOrder} onValueChange={(v) => setSortOrder(v as "DESC" | "ASC")}>
+            <SelectTrigger className="w-full sm:w-36">
+              <SelectValue placeholder="Mới nhất" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="DESC">Mới nhất</SelectItem>
+              <SelectItem value="ASC">Cũ nhất</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Result count */}
+        <div className="text-muted-foreground mt-3 text-sm">
+          Hiển thị <strong className="text-foreground">{filteredAndSortedIdeas.length}</strong> / {stats.total} ý tưởng
         </div>
       </div>
 
       {/* Main content */}
-      <div className="mx-auto w-full max-w-6xl px-6 py-8 pb-16">
-        {listSection}
-      </div>
+      <div className="mx-auto w-full max-w-6xl px-6 py-6 pb-16">{listSection}</div>
     </div>
   );
 }
