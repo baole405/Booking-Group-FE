@@ -45,11 +45,10 @@ const getGroupByUserId = async (userId: number) => await apiRequest.get<BaseResp
 const getPendingJoinRequests = async (groupId: number) =>
   await apiRequest.get<BaseResponse<TJoinGroup[]>>(API_SUFFIX.JOIN_GROUP_API + `/${groupId}/pending`);
 
-// Moderator add a specific user into a specific group
-// Assumption: backend supports POST /joins/{groupId}?userId={userId}
-// If backend later changes to /groups/members, adjust this method only.
+// Moderator assigns a student (who has no group) into a specific group
+// Backend contract: POST /api/joins/assign/{groupId}/{studentId}
 const addMemberToGroupByModerator = async (groupId: number, userId: number) =>
-  await apiRequest.post<StatusResponse>(`${API_SUFFIX.GROUP_API}/${groupId}/members`, userId);
+  await apiRequest.put<StatusResponse>(`${API_SUFFIX.JOIN_GROUP_API}/assign/${groupId}/${userId}`);
 const finalizeGroup = async () => await apiRequest.patch<StatusResponse>(API_SUFFIX.DONE_GROUP_API);
 const changeGroupType = async () => await apiRequest.patch<StatusResponse>(API_SUFFIX.CHANGE_TYPE_GROUP_API);
 const getMyJoinRequests = async () => await apiRequest.get<BaseResponse<TJoinGroup[]>>(API_SUFFIX.MY_JOIN_GROUP_API);
