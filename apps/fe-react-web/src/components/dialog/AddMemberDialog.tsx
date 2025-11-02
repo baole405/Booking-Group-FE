@@ -44,9 +44,10 @@ export function AddMemberDialog({ groupId, groupName, children }: AddMemberDialo
           setSelectedUserId(null);
           setOpen(false);
         },
-        onError: (error) => {
+        onError: (error: unknown) => {
           console.error("Failed to add member:", error);
-          toast.error("Thêm thành viên thất bại. Vui lòng thử lại.");
+          const err = error as { response?: { data?: { message?: string } } };
+          toast.error(err?.response?.data?.message || "Thêm thành viên thất bại. Vui lòng thử lại.");
         },
       },
     );
