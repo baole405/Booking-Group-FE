@@ -8,9 +8,12 @@ const createSemester = async (data: TCreateSemester) => await apiRequest.post<Ba
 const updateStatusSemester = async (id: number) => await apiRequest.patch<BaseResponse<TSemester>>(API_SUFFIX.SEMESTER_API + `/${id}/active`);
 const updateSemester = async (id: number, data: TUpdateSemester) =>
   await apiRequest.put<BaseResponse<TSemester>>(API_SUFFIX.SEMESTER_API + `/${id}`, data);
+const completeSemester = async (id: number) => await apiRequest.put<BaseResponse<TSemester>>(API_SUFFIX.SEMESTER_API + `/${id}/complete`);
+
 export const semesterApi = {
   getSemesterList,
   createSemester,
   updateStatusSemester,
   updateSemester,
+  completeSemester,
 };

@@ -46,8 +46,15 @@ export default function ListSemesterScreen() {
     setIsDetailOpen(true);
   };
 
-  const getStatusColor = (isActive: boolean) => {
-    return isActive ? "bg-green-100 text-green-800 border-green-200" : "bg-red-100 text-red-800 border-red-200";
+  const getStatusBadge = (semester: TSemester) => {
+    if (semester.isComplete) {
+      return <Badge className="border-blue-200 bg-blue-100 text-blue-800">Đã hoàn thành</Badge>;
+    }
+    return semester.active ? (
+      <Badge className="border-green-200 bg-green-100 text-green-800">Đang hoạt động</Badge>
+    ) : (
+      <Badge className="border-gray-200 bg-gray-100 text-gray-800">Ngưng hoạt động</Badge>
+    );
   };
 
   return (
@@ -132,9 +139,7 @@ export default function ListSemesterScreen() {
                   <TableRow key={semester.id} className="hover:bg-gray-50/50">
                     <TableCell className="text-center font-mono text-sm text-gray-500">{semester.id}</TableCell>
                     <TableCell className="font-medium">{semester.name}</TableCell>
-                    <TableCell className="text-center">
-                      <Badge className={getStatusColor(semester.active)}>{semester.active ? "Hoạt động" : "Ngưng hoạt động"}</Badge>
-                    </TableCell>
+                    <TableCell className="text-center">{getStatusBadge(semester)}</TableCell>
                     <TableCell className="text-center">
                       <Button size="sm" variant="outline" onClick={() => handleDetailClick(semester)}>
                         <Eye className="h-4 w-4" />
@@ -177,7 +182,7 @@ export default function ListSemesterScreen() {
         )}
       </AdminTableContainer>
 
-      <SemesterDetailDialog semester={selectedSemester} open={isDetailOpen} onOpenChange={setIsDetailOpen} />
+      <SemesterDetailDialog semester={selectedSemester} open={isDetailOpen} onOpenChange={setIsDetailOpen} allSemesters={semesters} />
     </AdminLayout>
   );
 }

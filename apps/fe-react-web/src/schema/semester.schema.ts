@@ -4,6 +4,7 @@ export const SemesterSchema = z.object({
   id: z.union([z.number(), z.null(), z.undefined()]),
   name: z.string(),
   active: z.boolean(),
+  isComplete: z.boolean().optional(),
 });
 
 export const CreateSemesterSchema = z.object({
