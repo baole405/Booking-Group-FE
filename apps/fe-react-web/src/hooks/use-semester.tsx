@@ -21,10 +21,15 @@ export const useSemesterHook = () => {
     useMutation({
       mutationFn: ({ id, data }: { id: number; data: TUpdateSemester }) => semesterApi.updateSemester(id, data),
     });
+  const useCompleteSemester = () =>
+    useMutation({
+      mutationFn: (id: number) => semesterApi.completeSemester(id),
+    });
   return {
     useSemesterList,
     useCreateSemester,
     useUpdateStatusSemester,
     useUpdateSemester,
+    useCompleteSemester,
   };
 };
