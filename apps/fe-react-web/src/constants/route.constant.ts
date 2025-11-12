@@ -41,6 +41,7 @@ export const ROUTES = {
     STUDENTS: "/admin/students",
     SEMESTERS: "/admin/semesters",
     MAJORS: "/admin/majors",
+    WHITELIST: "/admin/whitelist",
   },
 
   // Moderator Routes
