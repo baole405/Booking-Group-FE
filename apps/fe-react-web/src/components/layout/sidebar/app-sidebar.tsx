@@ -1,5 +1,5 @@
 import type { RootState } from "@/redux/store";
-import { ArrowUpCircleIcon, ClipboardListIcon, DatabaseIcon, LayoutDashboardIcon, ListIcon, UsersIcon } from "lucide-react";
+import { ArrowUpCircleIcon, ClipboardListIcon, DatabaseIcon, LayoutDashboardIcon, ListIcon, MailCheckIcon, UsersIcon } from "lucide-react";
 import * as React from "react";
 import { useSelector } from "react-redux";
 
@@ -25,6 +25,11 @@ const menuData = {
       title: "Chuyên ngành",
       url: ROUTES.ADMIN.MAJORS,
       icon: UsersIcon,
+    },
+    {
+      title: "Whitelist Email",
+      url: ROUTES.ADMIN.WHITELIST,
+      icon: MailCheckIcon,
     },
   ],
   MODERATOR: [

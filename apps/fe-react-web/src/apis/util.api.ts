@@ -46,4 +46,7 @@ export const API_SUFFIX = {
   MY_INVITES_API: "/invites/my", // Lời mời của tôi (đã gửi và đã nhận)
 
   CHAT_API: "/chat", // Chat messages API
+
+  WHITELIST_API: "/excel", // Email whitelist management
+  EXCEL_API: "/excel/whitelist", // Excel export/import
 };

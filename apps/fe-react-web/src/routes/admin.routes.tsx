@@ -27,12 +27,10 @@ const Loadable =
   };
 
 // -------- Lazy pages --------
-// const ListStudentScreen = Loadable(lazy(() => import("@/pages/admin/ListStudentScreen")));
 const ListAccountScreen = Loadable(lazy(() => import("@/pages/admin/ListAccountScreen")));
 const ListSemesterScreen = Loadable(lazy(() => import("@/pages/admin/ListSemesterScreen")));
 const ListMajorScreen = Loadable(lazy(() => import("@/pages/admin/ListMajorScreen")));
-// const ListLectureScreen = Loadable(lazy(() => import("@/pages/admin/ListLectureScreen")));
-// const ListProjectScreen = Loadable(lazy(() => import("@/pages/admin/ListSeScreen")));
+const WhitelistManagementScreen = Loadable(lazy(() => import("@/pages/admin/WhitelistManagementScreen")));
 
 const adminRoutes = {
   path: ROUTES.ADMIN.ROOT,
@@ -46,9 +44,7 @@ const adminRoutes = {
     { path: ROUTES.ADMIN.ACCOUNTS, element: <ListAccountScreen /> },
     { path: ROUTES.ADMIN.SEMESTERS, element: <ListSemesterScreen /> },
     { path: ROUTES.ADMIN.MAJORS, element: <ListMajorScreen /> },
-    // { path: ROUTES.ADMIN.LECTURERS, element: <ListLectureScreen /> },
-    // { path: ROUTES.ADMIN.PROJECTS, element: <ListProjectScreen /> },
-    // { path: ROUTES.ADMIN.STUDENTS, element: <ListStudentScreen /> },
+    { path: ROUTES.ADMIN.WHITELIST, element: <WhitelistManagementScreen /> },
   ],
 };
 
