@@ -1,4 +1,5 @@
 import ChatWidget from "@/components/chat/ChatWidget";
+import AiChatWidget from "@/components/chatbot/AiChatWidget";
 import HeaderLecture from "@/components/layout/header/header-lecture";
 import HeaderMain from "@/components/layout/header/header-main";
 import { SiteHeader } from "@/components/layout/header/site-header";
@@ -57,6 +58,7 @@ const RoleBasedLayout = () => {
 
           {/* Chat Widget - floating bubble */}
           <ChatWidget />
+          <AiChatWidget />
         </div>
       );
 
