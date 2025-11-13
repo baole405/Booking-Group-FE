@@ -47,6 +47,8 @@ export const API_SUFFIX = {
 
   CHAT_API: "/chat", // Chat messages API
 
+  CHATBOT_API: "/chatbot", // AI Chatbot API
+
   WHITELIST_API: "/excel", // Email whitelist management
   EXCEL_API: "/excel/whitelist", // Excel export/import
 };
