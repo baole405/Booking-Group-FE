@@ -1,5 +1,5 @@
 import { ideaApi } from "@/apis/idea.api";
-import type { TCreateIdea, TUpdateIdea, TRejectIdea } from "@/schema/ideas.schema";
+import type { TCreateIdea, TRejectIdea, TUpdateIdea } from "@/schema/ideas.schema";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
 export const useIdeaHook = () => {
@@ -14,7 +14,7 @@ export const useIdeaHook = () => {
     });
   const useUpdateIdea = () =>
     useMutation({
-      mutationFn: ({ id, data }: { id: number, data: TUpdateIdea }) => ideaApi.updateIdea(id, data),
+      mutationFn: ({ id, data }: { id: number; data: TUpdateIdea }) => ideaApi.updateIdea(id, data),
     });
   const useDeleteIdea = () =>
     useMutation({
@@ -41,6 +41,11 @@ export const useIdeaHook = () => {
       mutationFn: ({ id, data }: { id: number; data: TRejectIdea }) => ideaApi.rejectIdea(id, data),
     });
 
+  const useDeactivateIdea = () =>
+    useMutation({
+      mutationFn: (id: number) => ideaApi.deactivateIdea(id),
+    });
+
   return {
     useIdeaListByGroupId,
     useCreateIdea,
@@ -50,5 +55,6 @@ export const useIdeaHook = () => {
     useSubmitIdea,
     useApproveIdea,
     useRejectIdea,
+    useDeactivateIdea,
   };
 };

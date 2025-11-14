@@ -26,9 +26,9 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
-// Type for approval/rejection dialog
+// Type for approval/rejection/deactivate dialog
 type ApprovalAction = {
-  type: "approve" | "reject";
+  type: "approve" | "reject" | "deactivate";
   idea: TIdea;
   groupId: number;
 } | null;
@@ -43,9 +43,10 @@ export default function IdeaReviewPage() {
 
   const { useApprovedGroups } = useTeacherCheckpointsHook();
   const { data: groupsRes, isPending: isLoadingGroups } = useApprovedGroups();
-  const { useApproveIdea, useRejectIdea } = useIdeaHook();
+  const { useApproveIdea, useRejectIdea, useDeactivateIdea } = useIdeaHook();
   const { mutate: approveIdea, isPending: isApproving } = useApproveIdea();
   const { mutate: rejectIdea, isPending: isRejecting } = useRejectIdea();
+  const { mutate: deactivateIdea, isPending: isDeactivating } = useDeactivateIdea();
 
   const approvedGroups = groupsRes?.data?.data ?? [];
 
@@ -86,6 +87,11 @@ export default function IdeaReviewPage() {
     setRejectReason("");
   };
 
+  // Handle deactivate (revert approved idea)
+  const handleDeactivate = (idea: TIdea, groupId: number) => {
+    setApprovalAction({ type: "deactivate", idea, groupId });
+  };
+
   // Confirm approval
   const confirmApproval = () => {
     if (!approvalAction) return;
@@ -94,7 +100,6 @@ export default function IdeaReviewPage() {
       approveIdea(approvalAction.idea.id, {
         onSuccess: () => {
           toast.success("Đã phê duyệt ý tưởng thành công");
-          // Refetch ideas for this specific group to update UI immediately
           queryClient.invalidateQueries({ queryKey: ["ideaList", approvalAction.groupId] });
           setApprovalAction(null);
         },
@@ -102,7 +107,7 @@ export default function IdeaReviewPage() {
           toast.error(`Lỗi: ${error.message}`);
         },
       });
-    } else {
+    } else if (approvalAction.type === "reject") {
       if (!rejectReason.trim()) {
         toast.error("Vui lòng nhập lý do từ chối");
         return;
@@ -112,7 +117,6 @@ export default function IdeaReviewPage() {
         {
           onSuccess: () => {
             toast.success("Đã từ chối ý tưởng");
-            // Refetch ideas for this specific group to update UI immediately
             queryClient.invalidateQueries({ queryKey: ["ideaList", approvalAction.groupId] });
             setApprovalAction(null);
             setRejectReason("");
@@ -122,10 +126,47 @@ export default function IdeaReviewPage() {
           },
         },
       );
+    } else if (approvalAction.type === "deactivate") {
+      deactivateIdea(approvalAction.idea.id, {
+        onSuccess: () => {
+          toast.success("Đã chuyển ý tưởng về trạng thái chưa duyệt");
+          queryClient.invalidateQueries({ queryKey: ["ideaList", approvalAction.groupId] });
+          setApprovalAction(null);
+        },
+        onError: (error: Error) => {
+          toast.error(`Lỗi: ${error.message}`);
+        },
+      });
     }
   };
 
-  const isProcessing = isApproving || isRejecting;
+  const isProcessing = isApproving || isRejecting || isDeactivating;
+
+  // Helper functions to avoid nested ternary
+  const getDialogTitle = () => {
+    if (approvalAction?.type === "approve") return "Phê duyệt ý tưởng";
+    if (approvalAction?.type === "reject") return "Từ chối ý tưởng";
+    return "Hoàn tác duyệt ý tưởng";
+  };
+
+  const getDialogDescription = () => {
+    if (approvalAction?.type === "approve") return "Bạn có chắc chắn muốn phê duyệt ý tưởng này?";
+    if (approvalAction?.type === "reject") return "Vui lòng nhập lý do từ chối ý tưởng này:";
+    return "Bạn có chắc chắn muốn hoàn tác việc duyệt ý tưởng này? Ý tưởng sẽ trở về trạng thái chưa duyệt.";
+  };
+
+  const getButtonClassName = () => {
+    if (approvalAction?.type === "approve") return "";
+    if (approvalAction?.type === "reject") return "bg-destructive hover:bg-destructive/90";
+    return "bg-orange-500 hover:bg-orange-600";
+  };
+
+  const getButtonText = () => {
+    if (isProcessing) return "Đang xử lý...";
+    if (approvalAction?.type === "approve") return "Phê duyệt";
+    if (approvalAction?.type === "reject") return "Từ chối";
+    return "Hoàn tác";
+  };
 
   return (
     <div className="bg-background text-foreground flex min-h-screen flex-col">
@@ -223,6 +264,7 @@ export default function IdeaReviewPage() {
                         onToggle={() => toggleGroup(group.id ?? 0)}
                         onApprove={handleApprove}
                         onReject={handleReject}
+                        onDeactivate={handleDeactivate}
                         onViewGroup={() => navigate(`/lecturer/groups/${group.id}`)}
                         isProcessing={isProcessing}
                         activeTab="pending"
@@ -260,6 +302,7 @@ export default function IdeaReviewPage() {
                         onToggle={() => toggleGroup(group.id ?? 0)}
                         onApprove={handleApprove}
                         onReject={handleReject}
+                        onDeactivate={handleDeactivate}
                         onViewGroup={() => navigate(`/lecturer/groups/${group.id}`)}
                         isProcessing={isProcessing}
                         activeTab="all"
@@ -276,12 +319,10 @@ export default function IdeaReviewPage() {
       <AlertDialog open={!!approvalAction} onOpenChange={() => !isProcessing && setApprovalAction(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{approvalAction?.type === "approve" ? "Phê duyệt ý tưởng" : "Từ chối ý tưởng"}</AlertDialogTitle>
+            <AlertDialogTitle>{getDialogTitle()}</AlertDialogTitle>
             <AlertDialogDescription asChild>
               <div className="space-y-3">
-                <p>
-                  {approvalAction?.type === "approve" ? "Bạn có chắc chắn muốn phê duyệt ý tưởng này?" : "Vui lòng nhập lý do từ chối ý tưởng này:"}
-                </p>
+                <p>{getDialogDescription()}</p>
                 {approvalAction?.type === "reject" && (
                   <Textarea
                     placeholder="Nhập lý do từ chối..."
@@ -300,15 +341,8 @@ export default function IdeaReviewPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isProcessing}>Hủy</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmApproval}
-              disabled={isProcessing}
-              className={approvalAction?.type === "approve" ? "" : "bg-destructive hover:bg-destructive/90"}
-            >
-              {(() => {
-                if (isProcessing) return "Đang xử lý...";
-                return approvalAction?.type === "approve" ? "Phê duyệt" : "Từ chối";
-              })()}
+            <AlertDialogAction onClick={confirmApproval} disabled={isProcessing} className={getButtonClassName()}>
+              {getButtonText()}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -323,12 +357,13 @@ interface GroupIdeaCardProps {
   onToggle: () => void;
   onApprove: (idea: TIdea, groupId: number) => void;
   onReject: (idea: TIdea, groupId: number) => void;
+  onDeactivate: (idea: TIdea, groupId: number) => void;
   onViewGroup: () => void;
   isProcessing: boolean;
   activeTab: "pending" | "all";
 }
 
-function GroupIdeaCard({ group, isOpen, onToggle, onApprove, onReject, onViewGroup, isProcessing, activeTab }: GroupIdeaCardProps) {
+function GroupIdeaCard({ group, isOpen, onToggle, onApprove, onReject, onDeactivate, onViewGroup, isProcessing, activeTab }: GroupIdeaCardProps) {
   // Fetch ideas for this specific group
   const { useIdeaListByGroupId } = useIdeaHook();
   const { data: ideasRes, isPending: isLoadingIdeas } = useIdeaListByGroupId(group.id ?? 0);
@@ -411,6 +446,7 @@ function GroupIdeaCard({ group, isOpen, onToggle, onApprove, onReject, onViewGro
                     idea={idea}
                     onApprove={() => onApprove(idea, group.id ?? 0)}
                     onReject={() => onReject(idea, group.id ?? 0)}
+                    onDeactivate={() => onDeactivate(idea, group.id ?? 0)}
                     isProcessing={isProcessing}
                   />
                 ))
@@ -428,10 +464,11 @@ interface IdeaItemProps {
   idea: TIdea;
   onApprove: () => void;
   onReject: () => void;
+  onDeactivate: () => void;
   isProcessing: boolean;
 }
 
-function IdeaItem({ idea, onApprove, onReject, isProcessing }: IdeaItemProps) {
+function IdeaItem({ idea, onApprove, onReject, onDeactivate, isProcessing }: IdeaItemProps) {
   const getStatusBadge = () => {
     switch (idea.status) {
       case "PROPOSED":
@@ -483,7 +520,7 @@ function IdeaItem({ idea, onApprove, onReject, isProcessing }: IdeaItemProps) {
           </div>
         )}
 
-        {/* Action Buttons - Only show for PROPOSED status */}
+        {/* Action Buttons */}
         {idea.status === "PROPOSED" && (
           <div className="flex gap-2 pt-2">
             <Button size="sm" onClick={onApprove} disabled={isProcessing} className="flex-1">
@@ -493,6 +530,22 @@ function IdeaItem({ idea, onApprove, onReject, isProcessing }: IdeaItemProps) {
             <Button size="sm" variant="destructive" onClick={onReject} disabled={isProcessing} className="flex-1">
               <XCircle className="mr-2 h-4 w-4" />
               Từ chối
+            </Button>
+          </div>
+        )}
+
+        {/* Deactivate Button for APPROVED ideas */}
+        {idea.status === "APPROVED" && (
+          <div className="flex gap-2 pt-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={onDeactivate}
+              disabled={isProcessing}
+              className="w-full border-orange-200 text-orange-700 hover:bg-orange-50"
+            >
+              <XCircle className="mr-2 h-4 w-4" />
+              Hoàn tác duyệt
             </Button>
           </div>
         )}
