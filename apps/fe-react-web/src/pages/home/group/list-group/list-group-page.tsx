@@ -3,26 +3,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useGroupHook } from "@/hooks/use-group";
 import { useQueryParams } from "@/hooks/use-query-params";
+import type { TGroup } from "@/schema/group.schema";
 import { Loader2 } from "lucide-react";
 import { useMemo } from "react";
 import GroupCard from "./components/group-card";
-import type { TGroup } from "@/schema/group.schema";
 
-const getFilterValue = (id: string, filters: { id: string; value: unknown }[]) =>
-  filters.find((f) => f.id === id)?.value ?? null;
+const getFilterValue = (id: string, filters: { id: string; value: unknown }[]) => filters.find((f) => f.id === id)?.value ?? null;
 
 export default function GroupPage() {
-  const {
-    currentPage,
-    pageSize,
-    sortBy,
-    isAsc,
-    filter,
-    setFilter,
-    setSort,
-    setPage,
-    setPageSize,
-  } = useQueryParams({
+  const { currentPage, pageSize, sortBy, isAsc, filter, setFilter, setSort, setPage, setPageSize } = useQueryParams({
     defaultSortBy: "id",
     defaultIsAsc: true,
     defaultFilter: [
@@ -51,30 +40,20 @@ export default function GroupPage() {
   });
 
   const payload = data?.data?.data;
-  const groups = payload?.content ?? [];
+  const groups = useMemo(() => payload?.content ?? [], [payload?.content]);
   const totalPages = Math.max(1, payload?.totalPages ?? 1);
   const totalElements = payload?.totalElements ?? 0;
 
   const listSection = useMemo(() => {
     if (isPending)
       return (
-        <div className="flex justify-center py-10 text-muted-foreground">
+        <div className="text-muted-foreground flex justify-center py-10">
           <Loader2 className="mr-2 h-6 w-6 animate-spin" />
           Đang tải danh sách nhóm...
         </div>
       );
-    if (error)
-      return (
-        <div className="py-10 text-center text-destructive">
-          Đã xảy ra lỗi khi tải dữ liệu nhóm.
-        </div>
-      );
-    if (!groups.length)
-      return (
-        <div className="py-10 text-center text-muted-foreground">
-          Không có nhóm nào phù hợp.
-        </div>
-      );
+    if (error) return <div className="text-destructive py-10 text-center">Đã xảy ra lỗi khi tải dữ liệu nhóm.</div>;
+    if (!groups.length) return <div className="text-muted-foreground py-10 text-center">Không có nhóm nào phù hợp.</div>;
 
     return (
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -95,12 +74,12 @@ export default function GroupPage() {
 
       {/* Header Section */}
       <div className="mx-auto w-full max-w-6xl px-6 py-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-          <h1 className="text-xl font-semibold text-primary">Danh sách nhóm sinh viên</h1>
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <h1 className="text-primary text-xl font-semibold">Danh sách nhóm sinh viên</h1>
         </div>
 
         {/* Filter và Search Controls */}
-        <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row">
           <div className="flex-1">
             <Input
               type="text"
@@ -116,7 +95,7 @@ export default function GroupPage() {
 
           <div className="flex gap-2">
             <select
-              className="rounded-md border bg-background px-3 py-2 text-sm"
+              className="bg-background rounded-md border px-3 py-2 text-sm"
               value={(statusRaw as string) ?? "All"}
               onChange={(e) => {
                 setFilter("status", e.target.value);
@@ -130,7 +109,7 @@ export default function GroupPage() {
             </select>
 
             <select
-              className="rounded-md border bg-background px-3 py-2 text-sm"
+              className="bg-background rounded-md border px-3 py-2 text-sm"
               value={(typeRaw as string) ?? "All"}
               onChange={(e) => {
                 setFilter("type", e.target.value);
@@ -142,22 +121,13 @@ export default function GroupPage() {
               <option value="PRIVATE">Riêng tư</option>
             </select>
 
-            <select
-              className="rounded-md border bg-background px-3 py-2 text-sm"
-              value={sortBy}
-              onChange={(e) => setSort(e.target.value, isAsc)}
-            >
+            <select className="bg-background rounded-md border px-3 py-2 text-sm" value={sortBy} onChange={(e) => setSort(e.target.value, isAsc)}>
               <option value="id">Theo ID</option>
               <option value="title">Theo tên</option>
               <option value="createdAt">Theo ngày tạo</option>
             </select>
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setSort(sortBy, !isAsc)}
-              className="px-3"
-            >
+            <Button variant="outline" size="sm" onClick={() => setSort(sortBy, !isAsc)} className="px-3">
               {isAsc ? "↑" : "↓"}
             </Button>
           </div>
@@ -168,7 +138,7 @@ export default function GroupPage() {
       <main className="mx-auto w-full max-w-6xl px-6 py-8 pb-24">{listSection}</main>
 
       {/* Pagination */}
-      <footer className="fixed inset-x-0 bottom-0 z-20 border-t bg-background">
+      <footer className="bg-background fixed inset-x-0 bottom-0 z-20 border-t">
         <div className="mx-auto w-full max-w-6xl px-6">
           <PaginationBar
             total={totalElements}

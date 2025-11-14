@@ -10,7 +10,7 @@ const AuthProvider = ({ children }: Props) => {
   const dispatch = useDispatch();
   useEffect(() => {
     dispatch(loadUserFromStorage());
-  }, []);
+  }, [dispatch]);
   return children;
 };
 

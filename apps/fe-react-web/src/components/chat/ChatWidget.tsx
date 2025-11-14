@@ -8,7 +8,7 @@ import type { RootState } from "@/redux/store";
 import type { TMessage } from "@/schema/chat.schema";
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
-import { Edit2, MessageCircle, Minimize2, RefreshCw, Reply, Search, Send, Trash2, X } from "lucide-react";
+import { Edit2, MessageCircle, Minimize2, Reply, Search, Send, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { toast } from "sonner";
@@ -30,7 +30,7 @@ export default function ChatWidget() {
   const { data: groupData } = useMyGroup();
   const myGroup = groupData?.data?.data;
 
-  const { data: messages, isPending: messagesLoading, refetch, isRefetching } = useGroupMessages(myGroup?.id ?? null);
+  const { data: messages, isPending: messagesLoading, refetch } = useGroupMessages(myGroup?.id ?? null);
   const { mutateAsync: sendMessageAsync, isPending: isSending } = useSendMessage();
   const { mutateAsync: updateMessageAsync, isPending: isUpdating } = useUpdateMessage();
   const { mutateAsync: deleteMessageAsync, isPending: isDeleting } = useDeleteMessage();
@@ -232,15 +232,6 @@ export default function ChatWidget() {
                     title={isSearching ? "Đóng tìm kiếm" : "Tìm kiếm tin nhắn"}
                   >
                     <Search className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-primary-foreground hover:bg-primary-foreground/20 h-8 w-8"
-                    onClick={() => refetch()}
-                    disabled={isRefetching}
-                  >
-                    <RefreshCw className={`h-4 w-4 ${isRefetching ? "animate-spin" : ""}`} />
                   </Button>
                   <Button
                     variant="ghost"

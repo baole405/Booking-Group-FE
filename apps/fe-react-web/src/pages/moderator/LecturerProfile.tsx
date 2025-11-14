@@ -14,7 +14,7 @@ const MOCK = {
 export default function ModeratorLecturerProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const lecturer = (id && (MOCK as any)[id]) || null;
+  const lecturer = id && MOCK && typeof MOCK === "object" && id in MOCK ? (MOCK as Record<string, unknown>)[id] : null;
 
   if (!lecturer) {
     return <div className="text-muted-foreground flex min-h-[50vh] items-center justify-center">Không tìm thấy giảng viên.</div>;

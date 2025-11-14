@@ -1,6 +1,6 @@
-import { useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
 import type { RootState } from "@/redux/store";
+import { useSelector } from "react-redux";
+import { NavigateOptions, useNavigate } from "react-router-dom";
 
 export const useRoleNavigate = () => {
   const navigate = useNavigate();
@@ -8,7 +8,7 @@ export const useRoleNavigate = () => {
 
   const rolePrefix = role ? `/${role.toLowerCase()}` : "";
 
-  const roleNavigate = (path: string, options?: any) => {
+  const roleNavigate = (path: string, options?: NavigateOptions) => {
     if (rolePrefix && path.startsWith(rolePrefix)) {
       navigate(path, options);
     } else {

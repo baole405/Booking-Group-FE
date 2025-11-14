@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useChatbotHistory, useSendChatbotMessage } from "@/hooks/use-chatbot";
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
-import { Bot, Minimize2, RefreshCw, Send, X } from "lucide-react";
+import { Bot, Minimize2, Send, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -21,7 +21,7 @@ export default function AIChatbotWidget() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Only load history when user has interacted (sent message or clicked refresh)
-  const { data: history, isPending: historyLoading, refetch, isRefetching } = useChatbotHistory(historyLimit, hasInteracted);
+  const { data: history, isPending: historyLoading, refetch } = useChatbotHistory(historyLimit, hasInteracted);
   const { mutateAsync: sendMessageAsync, isPending: isSending } = useSendChatbotMessage();
 
   // Auto scroll to bottom when new messages arrive or chat opens
@@ -70,13 +70,6 @@ export default function AIChatbotWidget() {
     }
   };
 
-  const handleRefresh = () => {
-    if (!hasInteracted) {
-      setHasInteracted(true);
-    }
-    refetch();
-  };
-
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -121,16 +114,6 @@ export default function AIChatbotWidget() {
                       <SelectItem value="100">100</SelectItem>
                     </SelectContent>
                   </Select>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-white hover:bg-white/20"
-                    onClick={handleRefresh}
-                    disabled={isRefetching}
-                    title="Làm mới"
-                  >
-                    <RefreshCw className={`h-4 w-4 ${isRefetching ? "animate-spin" : ""}`} />
-                  </Button>
                   <Button
                     variant="ghost"
                     size="icon"

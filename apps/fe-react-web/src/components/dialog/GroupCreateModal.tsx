@@ -28,7 +28,7 @@ const GroupCreateModal: React.FC<GroupCreateModalProps> = ({ open, onClose, onSu
 
   React.useEffect(() => {
     if (!open) resetForm();
-  }, [open]);
+  }, [open, resetForm]);
 
   if (!open) return null;
 
