@@ -6,13 +6,16 @@ import { UserSchema } from "./user.schema";
 // Schema cho một lời mời
 export const InviteSchema = z.object({
   id: z.number(),
-  fromUser: UserSchema,
-  toUser: UserSchema,
+  inviter: UserSchema,
+  invitee: UserSchema,
   group: GroupSchema,
-  message: z.string().nullable().optional(),
   status: StatusInviteSchema,
   createdAt: z.string().transform((val) => new Date(val)),
-  updatedAt: z.string().transform((val) => new Date(val)),
+  respondedAt: z
+    .string()
+    .nullable()
+    .transform((val) => (val ? new Date(val) : null)),
+  active: z.boolean(),
 });
 
 // Schema cho tạo lời mời mới
@@ -26,20 +29,22 @@ export const RespondInviteSchema = z.object({
   status: z.enum(["ACCEPTED", "DECLINED"]),
 });
 
-// Schema cho pagination response của lời mời
+// Schema cho pagination content
+const PaginationSchema = z.object({
+  content: z.array(InviteSchema),
+  page: z.number(),
+  size: z.number(),
+  totalElements: z.number(),
+  totalPages: z.number(),
+  first: z.boolean(),
+  last: z.boolean(),
+  sort: z.string(),
+});
+
+// Schema cho response của API /invites/my
 export const InviteListSchema = z.object({
-  received: z.object({
-    content: z.array(InviteSchema),
-    pageNumber: z.number(),
-    totalPages: z.number(),
-    totalElements: z.number().optional(),
-  }),
-  sent: z.object({
-    content: z.array(InviteSchema),
-    pageNumber: z.number(),
-    totalPages: z.number(),
-    totalElements: z.number().optional(),
-  }),
+  received: PaginationSchema,
+  sent: PaginationSchema,
 });
 
 // Query params cho lấy danh sách lời mời

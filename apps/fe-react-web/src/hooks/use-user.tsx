@@ -1,9 +1,12 @@
 import { userApi } from "@/apis/user.api";
+import type { RootState } from "@/redux/store";
 import type { GetUserListParams, TUpdateUserSchema, TUser } from "@/schema/user.schema";
 import type { BaseResponse } from "@/types/response.type";
 import { useMutation, useQuery, type UseQueryOptions } from "@tanstack/react-query";
+import { useSelector } from "react-redux";
 
 export const useUserHook = () => {
+  const userId = useSelector((state: RootState) => state.user.userId);
   const useUserById = (id: number, options?: Omit<UseQueryOptions<BaseResponse<TUser>>, "queryKey" | "queryFn">) =>
     useQuery({
       queryKey: ["userdetail", id],
@@ -70,6 +73,16 @@ export const useUserHook = () => {
       mutationFn: (id: number) => userApi.toggleLecturerModeratorRole(id),
     });
 
+  const useUploadAvatar = () =>
+    useMutation({
+      mutationFn: (file: File) => userApi.uploadAvatar(userId, file),
+    });
+
+  const useUploadCV = () =>
+    useMutation({
+      mutationFn: (file: File) => userApi.uploadCV(userId, file),
+    });
+
   const useUsersNoGroup = () =>
     useQuery({
       queryKey: ["usersNoGroup"],
@@ -86,5 +99,7 @@ export const useUserHook = () => {
     useUpdateMyProfile,
     useUpdateRoleToLecturer,
     useToggleLecturerModeratorRole,
+    useUploadAvatar,
+    useUploadCV,
   };
 };

@@ -1,5 +1,5 @@
+import AIChatbotWidget from "@/components/chat/AIChatbotWidget";
 import ChatWidget from "@/components/chat/ChatWidget";
-import AiChatWidget from "@/components/chatbot/AiChatWidget";
 import HeaderLecture from "@/components/layout/header/header-lecture";
 import HeaderMain from "@/components/layout/header/header-main";
 import { SiteHeader } from "@/components/layout/header/site-header";
@@ -41,6 +41,9 @@ const RoleBasedLayout = () => {
             {/* pt (padding-top) = chiều cao header để tránh nội dung bị che */}
             <Outlet />
           </main>
+
+          {/* AI Chatbot Widget - floating bubble */}
+          <AIChatbotWidget />
         </div>
       );
 
@@ -58,7 +61,9 @@ const RoleBasedLayout = () => {
 
           {/* Chat Widget - floating bubble */}
           <ChatWidget />
-          <AiChatWidget />
+
+          {/* AI Chatbot Widget - floating bubble */}
+          <AIChatbotWidget />
         </div>
       );
 
