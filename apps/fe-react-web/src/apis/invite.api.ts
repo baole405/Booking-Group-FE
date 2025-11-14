@@ -28,8 +28,9 @@ const getMyInvites = async (params?: UseInviteParams) =>
 const respondToInvite = async (inviteId: number, data: TRespondInvite) =>
   await apiRequest.patch<StatusResponse>(`${API_SUFFIX.INVITE_API}/${inviteId}`, data);
 
-// 🔹 Hủy lời mời đã gửi (optional - nếu backend support)
-const cancelInvite = async (inviteId: number) => await apiRequest.delete<StatusResponse>(`${API_SUFFIX.INVITE_API}/${inviteId}`);
+// 🔹 Hủy lời mời đã gửi (set status thành DECLINED)
+const cancelInvite = async (inviteId: number) =>
+  await apiRequest.patch<StatusResponse>(`${API_SUFFIX.INVITE_API}/${inviteId}`, { status: "DECLINED" });
 
 export const inviteApi = {
   createInvite,
