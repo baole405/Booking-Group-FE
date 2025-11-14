@@ -1,5 +1,5 @@
 import { apiRequest } from "@/lib/http";
-import type { TCreateIdea, TIdea, TUpdateIdea, TRejectIdea } from "@/schema/ideas.schema";
+import type { TCreateIdea, TIdea, TRejectIdea, TUpdateIdea } from "@/schema/ideas.schema";
 import type { BaseResponse } from "@/types/response.type";
 import { API_SUFFIX } from "./util.api";
 
@@ -12,6 +12,7 @@ const submitIdea = async (id: number) => await apiRequest.patch<BaseResponse<nul
 const approveIdea = async (id: number) => await apiRequest.patch<BaseResponse<null>>(API_SUFFIX.IDEA_API + `/${id}/approve`);
 const rejectIdea = async (id: number, data: TRejectIdea) =>
   await apiRequest.patch<BaseResponse<null>>(API_SUFFIX.IDEA_API + `/${id}/reject?reason=${data.reason}`);
+const deactivateIdea = async (id: number) => await apiRequest.patch<BaseResponse<null>>(API_SUFFIX.IDEA_API + `/${id}/deactivate`);
 
 export const ideaApi = {
   getIdeaList,
@@ -22,4 +23,5 @@ export const ideaApi = {
   submitIdea,
   approveIdea,
   rejectIdea,
+  deactivateIdea,
 };
