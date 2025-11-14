@@ -16,7 +16,7 @@ export default function InviteManagementPage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"received" | "sent">("received");
 
-  const { useMyInvites, useRespondToInvite, useCancelInvite } = useInviteHook();
+  const { useMyInvites, useRespondToInvite } = useInviteHook();
 
   const {
     data: invitesData,
@@ -31,7 +31,6 @@ export default function InviteManagementPage() {
   });
 
   const { mutate: respondToInvite, isPending: isResponding } = useRespondToInvite();
-  const { mutate: cancelInvite, isPending: isCanceling } = useCancelInvite();
 
   const receivedInvites: TInvite[] = invitesData?.data?.data?.received?.content || [];
   const sentInvites: TInvite[] = invitesData?.data?.data?.sent?.content || [];
@@ -69,17 +68,20 @@ export default function InviteManagementPage() {
     );
   };
 
-  // Handle cancel sent invite
+  // Handle cancel sent invite (set status to DECLINED)
   const handleCancel = (inviteId: number, toUserName: string) => {
     if (window.confirm(`Bạn có chắc muốn hủy lời mời gửi đến ${toUserName}?`)) {
-      cancelInvite(inviteId, {
-        onSuccess: () => {
-          toast.success(`Đã hủy lời mời gửi đến ${toUserName}`);
+      respondToInvite(
+        { inviteId, data: { status: "DECLINED" } },
+        {
+          onSuccess: () => {
+            toast.success(`Đã hủy lời mời gửi đến ${toUserName}`);
+          },
+          onError: () => {
+            toast.error("Không thể hủy lời mời");
+          },
         },
-        onError: () => {
-          toast.error("Không thể hủy lời mời");
-        },
-      });
+      );
     }
   };
 
@@ -290,7 +292,7 @@ export default function InviteManagementPage() {
                         variant="destructive"
                         size="sm"
                         onClick={() => handleCancel(invite.id, invite.invitee.fullName || "")}
-                        disabled={isCanceling}
+                        disabled={isResponding}
                       >
                         <XCircle className="mr-2 h-4 w-4" />
                         Hủy lời mời
