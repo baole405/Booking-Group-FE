@@ -45,9 +45,21 @@ export default function InviteManagementPage() {
       {
         onSuccess: () => {
           toast.success(`Đã chấp nhận lời mời từ ${fromUserName}`);
+          refetch(); // Reload data
+
+          // Có thể reload page để đảm bảo UI sync hoàn toàn
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500);
         },
         onError: () => {
-          toast.error("Không thể chấp nhận lời mời");
+          // Refetch vì BE có thể đã thực thi thành công
+          refetch();
+
+          // Reload page để đảm bảo sync
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000);
         },
       },
     );
@@ -60,9 +72,16 @@ export default function InviteManagementPage() {
       {
         onSuccess: () => {
           toast.success(`Đã từ chối lời mời từ ${fromUserName}`);
+          refetch(); // Reload data
         },
         onError: () => {
-          toast.error("Không thể từ chối lời mời");
+          // Refetch vì BE có thể đã thực thi thành công
+          refetch();
+
+          // Reload page để đảm bảo sync
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000);
         },
       },
     );
@@ -76,9 +95,16 @@ export default function InviteManagementPage() {
         {
           onSuccess: () => {
             toast.success(`Đã hủy lời mời gửi đến ${toUserName}`);
+            refetch(); // Reload data
           },
           onError: () => {
-            toast.error("Không thể hủy lời mời");
+            // Refetch vì BE có thể đã thực thi thành công
+            refetch();
+
+            // Reload page để đảm bảo sync
+            setTimeout(() => {
+              window.location.reload();
+            }, 2000);
           },
         },
       );

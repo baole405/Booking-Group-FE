@@ -91,7 +91,6 @@ export default function MyGroupPage() {
   const {
     currentRequest: myTeacherRequest,
     hasActiveRequest,
-    canSendNewRequest,
     isPending: isRequestPending,
     isApproved: isRequestApproved,
     isRejected: isRequestRejected,
@@ -329,12 +328,6 @@ export default function MyGroupPage() {
       return;
     }
 
-    // Kiểm tra xem có thể gửi request mới không
-    if (!canSendNewRequest) {
-      toast.error("Nhóm đã có yêu cầu đang chờ xử lý hoặc đã được chấp nhận!");
-      return;
-    }
-
     try {
       await requestTeacherAsync(selectedTeacherId);
       toast.success("Đã gửi yêu cầu chọn giáo viên chấm checkpoint!");
@@ -413,8 +406,8 @@ export default function MyGroupPage() {
             {!hasActiveRequest && <p className="text-muted-foreground text-sm">Nhóm đã hoàn tất, vui lòng chọn giáo viên để chấm checkpoint.</p>}
           </div>
 
-          {/* Chỉ hiện button chọn khi có thể gửi request mới */}
-          {canSendNewRequest && (
+          {/* Hiển thị button trừ khi đang pending hoặc đã approved */}
+          {!isRequestPending && !isRequestApproved && (
             <Button onClick={() => setShowTeacherDialog(true)} className="w-full">
               {isRequestRejected ? "Chọn giáo viên khác" : "Chọn giáo viên chấm"}
             </Button>

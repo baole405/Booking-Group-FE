@@ -44,9 +44,11 @@ export function InviteButton({
         onSuccess: () => {
           toast.success(`Đã gửi lời mời đến ${userName}`);
         },
-        onError: (error: Error) => {
-          const errorMsg = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || "Không thể gửi lời mời";
-          toast.error(errorMsg);
+        onError: () => {
+          // Reload để đảm bảo data được cập nhật nếu BE đã thực thi
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000);
         },
       },
     );
