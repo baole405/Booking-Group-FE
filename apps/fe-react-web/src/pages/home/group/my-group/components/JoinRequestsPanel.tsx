@@ -1,10 +1,10 @@
-import { useMemo, useState } from "react";
-import { Loader2, Users, Check, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
-import type { TJoinGroup } from "@/schema/group.schema";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import type { TJoinGroup } from "@/schema/group.schema";
+import { Check, Loader2, Users, X } from "lucide-react";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 type Props = {
   isLoading: boolean;
@@ -28,27 +28,21 @@ const SkeletonItem = () => (
   <div className="rounded-lg border p-3">
     <div className="flex items-center justify-between gap-3">
       <div className="flex min-w-0 items-center gap-3">
-        <div className="h-9 w-9 animate-pulse rounded-full bg-muted" />
+        <div className="bg-muted h-9 w-9 animate-pulse rounded-full" />
         <div className="min-w-0">
-          <div className="h-4 w-40 animate-pulse rounded bg-muted" />
-          <div className="mt-1 h-3 w-24 animate-pulse rounded bg-muted" />
+          <div className="bg-muted h-4 w-40 animate-pulse rounded" />
+          <div className="bg-muted mt-1 h-3 w-24 animate-pulse rounded" />
         </div>
       </div>
       <div className="flex items-center gap-2">
-        <div className="h-8 w-24 animate-pulse rounded bg-muted" />
-        <div className="h-8 w-24 animate-pulse rounded bg-muted" />
+        <div className="bg-muted h-8 w-24 animate-pulse rounded" />
+        <div className="bg-muted h-8 w-24 animate-pulse rounded" />
       </div>
     </div>
   </div>
 );
 
-export default function JoinRequestsPanel({
-  isLoading,
-  requests,
-  canModerate,
-  onAccept,
-  onReject,
-}: Props) {
+export default function JoinRequestsPanel({ isLoading, requests, canModerate, onAccept, onReject }: Props) {
   // loading theo từng item để button không chớp cho tất cả
   const [busy, setBusy] = useState<{ [id: number]: "accept" | "reject" | null }>({});
 
@@ -62,7 +56,10 @@ export default function JoinRequestsPanel({
       toast.success(`✅ Đã chấp nhận ${r.fromUser.fullName}`);
     } catch (e) {
       console.error("handleAccept error:", e);
-      toast.error("Không thể chấp nhận yêu cầu. Vui lòng thử lại!");
+      // Reload trang để đảm bảo data được cập nhật nếu BE đã thực thi
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
     } finally {
       setBusy((s) => ({ ...s, [r.id]: null }));
     }
@@ -76,7 +73,10 @@ export default function JoinRequestsPanel({
       toast.success(`❌ Đã từ chối ${r.fromUser.fullName}`);
     } catch (e) {
       console.error("handleReject error:", e);
-      toast.error("Không thể từ chối yêu cầu. Vui lòng thử lại!");
+      // Reload trang để đảm bảo data được cập nhật nếu BE đã thực thi
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
     } finally {
       setBusy((s) => ({ ...s, [r.id]: null }));
     }
@@ -97,11 +97,7 @@ export default function JoinRequestsPanel({
         )}
       </div>
 
-      {!canModerate && (
-        <p className="mb-3 text-xs text-muted-foreground">
-          Chỉ trưởng nhóm mới có thể chấp nhận / từ chối yêu cầu.
-        </p>
-      )}
+      {!canModerate && <p className="text-muted-foreground mb-3 text-xs">Chỉ trưởng nhóm mới có thể chấp nhận / từ chối yêu cầu.</p>}
 
       {/* Loading state */}
       {isLoading && (
@@ -114,13 +110,11 @@ export default function JoinRequestsPanel({
       {/* Empty state */}
       {!isLoading && requests.length === 0 && (
         <div className="rounded-lg border border-dashed p-5 text-center">
-          <div className="mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-muted">
-            <Users className="h-4 w-4 text-muted-foreground" />
+          <div className="bg-muted mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-full">
+            <Users className="text-muted-foreground h-4 w-4" />
           </div>
           <div className="font-medium">Không có yêu cầu tham gia nào</div>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Khi có sinh viên gửi yêu cầu, bạn sẽ thấy danh sách ở đây.
-          </p>
+          <p className="text-muted-foreground mt-1 text-sm">Khi có sinh viên gửi yêu cầu, bạn sẽ thấy danh sách ở đây.</p>
         </div>
       )}
 
@@ -132,10 +126,7 @@ export default function JoinRequestsPanel({
             const loadingState = busy[req.id];
 
             return (
-              <div
-                key={req.id}
-                className="rounded-lg border p-3 transition-colors hover:bg-muted/30"
-              >
+              <div key={req.id} className="hover:bg-muted/30 rounded-lg border p-3 transition-colors">
                 <div className="flex items-center justify-between gap-3">
                   {/* Left: user info */}
                   <div className="flex min-w-0 items-center gap-3">
@@ -146,20 +137,13 @@ export default function JoinRequestsPanel({
 
                     <div className="min-w-0">
                       <div className="truncate font-medium">{u.fullName}</div>
-                      <div className="mt-0.5 text-xs text-muted-foreground">
-                        {u.major?.name ?? "—"}
-                      </div>
+                      <div className="text-muted-foreground mt-0.5 text-xs">{u.major?.name ?? "—"}</div>
                     </div>
                   </div>
 
                   {/* Right: actions */}
                   <div className="flex shrink-0 items-center gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled={!canModerate || !!loadingState}
-                      onClick={() => handleAccept(req)}
-                    >
+                    <Button size="sm" variant="outline" disabled={!canModerate || !!loadingState} onClick={() => handleAccept(req)}>
                       {loadingState === "accept" ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -173,12 +157,7 @@ export default function JoinRequestsPanel({
                       )}
                     </Button>
 
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      disabled={!canModerate || !!loadingState}
-                      onClick={() => handleReject(req)}
-                    >
+                    <Button size="sm" variant="destructive" disabled={!canModerate || !!loadingState} onClick={() => handleReject(req)}>
                       {loadingState === "reject" ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />

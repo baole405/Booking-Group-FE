@@ -31,8 +31,13 @@ export const useInviteHook = () => {
     return useMutation({
       mutationFn: (data: TCreateInvite) => inviteApi.createInvite(data),
       onSuccess: async () => {
-        // Invalidate danh sách lời mời đã gửi
-        await queryClient.invalidateQueries({ queryKey: ["myInvites"] });
+        // Invalidate danh sách lời mời và group data
+        await Promise.allSettled([
+          queryClient.invalidateQueries({ queryKey: ["myInvites"] }),
+          queryClient.invalidateQueries({ queryKey: ["myGroup"] }),
+          queryClient.invalidateQueries({ queryKey: ["groupMembers"] }),
+          queryClient.invalidateQueries({ queryKey: ["userdetail"] }),
+        ]);
       },
     });
   };
@@ -42,11 +47,14 @@ export const useInviteHook = () => {
     return useMutation({
       mutationFn: ({ inviteId, data }: { inviteId: number; data: TRespondInvite }) => inviteApi.respondToInvite(inviteId, data),
       onSuccess: async () => {
-        // Invalidate danh sách lời mời và nhóm của tôi (vì có thể đã join vào group mới)
+        // Invalidate tất cả data liên quan đến group và user
         await Promise.allSettled([
           queryClient.invalidateQueries({ queryKey: ["myInvites"] }),
           queryClient.invalidateQueries({ queryKey: ["myGroup"] }),
           queryClient.invalidateQueries({ queryKey: ["groupMembers"] }),
+          queryClient.invalidateQueries({ queryKey: ["userdetail"] }),
+          queryClient.invalidateQueries({ queryKey: ["myProfile"] }),
+          queryClient.invalidateQueries({ queryKey: ["groupByUserId"] }),
         ]);
       },
     });
