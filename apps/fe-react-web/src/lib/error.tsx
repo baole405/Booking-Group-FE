@@ -1,8 +1,9 @@
 import type { BaseResponse } from "@/types/response.type";
+import type { AxiosError } from "axios";
 import { toast } from "sonner";
 
-export const handleApiError = (error: any): BaseResponse<any> | null => {
-  let handledError: BaseResponse<any> | null = null;
+export const handleApiError = (error: AxiosError): BaseResponse<unknown> | null => {
+  let handledError: BaseResponse<unknown> | null = null;
   if (error.response) {
     const { status, data } = error.response;
     if (status === 401) {

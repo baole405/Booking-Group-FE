@@ -56,7 +56,8 @@ export default function WhitelistManagementScreen() {
   const { mutate: removeEmail, isPending: isDeleting } = useRemoveEmail();
   const { mutate: clearAllEmails, isPending: isClearing } = useClearAllEmails();
 
-  const semesters = semesterData?.data?.data || [];
+  const semesters = useMemo(() => semesterData?.data?.data || [], [semesterData?.data?.data]);
+
   useEffect(() => {
     if (semesters.length > 0 && selectedSemesterId === 0) {
       const activeSemester: TSemester | undefined = semesters.find((s) => s.active);

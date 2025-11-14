@@ -39,9 +39,11 @@ export const usePostHook = () => {
       onSuccess: () => {
         console.log("Post created successfully");
       },
-      onError: (error: any) => {
+      onError: (error: unknown) => {
         console.error("Mutation error:", error);
-        console.error("Error details:", error?.response);
+        if (error && typeof error === "object" && "response" in error) {
+          console.error("Error details:", (error as { response: unknown }).response);
+        }
       },
     });
 

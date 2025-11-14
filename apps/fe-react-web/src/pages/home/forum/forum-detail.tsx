@@ -224,7 +224,7 @@ export default function ForumDetail() {
 
                 {!isCmtPending &&
                   !cmtError &&
-                  comments.map((c: any) => {
+                  comments.map((c: TComment) => {
                     const author = c.user;
                     const when = new Date(c.createdAt);
                     const canEdit = canModifyComment(author?.email);
