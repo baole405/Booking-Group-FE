@@ -17,18 +17,56 @@ import type { TComment } from "@/schema/comment.schema";
 import type { TIdea } from "@/schema/ideas.schema";
 import type { TMajor } from "@/schema/major.schema";
 import type { TPost } from "@/schema/post.schema";
-import type { TUpdateUserSchema } from "@/schema/user.schema";
 import { useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
-import { Calendar, FileText, Image, Lightbulb, MessageSquare, UserSquare2 } from "lucide-react";
+import { Calendar, ExternalLink, Eye, FileText, Image, Lightbulb, MessageSquare, Upload, UserSquare2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useSelector } from "react-redux";
 import { toast } from "sonner";
 
 export default function MyProfile() {
-  const { useMyProfile, useUpdateMyProfile } = useUserHook();
+  const { useMyProfile, useUpdateMyProfile, useUploadAvatar, useUploadCV } = useUserHook();
+
+  // Utility function để xác định loại file và preview
+  const getFileInfo = (url: string) => {
+    const extension = url.toLowerCase().split(".").pop();
+    switch (extension) {
+      case "pdf":
+        return {
+          type: "PDF",
+          viewable: true,
+          description: "Xem trực tiếp trong trình duyệt",
+          viewUrl: url,
+        };
+      case "doc":
+      case "docx":
+        return {
+          type: "DOC",
+          viewable: true,
+          description: "Xem online qua Google Docs",
+          viewUrl: `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`,
+        };
+      default:
+        return {
+          type: "FILE",
+          viewable: false,
+          description: "Click để mở",
+          viewUrl: url,
+        };
+    }
+  };
+
+  // Function để mở CV viewer
+  const openCVViewer = (cvUrl: string) => {
+    const fileInfo = getFileInfo(cvUrl);
+    if (fileInfo.viewable) {
+      window.open(fileInfo.viewUrl, "_blank", "width=1200,height=800,scrollbars=yes,resizable=yes");
+    } else {
+      window.open(cvUrl, "_blank");
+    }
+  };
   const { useMajorList } = useMajorHook();
   const { useGetAllPosts } = usePostHook();
   const { useGetAllComments } = useCommentHook();
@@ -48,6 +86,8 @@ export default function MyProfile() {
   const { data: commentsData } = useGetAllComments();
   const { data: ideasData } = useGetAllIdeas();
   const { mutateAsync: updateUserAsync, isPending: isUpdating } = useUpdateMyProfile();
+  const { mutateAsync: uploadAvatarAsync, isPending: isUploadingAvatar } = useUploadAvatar();
+  const { mutateAsync: uploadCVAsync, isPending: isUploadingCV } = useUploadCV();
 
   const majorList = majorListRes?.data.data ?? [];
   const user = data?.data;
@@ -70,23 +110,36 @@ export default function MyProfile() {
   const [openEdit, setOpenEdit] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
 
+  // Hàm xử lý upload CV
+  const handleCVUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        await uploadCVAsync(file); // Send File object directly
+        toast.success("Cập nhật CV thành công!");
+
+        // Refetch lại thông tin user từ server
+        await qc.invalidateQueries({ queryKey: ["myProfile"] });
+      } catch (error) {
+        console.error("Upload CV error:", error);
+        toast.error("Không thể cập nhật CV!");
+      }
+    }
+  };
+
   // -------------------- Form setup --------------------
-  const form = useForm<{ cvUrl: string | null; avatarUrl: string | null; majorId: number | null }>({
+  const form = useForm<{ majorId: number | null }>({
     defaultValues: {
-      cvUrl: user?.cvUrl ?? null,
-      avatarUrl: user?.avatarUrl ?? null,
       majorId: user?.major?.id ?? null,
     },
   });
 
-  const { register, handleSubmit, setValue, watch, reset } = form;
+  const { handleSubmit, setValue, watch, reset } = form;
 
   // Khi user hoặc data load lại thì reset form
   useEffect(() => {
     if (user) {
       reset({
-        cvUrl: user.cvUrl ?? null,
-        avatarUrl: user.avatarUrl ?? null,
         majorId: user.major?.id ?? null,
       });
     }
@@ -101,25 +154,36 @@ export default function MyProfile() {
     return <div className="bg-muted text-muted-foreground flex h-full w-full items-center justify-center rounded-full text-sm">No Avatar</div>;
   }, [selectedAvatar, user?.avatarUrl]);
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const base64 = reader.result as string;
-        setSelectedAvatar(base64);
-        setValue("avatarUrl", base64);
-      };
-      reader.readAsDataURL(file);
+      // Create preview URL for display
+      const previewUrl = URL.createObjectURL(file);
+      setSelectedAvatar(previewUrl);
+
+      try {
+        await uploadAvatarAsync(file); // Send File object directly
+        toast.success("Cập nhật avatar thành công!");
+
+        // Refetch lại thông tin user từ server
+        await qc.invalidateQueries({ queryKey: ["myProfile"] });
+        setSelectedAvatar(null); // Clear preview sau khi upload thành công
+        URL.revokeObjectURL(previewUrl); // Clean up object URL
+      } catch (error) {
+        console.error("Upload avatar error:", error);
+        toast.error("Không thể cập nhật avatar!");
+        setSelectedAvatar(null); // Clear preview nếu lỗi
+        URL.revokeObjectURL(previewUrl); // Clean up object URL
+      }
     }
   };
 
   // -------------------- Submit Update --------------------
   // -------------------- Submit Update --------------------
-  const onSubmit = async (values: TUpdateUserSchema) => {
+  const onSubmit = async (values: { majorId: number | null }) => {
     try {
       await updateUserAsync(values);
-      toast.success("Cập nhật thông tin thành công!");
+      toast.success("Cập nhật chuyên ngành thành công!");
 
       // ✅ Refetch lại thông tin user từ server
       await qc.invalidateQueries({ queryKey: ["myProfile"] });
@@ -208,14 +272,16 @@ export default function MyProfile() {
                 {user?.cvUrl && (
                   <div>
                     <Label className="text-xs">CV</Label>
-                    <a
-                      href={user.cvUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block text-sm font-medium text-blue-600 hover:underline"
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => user.cvUrl && openCVViewer(user.cvUrl)}
+                      className="flex h-auto items-center gap-2 p-0 text-sm font-medium text-blue-600 hover:text-blue-700"
                     >
-                      Xem CV
-                    </a>
+                      <FileText className="h-4 w-4" />
+                      <span>{getFileInfo(user.cvUrl).viewable ? "Xem CV Online" : "Tải CV"}</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </Button>
                   </div>
                 )}
               </div>
@@ -239,8 +305,8 @@ export default function MyProfile() {
                         <Button variant="outline" size="sm" type="button" asChild>
                           <label className="flex cursor-pointer items-center gap-2">
                             <Image className="h-4 w-4" />
-                            Chọn ảnh mới
-                            <input type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
+                            {isUploadingAvatar ? "Đang tải lên..." : "Chọn ảnh mới"}
+                            <input type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} disabled={isUploadingAvatar} />
                           </label>
                         </Button>
                       </div>
@@ -277,10 +343,45 @@ export default function MyProfile() {
                         </div>
                       )}
 
-                      {/* CV */}
+                      {/* CV Upload */}
                       <div>
-                        <Label className="text-xs">CV (URL)</Label>
-                        <Input {...register("cvUrl")} placeholder="Nhập đường dẫn CV..." className="text-sm" />
+                        <Label className="text-xs">CV</Label>
+                        <div className="flex items-center gap-2">
+                          {user?.cvUrl ? (
+                            <div className="flex flex-1 items-center gap-2">
+                              <FileText className="h-4 w-4 text-blue-600" />
+                              <div className="flex flex-1 flex-col">
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => user.cvUrl && openCVViewer(user.cvUrl)}
+                                    className="flex h-auto items-center gap-1 p-0 text-sm text-blue-600 hover:text-blue-700"
+                                  >
+                                    <Eye className="h-3 w-3" />
+                                    {getFileInfo(user.cvUrl).viewable ? "Xem CV Online" : "Tải CV về"}
+                                  </Button>
+                                  <ExternalLink className="h-3 w-3 text-blue-600" />
+                                </div>
+                                <span className="text-muted-foreground text-xs">
+                                  {getFileInfo(user.cvUrl).type} - {getFileInfo(user.cvUrl).description}
+                                </span>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex flex-1 items-center gap-2">
+                              <FileText className="text-muted-foreground h-4 w-4" />
+                              <span className="text-muted-foreground flex-1 text-sm">Chưa có CV</span>
+                            </div>
+                          )}
+                          <Button variant="outline" size="sm" type="button" asChild>
+                            <label className="flex cursor-pointer items-center gap-2">
+                              <Upload className="h-4 w-4" />
+                              {isUploadingCV ? "Đang tải lên..." : "Tải lên CV"}
+                              <input type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={handleCVUpload} disabled={isUploadingCV} />
+                            </label>
+                          </Button>
+                        </div>
                       </div>
 
                       <DialogFooter>

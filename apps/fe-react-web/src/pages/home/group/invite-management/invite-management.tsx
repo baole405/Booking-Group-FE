@@ -164,10 +164,10 @@ export default function InviteManagementPage() {
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex flex-1 items-center gap-3">
-                      <Avatar className="h-10 w-10 cursor-pointer" onClick={() => navigate(`/profile/${invite.fromUser.id}`)}>
-                        <AvatarImage src={invite.fromUser.avatarUrl || undefined} />
+                      <Avatar className="h-10 w-10 cursor-pointer" onClick={() => navigate(`/profile/${invite.inviter.id}`)}>
+                        <AvatarImage src={invite.inviter.avatarUrl || undefined} />
                         <AvatarFallback>
-                          {invite.fromUser.fullName
+                          {invite.inviter.fullName
                             ?.split(" ")
                             .map((n) => n[0])
                             .join("")
@@ -179,9 +179,9 @@ export default function InviteManagementPage() {
                         <div className="flex flex-wrap items-center gap-2">
                           <span
                             className="hover:text-primary cursor-pointer font-medium hover:underline"
-                            onClick={() => navigate(`/profile/${invite.fromUser.id}`)}
+                            onClick={() => navigate(`/profile/${invite.inviter.id}`)}
                           >
-                            {invite.fromUser.fullName}
+                            {invite.inviter.fullName}
                           </span>
                           <span className="text-muted-foreground text-sm">mời bạn tham gia</span>
                           <span
@@ -201,14 +201,6 @@ export default function InviteManagementPage() {
                   </div>
                 </CardHeader>
 
-                {invite.message && (
-                  <CardContent className="pt-0 pb-3">
-                    <div className="bg-muted/50 rounded-md p-3">
-                      <p className="text-foreground/80 text-sm italic">"{invite.message}"</p>
-                    </div>
-                  </CardContent>
-                )}
-
                 {invite.status === "PENDING" && (
                   <CardContent className="pt-0 pb-4">
                     <Separator className="mb-3" />
@@ -216,13 +208,13 @@ export default function InviteManagementPage() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleDecline(invite.id, invite.fromUser.fullName || "")}
+                        onClick={() => handleDecline(invite.id, invite.inviter.fullName || "")}
                         disabled={isResponding}
                       >
                         <XCircle className="mr-2 h-4 w-4" />
                         Từ chối
                       </Button>
-                      <Button size="sm" onClick={() => handleAccept(invite.id, invite.fromUser.fullName || "")} disabled={isResponding}>
+                      <Button size="sm" onClick={() => handleAccept(invite.id, invite.inviter.fullName || "")} disabled={isResponding}>
                         <CheckCircle className="mr-2 h-4 w-4" />
                         Chấp nhận
                       </Button>
@@ -252,10 +244,10 @@ export default function InviteManagementPage() {
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex flex-1 items-center gap-3">
-                      <Avatar className="h-10 w-10 cursor-pointer" onClick={() => navigate(`/profile/${invite.toUser.id}`)}>
-                        <AvatarImage src={invite.toUser.avatarUrl || undefined} />
+                      <Avatar className="h-10 w-10 cursor-pointer" onClick={() => navigate(`/profile/${invite.invitee.id}`)}>
+                        <AvatarImage src={invite.invitee.avatarUrl || undefined} />
                         <AvatarFallback>
-                          {invite.toUser.fullName
+                          {invite.invitee.fullName
                             ?.split(" ")
                             .map((n) => n[0])
                             .join("")
@@ -268,9 +260,9 @@ export default function InviteManagementPage() {
                           <span className="text-muted-foreground text-sm">Bạn đã mời</span>
                           <span
                             className="hover:text-primary cursor-pointer font-medium hover:underline"
-                            onClick={() => navigate(`/profile/${invite.toUser.id}`)}
+                            onClick={() => navigate(`/profile/${invite.invitee.id}`)}
                           >
-                            {invite.toUser.fullName}
+                            {invite.invitee.fullName}
                           </span>
                           <span className="text-muted-foreground text-sm">tham gia</span>
                           <span
@@ -290,14 +282,6 @@ export default function InviteManagementPage() {
                   </div>
                 </CardHeader>
 
-                {invite.message && (
-                  <CardContent className="pt-0 pb-3">
-                    <div className="bg-muted/50 rounded-md p-3">
-                      <p className="text-foreground/80 text-sm italic">"{invite.message}"</p>
-                    </div>
-                  </CardContent>
-                )}
-
                 {invite.status === "PENDING" && (
                   <CardContent className="pt-0 pb-4">
                     <Separator className="mb-3" />
@@ -305,7 +289,7 @@ export default function InviteManagementPage() {
                       <Button
                         variant="destructive"
                         size="sm"
-                        onClick={() => handleCancel(invite.id, invite.toUser.fullName || "")}
+                        onClick={() => handleCancel(invite.id, invite.invitee.fullName || "")}
                         disabled={isCanceling}
                       >
                         <XCircle className="mr-2 h-4 w-4" />

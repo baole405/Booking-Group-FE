@@ -27,9 +27,9 @@ export const UserSchema = z.object({
 });
 
 export const UpdateUserSchema = z.object({
-  cvUrl: z.string().url().nullable(),
-  avatarUrl: z.string().url().nullable(),
-  majorId: z.number().nullable(),
+  cvUrl: z.string().url().nullable().optional(),
+  avatarUrl: z.string().url().nullable().optional(),
+  majorId: z.number().nullable().optional(),
 });
 
 // Pagination Response Schema for GET /api/users
