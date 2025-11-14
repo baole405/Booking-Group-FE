@@ -1,11 +1,11 @@
-import { AdminErrorState, AdminFilterBar, AdminLayout, AdminLoadingState, AdminTableContainer } from "@/components/layout/AdminLayout";
 import StudentProfileModal from "@/components/dialog/StudentProfileModal";
+import { AdminErrorState, AdminFilterBar, AdminLayout, AdminLoadingState, AdminTableContainer } from "@/components/layout/AdminLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { useUserHook } from "@/hooks/use-user";
 import type { TUserListResponse } from "@/schema/user.schema";
 import { Eye, RefreshCw, Search, Users } from "lucide-react";
@@ -53,7 +53,15 @@ const useStudentsData = (currentPage: number, itemsPerPage: number, searchQuery:
   return { students, isLoading, error, paginationData, handleRefresh };
 };
 
-const useStudentsFilter = (students: any[], searchTerm: string, searchByCode: string, currentPage: number, itemsPerPage: number, filterGroup: string, paginationData: TUserListResponse | undefined) => {
+const useStudentsFilter = (
+  students: TUser[],
+  searchTerm: string,
+  searchByCode: string,
+  currentPage: number,
+  itemsPerPage: number,
+  filterGroup: string,
+  paginationData: TUserListResponse | undefined,
+) => {
   const filteredStudents = useMemo(() => {
     return students.filter((student) => {
       const matchName = !searchTerm || student.fullName.toLowerCase().includes(searchTerm.toLowerCase());
@@ -96,7 +104,15 @@ const StudentsList: React.FC = () => {
 
   // Sử dụng custom hooks
   const { students, isLoading, error, paginationData, handleRefresh } = useStudentsData(currentPage, itemsPerPage, searchQuery, filterGroup);
-  const { totalElements, totalPages, startIndex, currentStudents } = useStudentsFilter(students, searchTerm, searchByCode, currentPage, itemsPerPage, filterGroup, paginationData);
+  const { totalElements, totalPages, startIndex, currentStudents } = useStudentsFilter(
+    students,
+    searchTerm,
+    searchByCode,
+    currentPage,
+    itemsPerPage,
+    filterGroup,
+    paginationData,
+  );
 
   const handleViewStudent = (studentId: number) => {
     setSelectedStudentId(studentId);
@@ -134,24 +150,14 @@ const StudentsList: React.FC = () => {
             </SelectContent>
           </Select>
 
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-            <Input
-              placeholder="Tìm theo tên sinh viên..."
-              className="pl-9"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+          <div className="relative max-w-sm flex-1">
+            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Input placeholder="Tìm theo tên sinh viên..." className="pl-9" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
           </div>
 
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-            <Input
-              placeholder="Tìm theo mã sinh viên..."
-              className="pl-9"
-              value={searchByCode}
-              onChange={(e) => setSearchByCode(e.target.value)}
-            />
+          <div className="relative max-w-sm flex-1">
+            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Input placeholder="Tìm theo mã sinh viên..." className="pl-9" value={searchByCode} onChange={(e) => setSearchByCode(e.target.value)} />
           </div>
         </div>
       </AdminFilterBar>
@@ -170,7 +176,7 @@ const StudentsList: React.FC = () => {
 
         {!isLoading && !error && currentStudents.length === 0 && (
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <Users className="h-12 w-12 text-gray-400 mb-4" />
+            <Users className="mb-4 h-12 w-12 text-gray-400" />
             <h3 className="text-lg font-medium text-gray-900">Không có dữ liệu</h3>
             <p className="mt-1 text-sm text-gray-500">Không tìm thấy sinh viên nào phù hợp với bộ lọc</p>
           </div>
@@ -192,24 +198,15 @@ const StudentsList: React.FC = () => {
               <TableBody>
                 {currentStudents.map((student, index) => (
                   <TableRow key={student.id} className="hover:bg-gray-50/50">
-                    <TableCell className="text-center font-mono text-sm text-gray-500">
-                      {startIndex + index + 1}
-                    </TableCell>
+                    <TableCell className="text-center font-mono text-sm text-gray-500">{startIndex + index + 1}</TableCell>
                     <TableCell className="font-medium">{student.fullName}</TableCell>
                     <TableCell className="font-mono text-sm">{student.studentCode || "N/A"}</TableCell>
                     <TableCell className="text-gray-600">{student.email}</TableCell>
                     <TableCell className="text-center">
-                      <Badge className="bg-blue-100 text-blue-800 border-blue-200">
-                        {student.major?.name || "Chưa có"}
-                      </Badge>
+                      <Badge className="border-blue-200 bg-blue-100 text-blue-800">{student.major?.name || "Chưa có"}</Badge>
                     </TableCell>
                     <TableCell className="text-center">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleViewStudent(student.id)}
-                        title="Xem chi tiết sinh viên"
-                      >
+                      <Button size="sm" variant="outline" onClick={() => handleViewStudent(student.id)} title="Xem chi tiết sinh viên">
                         <Eye className="h-4 w-4" />
                       </Button>
                     </TableCell>
@@ -226,7 +223,7 @@ const StudentsList: React.FC = () => {
                     <PaginationContent>
                       <PaginationItem>
                         <PaginationPrevious
-                          onClick={currentPage === 0 ? undefined : () => setCurrentPage(prev => Math.max(prev - 1, 0))}
+                          onClick={currentPage === 0 ? undefined : () => setCurrentPage((prev) => Math.max(prev - 1, 0))}
                           aria-disabled={currentPage === 0}
                           className={currentPage === 0 ? "pointer-events-none opacity-50" : "cursor-pointer"}
                         />
@@ -236,7 +233,7 @@ const StudentsList: React.FC = () => {
                       </span>
                       <PaginationItem>
                         <PaginationNext
-                          onClick={currentPage >= totalPages - 1 ? undefined : () => setCurrentPage(prev => Math.min(prev + 1, totalPages - 1))}
+                          onClick={currentPage >= totalPages - 1 ? undefined : () => setCurrentPage((prev) => Math.min(prev + 1, totalPages - 1))}
                           aria-disabled={currentPage >= totalPages - 1}
                           className={currentPage >= totalPages - 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
                         />

@@ -1,7 +1,7 @@
 import { envConfig } from "@/schema/config.schema";
 import axios from "axios";
 
-const parseParams = (params: Record<string, any>) =>
+const parseParams = (params: Record<string, unknown>) =>
   Object.entries(params)
     .filter(([_, value]) => value !== null && value !== undefined && value !== "") // 🧹 bỏ rác
     .map(([key, value]) => {
@@ -23,15 +23,17 @@ apiRequest.interceptors.request.use((options) => {
 
   if (method === "put" || method === "post" || method === "patch") {
     if (data instanceof FormData) {
-      options.headers!["Content-Type"] = "multipart/form-data";
+      options.headers["Content-Type"] = "multipart/form-data";
     } else {
-      options.headers!["Content-Type"] = "application/json;charset=UTF-8";
+      options.headers["Content-Type"] = "application/json;charset=UTF-8";
     }
   }
 
   // Auto attach token nếu có
   const token = localStorage.getItem("token");
-  if (token) options.headers!["Authorization"] = `Bearer ${token}`;
+  if (token && options.headers) {
+    options.headers["Authorization"] = `Bearer ${token}`;
+  }
 
   return options;
 });

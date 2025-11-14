@@ -32,7 +32,7 @@ const RoleBasedGuard = ({ children, allowedRoles }: RoleBasedGuardProps) => {
     }
   }
 
-  return <>{children}</>;
+  return children;
 };
 
 export default RoleBasedGuard;

@@ -11,7 +11,7 @@ const configValues = { default: {}, development: {}, production: {} };
 // Determine the correct configValue to use based on the configuration
 const nxConfiguration = process.env.NX_TASK_TARGET_CONFIGURATION ?? "default";
 
-const options = {
+const configOptions = {
   ...configValues.default,
   ...(configValues[nxConfiguration] ?? {}),
 };
