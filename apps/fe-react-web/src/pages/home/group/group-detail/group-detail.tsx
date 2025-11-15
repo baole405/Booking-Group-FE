@@ -347,7 +347,7 @@ export default function GroupDetail() {
         aria-hidden
       />
       {header}
-      <GroupContent group={minimalGroup} aside={membersAside} />
+      <GroupContent group={minimalGroup} aside={membersAside} isLecturer={isLecturer} />
       {joinedPopup}
       {requestedPopup}
     </div>
