@@ -73,7 +73,15 @@ export default function ForumDetail() {
   const handleCreateComment = (e: React.FormEvent) => {
     e.preventDefault();
     if (!content.trim()) return;
-    createComment({ postId, content: content.trim() }, { onSuccess: () => setContent("") });
+    createComment(
+      { postId, content: content.trim() },
+      {
+        onSuccess: () => {
+          setContent("");
+          // Cache đã được invalidate trong hook useCreateComment
+        },
+      },
+    );
   };
 
   // Handle update comment
@@ -84,6 +92,7 @@ export default function ForumDetail() {
         onSuccess: () => {
           setEditingCommentId(null);
           setEditContent("");
+          // Cache đã được invalidate trong hook useUpdateComment
         },
       },
     );

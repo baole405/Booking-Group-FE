@@ -2,10 +2,11 @@ import { userApi } from "@/apis/user.api";
 import type { RootState } from "@/redux/store";
 import type { GetUserListParams, TUpdateUserSchema, TUser } from "@/schema/user.schema";
 import type { BaseResponse } from "@/types/response.type";
-import { useMutation, useQuery, type UseQueryOptions } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, type UseQueryOptions } from "@tanstack/react-query";
 import { useSelector } from "react-redux";
 
 export const useUserHook = () => {
+  const qc = useQueryClient();
   const userId = useSelector((state: RootState) => state.user.userId);
   const useUserById = (id: number, options?: Omit<UseQueryOptions<BaseResponse<TUser>>, "queryKey" | "queryFn">) =>
     useQuery({
@@ -55,32 +56,61 @@ export const useUserHook = () => {
   const useUpdateStatus = (id: number) =>
     useMutation({
       mutationFn: () => userApi.updateStatus(id),
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: ["userList"] });
+        qc.invalidateQueries({ queryKey: ["userdetail", id] });
+        qc.invalidateQueries({ queryKey: ["usersNoGroup"] });
+      },
     });
   const useUpdateUser = (id: number) =>
     useMutation({
       mutationFn: (data: TUpdateUserSchema) => userApi.updateUser(id, data),
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: ["userList"] });
+        qc.invalidateQueries({ queryKey: ["userdetail", id] });
+      },
     });
   const useUpdateMyProfile = () =>
     useMutation({
       mutationFn: (data: TUpdateUserSchema) => userApi.updateMyProfile(data),
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: ["myProfile"] });
+        qc.invalidateQueries({ queryKey: ["userdetail", userId] });
+      },
     });
   const useUpdateRoleToLecturer = (id: number) =>
     useMutation({
       mutationFn: () => userApi.updateRoleToLecturer(id),
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: ["userList"] });
+        qc.invalidateQueries({ queryKey: ["userdetail", id] });
+      },
     });
   const useToggleLecturerModeratorRole = () =>
     useMutation({
       mutationFn: (id: number) => userApi.toggleLecturerModeratorRole(id),
+      onSuccess: (_res, id) => {
+        qc.invalidateQueries({ queryKey: ["userList"] });
+        qc.invalidateQueries({ queryKey: ["userdetail", id] });
+      },
     });
 
   const useUploadAvatar = () =>
     useMutation({
       mutationFn: (file: File) => userApi.uploadAvatar(userId, file),
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: ["myProfile"] });
+        qc.invalidateQueries({ queryKey: ["userdetail", userId] });
+      },
     });
 
   const useUploadCV = () =>
     useMutation({
       mutationFn: (file: File) => userApi.uploadCV(userId, file),
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: ["myProfile"] });
+        qc.invalidateQueries({ queryKey: ["userdetail", userId] });
+      },
     });
 
   const useUsersNoGroup = () =>

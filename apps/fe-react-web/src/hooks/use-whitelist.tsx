@@ -1,7 +1,8 @@
 import { whitelistApi } from "@/apis/whitelist.api";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export const useWhitelistHook = () => {
+  const qc = useQueryClient();
   /**
    * Lấy tất cả whitelist theo kỳ học (và role nếu có)
    */
@@ -19,6 +20,10 @@ export const useWhitelistHook = () => {
     useMutation({
       mutationFn: ({ semesterId, role, file }: { semesterId: number; role: string; file: File }) =>
         whitelistApi.importWhitelist(semesterId, role, file),
+      onSuccess: (_res, { semesterId, role }) => {
+        qc.invalidateQueries({ queryKey: ["whitelistList", semesterId, role] });
+        qc.invalidateQueries({ queryKey: ["whitelistList", semesterId] });
+      },
     });
 
   /**
@@ -27,6 +32,9 @@ export const useWhitelistHook = () => {
   const useRemoveEmail = () =>
     useMutation({
       mutationFn: (email: string) => whitelistApi.removeEmail(email),
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: ["whitelistList"] });
+      },
     });
 
   /**
@@ -35,6 +43,11 @@ export const useWhitelistHook = () => {
   const useClearAllEmails = () =>
     useMutation({
       mutationFn: ({ semesterId, role }: { semesterId: number; role?: string }) => whitelistApi.clearAllEmails(semesterId, role),
+      onSuccess: (_res, { semesterId, role }) => {
+        qc.invalidateQueries({ queryKey: ["whitelistList", semesterId, role] });
+        qc.invalidateQueries({ queryKey: ["whitelistList", semesterId] });
+        qc.invalidateQueries({ queryKey: ["whitelistList"] });
+      },
     });
 
   /**

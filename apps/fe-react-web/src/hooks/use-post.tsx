@@ -1,6 +1,6 @@
 import { postApi } from "@/apis/post.api";
 import type { TCreatePost, TUpdatePost } from "@/schema/post.schema";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 /**
  * Hook quản lý các thao tác bài đăng (post)
@@ -8,6 +8,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
  * - Tạo, cập nhật, xóa bài đăng
  */
 export const usePostHook = () => {
+  const qc = useQueryClient();
   /** Lấy tất cả bài đăng */
   const useGetAllPosts = () =>
     useQuery({
@@ -38,6 +39,9 @@ export const usePostHook = () => {
       retry: false,
       onSuccess: () => {
         console.log("Post created successfully");
+        // Invalidate related queries
+        qc.invalidateQueries({ queryKey: ["allPosts"] });
+        qc.invalidateQueries({ queryKey: ["postsByType"] });
       },
       onError: (error: unknown) => {
         console.error("Mutation error:", error);
@@ -51,12 +55,24 @@ export const usePostHook = () => {
   const useUpdatePost = () =>
     useMutation({
       mutationFn: ({ id, data }: { id: number; data: TUpdatePost }) => postApi.updatePost(id, data),
+      onSuccess: (_res, { id }) => {
+        // Invalidate related queries
+        qc.invalidateQueries({ queryKey: ["allPosts"] });
+        qc.invalidateQueries({ queryKey: ["postsByType"] });
+        qc.invalidateQueries({ queryKey: ["postDetail", id] });
+      },
     });
 
   /** Xóa bài đăng */
   const useDeletePost = () =>
     useMutation({
       mutationFn: (id: number) => postApi.deletePost(id),
+      onSuccess: (_res, id) => {
+        // Invalidate related queries
+        qc.invalidateQueries({ queryKey: ["allPosts"] });
+        qc.invalidateQueries({ queryKey: ["postsByType"] });
+        qc.invalidateQueries({ queryKey: ["postDetail", id] });
+      },
     });
 
   return {

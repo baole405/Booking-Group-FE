@@ -1,7 +1,8 @@
 import { teacher_checkpoints } from "@/apis/teacher-checkpoints.api";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export const useTeacherCheckpointsHook = () => {
+  const qc = useQueryClient();
   /** Lấy danh sách giảng viên có thể chọn */
   const useTeacherList = () =>
     useQuery({
@@ -89,18 +90,35 @@ export const useTeacherCheckpointsHook = () => {
   const useRequestTeacherCheckpoint = () =>
     useMutation({
       mutationFn: (teacherId: number) => teacher_checkpoints.requestTeacherCheckpoint(teacherId),
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: ["pendingRequests"] });
+        qc.invalidateQueries({ queryKey: ["unregisteredGroups"] });
+        qc.invalidateQueries({ queryKey: ["myRequestTeacherCheckpoint"] });
+        qc.invalidateQueries({ queryKey: ["myGroup"] });
+      },
     });
 
   /** Cập nhật trạng thái yêu cầu (chấp nhận/từ chối) */
   const useUpdateTeacherCheckpointStatus = () =>
     useMutation({
       mutationFn: ({ id, isAccepted }: { id: number; isAccepted: boolean }) => teacher_checkpoints.updateTeacherCheckpointStatus(id, isAccepted),
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: ["pendingRequests"] });
+        qc.invalidateQueries({ queryKey: ["approvedGroups"] });
+        qc.invalidateQueries({ queryKey: ["rejectedGroups"] });
+        qc.invalidateQueries({ queryKey: ["unregisteredGroups"] });
+      },
     });
 
   /** Moderator gán trực tiếp giảng viên vào nhóm (không cần teacher accept) */
   const useAssignTeacherToGroup = () =>
     useMutation({
       mutationFn: ({ groupId, teacherId }: { groupId: number; teacherId: number }) => teacher_checkpoints.assignTeacherToGroup(groupId, teacherId),
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: ["unregisteredGroups"] });
+        qc.invalidateQueries({ queryKey: ["approvedGroups"] });
+        qc.invalidateQueries({ queryKey: ["groupList"] });
+      },
     });
 
   /** Lấy yêu cầu giảng viên chấm của nhóm hiện tại */
