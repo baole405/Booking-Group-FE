@@ -1,12 +1,17 @@
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { STATUS_LABEL } from "@/schema/common/type-ideas.schema";
 import type { TIdea } from "@/schema/ideas.schema";
-import { AlertCircle, CalendarDays, UserRound } from "lucide-react";
+import { AlertCircle, CalendarDays, Loader2, UserRound } from "lucide-react";
 
 type IdeaCardProps = {
   idea: TIdea;
   onClick?: (id: number) => void;
   className?: string;
+  isLecturer?: boolean;
+  onApprove?: (id: number) => void;
+  onReject?: (id: number) => void;
+  processingState?: "approve" | "reject" | null;
 };
 
 const getStatusColor = (status: string): string => {
@@ -24,7 +29,6 @@ const getStatusColor = (status: string): string => {
   }
 };
 
-// Get card background color based on status
 const getCardBackgroundColor = (status: string): string => {
   switch (status) {
     case "APPROVED":
@@ -38,8 +42,9 @@ const getCardBackgroundColor = (status: string): string => {
   }
 };
 
-export function IdeaCard({ idea, onClick, className = "" }: IdeaCardProps) {
+export function IdeaCard({ idea, onClick, className = "", isLecturer = false, onApprove, onReject, processingState = null }: IdeaCardProps) {
   const cardBgClass = getCardBackgroundColor(idea.status);
+  const canModerate = isLecturer && idea.status === "PROPOSED";
 
   return (
     <div
@@ -48,12 +53,9 @@ export function IdeaCard({ idea, onClick, className = "" }: IdeaCardProps) {
         onClick ? "cursor-pointer" : ""
       } ${className}`}
     >
-      {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1 pr-2">
           <div className="font-medium">{idea.title}</div>
-
-          {/* Tác giả & thời gian tạo */}
           <div className="text-muted-foreground mt-1 flex items-center gap-2 text-xs">
             <span className="inline-flex items-center gap-1">
               <UserRound className="h-4 w-4" />
@@ -73,16 +75,42 @@ export function IdeaCard({ idea, onClick, className = "" }: IdeaCardProps) {
                 : "Không rõ thời gian"}
             </span>
           </div>
-
-          {/* Mô tả */}
-          <div className="text-muted-foreground mt-1 text-sm">{idea.description || "—"}</div>
+          <div className="text-muted-foreground mt-1 text-sm">{idea.description || "-"}</div>
         </div>
-
-        {/* Trạng thái */}
         <Badge className={`${getStatusColor(idea.status)} ml-2 shrink-0 text-xs`}>{STATUS_LABEL[idea.status] || idea.status}</Badge>
       </div>
 
-      {/* Rejection Reason - hiển thị khi bị từ chối */}
+      {canModerate && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Button size="sm" className="min-w-[120px] flex-1" onClick={() => onApprove?.(idea.id)} disabled={!onApprove || processingState !== null}>
+            {processingState === "approve" ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Đang duyệt...
+              </>
+            ) : (
+              "Phê duyệt"
+            )}
+          </Button>
+          <Button
+            size="sm"
+            variant="destructive"
+            className="min-w-[120px] flex-1"
+            onClick={() => onReject?.(idea.id)}
+            disabled={!onReject || processingState !== null}
+          >
+            {processingState === "reject" ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Đang từ chối...
+              </>
+            ) : (
+              "Từ chối"
+            )}
+          </Button>
+        </div>
+      )}
+
       {idea.status === "REJECTED" && idea.rejectionReason && (
         <div className="mt-3 border-t border-red-200 pt-3">
           <div className="flex items-start gap-2 rounded-md bg-red-100 p-3 text-red-800">
