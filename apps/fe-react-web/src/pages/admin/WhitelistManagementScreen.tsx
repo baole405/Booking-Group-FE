@@ -23,7 +23,7 @@ import type { TWhitelist } from "@/schema/whitelist.schema";
 import { useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { Download, FileUp, RefreshCw, Search, Trash2, Upload, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 const ROLES = [

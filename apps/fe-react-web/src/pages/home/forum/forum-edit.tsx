@@ -1,23 +1,23 @@
-import { useMemo, useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { ArrowLeft, Loader2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
-import { Loader2, ArrowLeft } from "lucide-react";
+import { useParams } from "react-router-dom";
 
 import { useRoleNavigate } from "@/hooks/useRoleNavigate";
 
-import { usePostHook } from "@/hooks/use-post";
-import { useGroupHook } from "@/hooks/use-group";
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { useGroupHook } from "@/hooks/use-group";
+import { usePostHook } from "@/hooks/use-post";
 import type { RootState } from "@/redux/store";
 import type { TUpdatePost } from "@/schema/post.schema";
 
 export default function ForumEdit() {
   const { id } = useParams();
   const postId = Number(id);
-  const roleNavigate = useRoleNavigate();  // Lấy email hiện tại từ Redux
+  const roleNavigate = useRoleNavigate(); // Lấy email hiện tại từ Redux
   const currentEmail = useSelector((s: RootState) => s.user.user?.email) ?? "";
 
   // Post data
@@ -47,10 +47,7 @@ export default function ForumEdit() {
   const isFindMember = post?.type === "FIND_MEMBER";
 
   // Chủ bài viết (FIND_GROUP) - check email trực tiếp
-  const isOwnerOfFindGroup = useMemo(
-    () => !!currentEmail && !!user?.email && user.email === currentEmail,
-    [currentEmail, user?.email]
-  );
+  const isOwnerOfFindGroup = useMemo(() => !!currentEmail && !!user?.email && user.email === currentEmail, [currentEmail, user?.email]);
 
   // Leader của group (FIND_MEMBER) - lấy từ useGetGroupLeader
   const isLeaderOfGroup = useMemo(() => {
@@ -75,7 +72,7 @@ export default function ForumEdit() {
 
     const updateData: TUpdatePost = {
       postType: post.type,
-      content: content.trim()
+      content: content.trim(),
     };
 
     console.log("Sending update request with data:", { id: postId, data: updateData });
@@ -85,27 +82,29 @@ export default function ForumEdit() {
       {
         onSuccess: () => {
           console.log("Update successful");
+          // Cache đã được invalidate trong hook useUpdatePost
+          // Navigate về chi tiết post để xem kết quả
           roleNavigate(`/forum/${postId}`);
         },
         onError: (error) => {
           console.error("Update error:", error);
-        }
-      }
+        },
+      },
     );
   };
 
   // UI states
   if (isPending)
     return (
-      <div className="flex items-center justify-center min-h-screen text-muted-foreground">
+      <div className="text-muted-foreground flex min-h-screen items-center justify-center">
         <Loader2 className="mr-2 h-6 w-6 animate-spin" /> Đang tải bài viết...
       </div>
     );
 
   if (error || !post)
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen text-destructive">
-        <p className="text-lg font-medium mb-2">Không thể tải bài đăng.</p>
+      <div className="text-destructive flex min-h-screen flex-col items-center justify-center">
+        <p className="mb-2 text-lg font-medium">Không thể tải bài đăng.</p>
         <Button variant="outline" onClick={() => window.history.back()}>
           ← Quay lại
         </Button>
@@ -114,8 +113,8 @@ export default function ForumEdit() {
 
   if (!canUpdate)
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen text-destructive">
-        <p className="text-lg font-medium mb-2">Bạn không có quyền chỉnh sửa bài đăng này.</p>
+      <div className="text-destructive flex min-h-screen flex-col items-center justify-center">
+        <p className="mb-2 text-lg font-medium">Bạn không có quyền chỉnh sửa bài đăng này.</p>
         <Button variant="outline" onClick={() => window.history.back()}>
           ← Quay lại
         </Button>
@@ -130,23 +129,19 @@ export default function ForumEdit() {
         aria-hidden="true"
       />
 
-      <div className="mx-auto max-w-4xl p-6 space-y-6">
+      <div className="mx-auto max-w-4xl space-y-6 p-6">
         {/* Header */}
         <div className="flex items-center gap-4">
           <Button variant="outline" size="sm" onClick={() => window.history.back()}>
-            <ArrowLeft className="h-4 w-4 mr-1" />
+            <ArrowLeft className="mr-1 h-4 w-4" />
             Quay lại
           </Button>
           <div className="space-y-1">
             <h1 className="text-2xl font-semibold">Chỉnh sửa bài đăng</h1>
             <div className="flex items-center gap-2">
-              <Badge variant={isFindGroup ? "default" : "secondary"}>
-                {isFindGroup ? "Tìm nhóm" : "Tìm thành viên"}
-              </Badge>
-              <span className="text-sm text-muted-foreground">
-                {isFindGroup
-                  ? post.userResponse?.fullName ?? "Người dùng ẩn danh"
-                  : post.groupResponse?.title ?? "Nhóm chưa đặt tên"}
+              <Badge variant={isFindGroup ? "default" : "secondary"}>{isFindGroup ? "Tìm nhóm" : "Tìm thành viên"}</Badge>
+              <span className="text-muted-foreground text-sm">
+                {isFindGroup ? (post.userResponse?.fullName ?? "Người dùng ẩn danh") : (post.groupResponse?.title ?? "Nhóm chưa đặt tên")}
               </span>
             </div>
           </div>
@@ -160,7 +155,7 @@ export default function ForumEdit() {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="text-sm font-medium mb-2 block">
+                <label className="mb-2 block text-sm font-medium">
                   Nội dung <span className="text-destructive">*</span>
                 </label>
                 <Textarea
@@ -171,9 +166,7 @@ export default function ForumEdit() {
                   className="resize-none"
                   required
                 />
-                <p className="text-xs text-muted-foreground mt-1">
-                  {content.length}/500 ký tự
-                </p>
+                <p className="text-muted-foreground mt-1 text-xs">{content.length}/500 ký tự</p>
               </div>
 
               <div className="flex gap-3 pt-4">
@@ -181,12 +174,7 @@ export default function ForumEdit() {
                   {updating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Cập nhật bài đăng
                 </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => window.history.back()}
-                  disabled={updating}
-                >
+                <Button type="button" variant="outline" onClick={() => window.history.back()} disabled={updating}>
                   Hủy
                 </Button>
               </div>
@@ -201,9 +189,7 @@ export default function ForumEdit() {
           </CardHeader>
           <CardContent>
             <div className="prose prose-sm max-w-none">
-              <p className="whitespace-pre-wrap text-sm leading-relaxed">
-                {content || "Nội dung sẽ hiển thị ở đây..."}
-              </p>
+              <p className="text-sm leading-relaxed whitespace-pre-wrap">{content || "Nội dung sẽ hiển thị ở đây..."}</p>
             </div>
           </CardContent>
         </Card>
