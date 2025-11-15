@@ -93,16 +93,23 @@ export default function GroupContent({ group, aside, isLecturer = false }: Group
 
           {!isPending && !error && ideas.length > 0 && (
             <div className="grid gap-4">
-              {ideas.map((idea: TIdea) => (
-                <IdeaCard
-                  key={idea.id}
-                  idea={idea}
-                  isLecturer={isLecturer}
-                  onApprove={() => handleApproveIdea(idea.id)}
-                  onReject={() => handleRejectIdea(idea.id)}
-                  processingState={processing.id === idea.id ? (processing.type === "approve" ? "approve" : "reject") : null}
-                />
-              ))}
+              {ideas.map((idea: TIdea) => {
+                let processingState: "approve" | "reject" | null = null;
+                if (processing.id === idea.id) {
+                  processingState = processing.type === "approve" ? "approve" : "reject";
+                }
+
+                return (
+                  <IdeaCard
+                    key={idea.id}
+                    idea={idea}
+                    isLecturer={isLecturer}
+                    onApprove={() => handleApproveIdea(idea.id)}
+                    onReject={() => handleRejectIdea(idea.id)}
+                    processingState={processingState}
+                  />
+                );
+              })}
             </div>
           )}
         </section>
