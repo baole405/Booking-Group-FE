@@ -1,34 +1,32 @@
 # fe-swd
 
-FPTU's EXE courses currently rely on external tools for group management.
+Frontend Nx monorepo phuc vu bai tap nhom EXE cua FPTU. Ung dung chinh la React + Vite + Tailwind trong `apps/fe-react-web`, kem mock API Express o `apps/mock` de ho tro phat trien.
 
-## Continuous integration
+## System Architecture Diagram (SAD)
 
-This repository uses a GitHub Actions workflow that runs automatically for every pull request targeting `main`:
+![System Architecture](apps/fe-react-web/src/doc/sad.png)
+File goc: `apps/fe-react-web/src/doc/sad.png`.
 
-- Validates that the pull request branch name follows the `<type>/<slug>` convention (see below for the accepted prefixes).
-- Installs dependencies with `pnpm`.
-- Runs Nx lint checks for every project.
-- Builds all projects in production mode.
+## CI/CD pipeline
 
-## Branch naming and merge process
+![CI/CD pipeline](apps/fe-react-web/src/doc/cicd.png)
 
-To keep a clean history and make the automation happy, follow this workflow when contributing changes:
+- GitHub Actions chay tren moi PR vao `main`: kiem tra branch name dang `<type>/<slug>`, cai `pnpm`, chay `nx lint` va `nx build` cho toan workspace.
+- Nhanh hop le: `feature/`, `bugfix/`, `hotfix/`, `release/`, `chore/`, `codex/`.
+- Merge chi duoc thuc hien khi lint/build pass de dam bao `main` luon xanh.
 
-1. Create feature branches that start with one of `feature/`, `bugfix/`, `hotfix/`, `release/`, `chore/`, or `codex/`, followed by a descriptive slug (for example, `feature/add-login-form`).
-2. When you are ready to open a pull request, first make sure your branch is rebased on top of the latest `main`:
-   ```bash
-   git checkout main
-   git pull origin main
-   git checkout <your-branch>
-   git rebase origin/main
-   ```
-3. Resolve any conflicts during the rebase and continue rebasing until it completes. Run your local checks to ensure everything still works.
-4. Push the rebased branch to the remote. Because rebasing rewrites history, you will usually need to force push safely:
-   ```bash
-   git push --force-with-lease
-   ```
-5. Open the pull request. The CI workflow will verify the branch name, lint the code, and build the projects before the pull request can be merged.
-6. Once the pull request is approved and the workflow succeeds, merge it into `main`.
+## Cai dat va chay
 
-Following this process keeps the `main` branch linear and ensures each change has been validated by the same checks that run in CI.
+- Yeu cau: Node 20+ va `pnpm` 10.x (khoa tai `packageManager`), khong can cai Nx global.
+- Cai dependencies: `pnpm install`.
+- Chay dev frontend: `pnpm dev` (Nx dev cho `fe-react-web`), mac dinh Vite se mo tren cong do Nx gan.
+- Build production: `pnpm build`; xem ban build: `pnpm preview`.
+- Lint/test: `pnpm nx lint fe-react-web` va `pnpm test:ui` (Vitest UI).
+- Mock API (tuy chon): `pnpm --filter @booking-group-workspace/mock dev` de bat server Express.
+
+## Troubleshooting
+
+- Loi cache Nx hoac cau hinh cu: `pnpm clean-nx-cache` de reset workspace data.
+- Module hong sau khi doi nhanh: `pnpm clean-node-modules` roi `pnpm install`.
+- Pnpm sai version: kiem tra `pnpm -v`, can chinh theo `packageManager: pnpm@10.15.1`.
+- Thieu bien moi truong: chay `pnpm setup:doppler` (neu dung Doppler) hoac tu tao `.env` phu hop truoc khi build/dev.
